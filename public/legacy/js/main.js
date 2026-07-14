@@ -3294,7 +3294,7 @@ window.showService = function(serviceId) {
             </section>
 
             <!-- WHY CHOOSE US -->
-            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#f0f5ff 0%,#faf5ff 100%);"><div style="max-width:1200px; margin:0 auto;">
                 <div style="text-align:center; margin-bottom:40px;">
                     <div style="display:inline-block; padding:6px 14px; background:rgba(99,102,241,0.1); color:#6366f1; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY BUSINESSES CHOOSE US</div>
                     <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Built for Results, Not Just Looks</h2>
