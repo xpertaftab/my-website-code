@@ -3251,10 +3251,8 @@ window.showService = function(serviceId) {
                         </div>
                     </div>
                     <div class="hero-image">
-                        <div class="video-container">
-                            <video autoplay loop muted playsinline class="hero-video">
-                                <source src="main.mp4" type="video/mp4">
-                            </video>
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-web-hero.jpg" alt="Premium Website Development" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(99,102,241,0.35);">
                             <div class="float-card float-left">
                                 <div class="float-header"><span class="text-green">&lt;/&gt; React &amp; Next.js</span> <span class="text-xs">&nearr; Pixel-perfect</span></div>
                                 <div class="float-value">99+</div>
