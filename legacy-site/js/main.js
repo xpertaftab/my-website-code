@@ -3266,6 +3266,122 @@ window.showService = function(serviceId) {
                     </div>
                 </div>
             </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(15,23,42,0.15);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#818cf8,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">250+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Websites Delivered</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">99+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Google PageSpeed</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">7-14</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Days to Launch</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fbbf24,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">100%</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">On-Time Delivery</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(99,102,241,0.1); color:#6366f1; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY BUSINESSES CHOOSE US</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Built for Results, Not Just Looks</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">Every website we build is engineered to load fast, rank on Google, and turn visitors into paying customers.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-bolt', c:'#f59e0b', t:'Lightning Fast', d:'Sub-2s load times. 99+ PageSpeed. Your visitors never wait.'},
+                        {ic:'fa-magnifying-glass-chart', c:'#6366f1', t:'SEO Ready', d:'On-page SEO, schema, sitemap & Core Web Vitals — rank from day one.'},
+                        {ic:'fa-mobile-screen', c:'#22d3ee', t:'Mobile First', d:'70% traffic is mobile. Every pixel is designed for phones first.'},
+                        {ic:'fa-shield-halved', c:'#4ade80', t:'Secure by Default', d:'SSL, spam protection, DDoS-hardened hosting recommendations included.'},
+                        {ic:'fa-code', c:'#c084fc', t:'Clean Code', d:'React, Next.js, or WordPress — hand-coded, no bloated page builders.'},
+                        {ic:'fa-headset', c:'#f472b6', t:'Real Support', d:'Direct WhatsApp with the developer. No tickets. No call centers.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(99,102,241,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- TECH STACK -->
+            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(34,211,238,0.1); color:#0891b2; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">MODERN TECHNOLOGY</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Powered by Industry-Leading Tools</h2>
+                    <p style="color:#64748b;">We use the same stack Netflix, Airbnb & Shopify trust.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${['fa-react|React','fa-node-js|Node.js','fa-js|Next.js','fa-wordpress|WordPress','fa-shopify|Shopify','fa-figma|Figma','fa-html5|HTML5','fa-css3-alt|Tailwind','fa-github|GitHub','fa-aws|AWS'].map(t=>{const[i,n]=t.split('|');return `<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; font-weight:600; color:#334155; box-shadow:0 2px 6px rgba(0,0,0,0.03);"><i class="fa-brands ${i}" style="font-size:1.3rem; color:#6366f1;"></i> ${n}</div>`}).join('')}
+                </div>
+            </section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT LOVE</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">What Our Clients Say</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Ahmed Raza', r:'CEO, FreshMart', a:'A', c:'#6366f1', t:'Our sales jumped 3x within 2 months of launching the new site. The speed and design blew our competitors away.'},
+                        {n:'Priya Sharma', r:'Founder, Bloom Studio', a:'P', c:'#f472b6', t:'Absolutely stunning work. Delivered ahead of schedule and the WhatsApp support is faster than any agency I\'ve worked with.'},
+                        {n:'Michael Chen', r:'Director, TechFlow', a:'M', c:'#22d3ee', t:'99 PageSpeed score, ranking on page 1 within 6 weeks. This team knows exactly what they\'re doing. Highly recommended.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:24px; padding:44px 32px; color:#fff; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(99,102,241,0.3);">
+                    <div>
+                        <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">100% Satisfaction</h3>
+                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Unlimited revisions until you love it.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-clock" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">On-Time or Free</h3>
+                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Miss the deadline? Your next month is on us.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-money-bill-transfer" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">Safe Payment</h3>
+                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">50% upfront, 50% only after you approve.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-rotate-right" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">30-Day Free Support</h3>
+                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Bug fixes & tweaks — completely free post-launch.</p>
+                    </div>
+                </div>
+            </section>
         `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
