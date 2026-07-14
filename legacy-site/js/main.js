@@ -2095,6 +2095,23 @@ window.filterShopProducts = function() {
 // PRODUCT DATA - Local Fallback (no backend needed)
 // =============================================
 
+function normalizeAssetPath(path) {
+  if (typeof path !== 'string') return path;
+  return path
+    .replace(/^\.\/?assets\//, 'assets/')
+    .replace(/^\/?assets\/prod_/, 'assets/products/prod_')
+    .replace('assets/products/prod_8_gallery_1.jpg', 'assets/products/prod_8_main.jpg');
+}
+
+function normalizeProductAssets(product) {
+  if (!product || typeof product !== 'object') return product;
+  product.image = normalizeAssetPath(product.image);
+  if (Array.isArray(product.gallery)) {
+    product.gallery = product.gallery.map(normalizeAssetPath);
+  }
+  return product;
+}
+
 const PRODUCTS_FALLBACK = [
   { id:"p1", title:"Perfex CRM - Powerful Open Source CRM", category:"PHP Scripts", price:59, oldPrice:120, discount:"-51%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.5, reviews:342, sold:1523, shortDesc:"Complete Customer Relationship Management software for any company.", image:"assets/products/prod_0_main.jpg", features:["Project Management","Invoicing","Support Tickets","Leads Tracking","Finance Management"], included:["Full Source Code","6 Months Support","Future Updates"] },
   { id:"p2", title:"MagicAI - OpenAI Content, Text & Image Generator", category:"SaaS Software", price:39, oldPrice:79, discount:"-51%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.7, reviews:512, sold:2341, shortDesc:"Advanced AI platform to generate text, images and code.", image:"assets/products/prod_1_main.jpg", features:["AI Text Generator","AI Image Generator","AI Code Generator","SaaS Ready","Subscription Billing"], included:["SaaS Platform Code","Admin Panel","Payment Gateways"] },
@@ -2110,7 +2127,7 @@ const PRODUCTS_FALLBACK = [
   { id:"p27", title:"Advanced Web Scraper & Data Extractor", category:"Code Scripts", price:38, oldPrice:84, discount:"-55%", rating:4.1, reviews:67, sold:289, shortDesc:"PHP web scraper with proxy support & CSV export.", image:"assets/products/prod_9_main.jpg", features:["CSS Selectors","Proxy Support","Scheduled Scraping","CSV/JSON Export","Multi-threading"], included:["PHP Scripts","Configuration Files","Usage Examples"] },
   { id:"p28", title:"Social Media Auto Poster - Multi Platform", category:"Automation", price:44, oldPrice:94, discount:"-53%", rating:4.3, reviews:178, sold:765, shortDesc:"Schedule & auto-post across all major platforms.", image:"assets/products/prod_6_gallery_2.jpg", features:["Multi-Platform","Schedule Posts","Media Library","Analytics","Team Collaboration"], included:["Web Application","API Integrations","User Manual"] },
   { id:"p29", title:"E-commerce Dropshipping Management", category:"eCommerce", price:65, oldPrice:139, discount:"-53%", rating:4.2, reviews:145, sold:623, shortDesc:"Dropshipping system with supplier integration.", image:"assets/products/prod_7_gallery_1.jpg", features:["Supplier Integration","Order Tracking","Inventory Sync","Profit Calculator","Shipping Manager"], included:["Source Code","Database Schema","Integration Guide"] },
-  { id:"p30", title:"PDF Generation & Document Automation", category:"Code Scripts", price:28, oldPrice:59, discount:"-53%", rating:4.0, reviews:56, sold:234, shortDesc:"PHP PDF generation system with templates & batch processing.", image:"assets/products/prod_8_gallery_1.jpg", features:["Template System","Dynamic Content","Batch Processing","Cloud Storage","API Support"], included:["PHP Library","Sample Templates","Developer Docs"] }
+  { id:"p30", title:"PDF Generation & Document Automation", category:"Code Scripts", price:28, oldPrice:59, discount:"-53%", rating:4.0, reviews:56, sold:234, shortDesc:"PHP PDF generation system with templates & batch processing.", image:"assets/products/prod_8_main.jpg", features:["Template System","Dynamic Content","Batch Processing","Cloud Storage","API Support"], included:["PHP Library","Sample Templates","Developer Docs"] }
 ];
 
 // Populate PRODUCTS_DATA from localStorage first, then fallback to hardcoded
@@ -2122,14 +2139,21 @@ try {
     const parsed = JSON.parse(saved);
     if (parsed && Object.keys(parsed).length > 0) {
       window.PRODUCTS_DATA = parsed;
+      let changed = false;
+      Object.values(window.PRODUCTS_DATA).forEach(product => {
+        const before = JSON.stringify({ image: product.image, gallery: product.gallery });
+        normalizeProductAssets(product);
+        if (before !== JSON.stringify({ image: product.image, gallery: product.gallery })) changed = true;
+      });
+      if (changed) localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA));
     }
   }
 } catch(e) {}
 if (Object.keys(window.PRODUCTS_DATA).length === 0) {
   PRODUCTS_FALLBACK.forEach(p => {
     window.PRODUCTS_DATA[p.id] = {
-      ...p,
-      gallery: p.gallery || [p.image],
+      ...normalizeProductAssets({ ...p }),
+      gallery: p.gallery || [normalizeAssetPath(p.image)],
       fullDesc: p.fullDesc || p.shortDesc,
       whatsappMsg: `Hi! I want to buy ${p.title} for USD ${p.price}. Please guide me.`
     };
