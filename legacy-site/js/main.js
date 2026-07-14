@@ -3233,10 +3233,10 @@ window.showService = function(serviceId) {
                         <div class="badge">
                             <i class="fa-solid fa-laptop-code"></i> PREMIUM WEBSITE DEVELOPMENT
                         </div>
-                        <h1>Websites That<br>Convert &<br><span class="gradient-text">Dominate Google</span></h1>
-                        <p class="hero-desc">Ultra-fast, conversion-optimized, and highly secure websites built from scratch. 250+ delivered, 99+ PageSpeed scores, and a 100% on-time launch record — engineered to multiply your revenue.</p>
+                        <h1>Websites That Convert & <span class="gradient-text">Dominate Google</span></h1>
+                        <p class="hero-desc">Ultra-fast, conversion-optimized websites built from scratch. 250+ delivered · 99+ PageSpeed · 100% on-time launches — engineered to multiply your revenue.</p>
                         <div class="hero-buttons">
-                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want a Premium Website built for my business.')}" target="_blank" class="btn-primary">Start My Website</a>
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want a Premium Website built for my business.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Start My Website</a>
                             <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                         <div class="reviews">
