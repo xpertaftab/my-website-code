@@ -3215,16 +3215,71 @@ window.showService = function(serviceId) {
         history.pushState(null, null, '/service/' + serviceId);
     }
 
-    // Update Hero Icon
-    const iconEl = document.getElementById('serviceHeroIcon');
-    const prefix = service.iconPrefix || 'fa-solid';
-    if (iconEl) iconEl.className = `${prefix} ${service.icon}`;
+    // Swap hero — Premium Website Development gets a full homepage-style hero
+    const heroWrap = document.querySelector('#servicesPage .service-detail-hero');
+    if (heroWrap && !heroWrap.dataset.defaultHtml) {
+        heroWrap.dataset.defaultHtml = heroWrap.innerHTML;
+    }
 
-    // Update Hero Text
-    const titleEl = document.getElementById('serviceHeroTitle');
-    const descEl = document.getElementById('serviceHeroDesc');
-    if (titleEl) titleEl.innerHTML = service.title;
-    if (descEl) descEl.textContent = service.desc;
+    if (serviceId === 'web' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-laptop-code"></i> PREMIUM WEBSITE DEVELOPMENT
+                        </div>
+                        <h1>Websites That<br>Convert &<br><span class="gradient-text">Dominate Google</span></h1>
+                        <p class="hero-desc">Ultra-fast, conversion-optimized, and highly secure websites built from scratch. 250+ delivered, 99+ PageSpeed scores, and a 100% on-time launch record — engineered to multiply your revenue.</p>
+                        <div class="hero-buttons">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want a Premium Website built for my business.')}" target="_blank" class="btn-primary">Start My Website</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">A</div>
+                                <div class="avatar a2">B</div>
+                                <div class="avatar a3">C</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(250+ websites delivered)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container">
+                            <video autoplay loop muted playsinline class="hero-video">
+                                <source src="main.mp4" type="video/mp4">
+                            </video>
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">&lt;/&gt; React &amp; Next.js</span> <span class="text-xs">&nearr; Pixel-perfect</span></div>
+                                <div class="float-value">99+</div>
+                                <div class="float-label">Google PageSpeed</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-bolt text-orange"></i> On-time Launch <span class="text-xs">&nearr; 100%</span></div>
+                                <div class="circle-progress"><span>250+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        `;
+    } else if (heroWrap) {
+        heroWrap.classList.remove('service-detail-hero-homepage');
+        heroWrap.innerHTML = heroWrap.dataset.defaultHtml;
+        const iconEl = document.getElementById('serviceHeroIcon');
+        const prefix = service.iconPrefix || 'fa-solid';
+        if (iconEl) iconEl.className = `${prefix} ${service.icon}`;
+        const titleEl = document.getElementById('serviceHeroTitle');
+        const descEl = document.getElementById('serviceHeroDesc');
+        if (titleEl) titleEl.innerHTML = service.title;
+        if (descEl) descEl.textContent = service.desc;
+    }
 
     // Update Features Section Title
     const featTitle = document.getElementById('serviceFeaturesTitle');
