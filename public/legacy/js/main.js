@@ -3316,22 +3316,22 @@ window.showService = function(serviceId) {
                         </div>
                     `).join('')}
                 </div>
-            </section>
+            </div></section>
 
             <!-- TECH STACK -->
-            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+            <section style="margin:0; padding:60px 20px; background:#0f172a;"><div style="max-width:1200px; margin:0 auto;">
                 <div style="text-align:center; margin-bottom:34px;">
-                    <div style="display:inline-block; padding:6px 14px; background:rgba(34,211,238,0.1); color:#0891b2; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">MODERN TECHNOLOGY</div>
-                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Powered by Industry-Leading Tools</h2>
-                    <p style="color:#64748b;">We use the same stack Netflix, Airbnb & Shopify trust.</p>
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(34,211,238,0.15); color:#22d3ee; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">MODERN TECHNOLOGY</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Powered by Industry-Leading Tools</h2>
+                    <p style="color:#94a3b8;">We use the same stack Netflix, Airbnb & Shopify trust.</p>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
-                    ${['fa-react|React','fa-node-js|Node.js','fa-js|Next.js','fa-wordpress|WordPress','fa-shopify|Shopify','fa-figma|Figma','fa-html5|HTML5','fa-css3-alt|Tailwind','fa-github|GitHub','fa-aws|AWS'].map(t=>{const[i,n]=t.split('|');return `<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; font-weight:600; color:#334155; box-shadow:0 2px 6px rgba(0,0,0,0.03);"><i class="fa-brands ${i}" style="font-size:1.3rem; color:#6366f1;"></i> ${n}</div>`}).join('')}
+                    ${['fa-react|React','fa-node-js|Node.js','fa-js|Next.js','fa-wordpress|WordPress','fa-shopify|Shopify','fa-figma|Figma','fa-html5|HTML5','fa-css3-alt|Tailwind','fa-github|GitHub','fa-aws|AWS'].map(t=>{const[i,n]=t.split('|');return `<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="fa-brands ${i}" style="font-size:1.3rem; color:#818cf8;"></i> ${n}</div>`}).join('')}
                 </div>
-            </section>
+            </div></section>
 
             <!-- CLIENT TESTIMONIALS -->
-            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fdf2f8 0%,#fff7ed 100%);"><div style="max-width:1200px; margin:0 auto;">
                 <div style="text-align:center; margin-bottom:40px;">
                     <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT LOVE</div>
                     <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">What Our Clients Say</h2>
