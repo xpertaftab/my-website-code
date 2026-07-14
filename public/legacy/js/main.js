@@ -3355,10 +3355,10 @@ window.showService = function(serviceId) {
                         </div>
                     `).join('')}
                 </div>
-            </section>
+            </div></section>
 
             <!-- GUARANTEE BANNER -->
-            <section style="max-width:1200px; margin:70px auto 0; padding:0 20px;">
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
                 <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:24px; padding:44px 32px; color:#fff; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(99,102,241,0.3);">
                     <div>
                         <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
