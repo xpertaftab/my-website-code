@@ -3381,7 +3381,7 @@ window.showService = function(serviceId) {
                         <p style="font-size:0.88rem; opacity:0.9; margin:0;">Bug fixes & tweaks — completely free post-launch.</p>
                     </div>
                 </div>
-            </section>
+            </div></section>
         `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
