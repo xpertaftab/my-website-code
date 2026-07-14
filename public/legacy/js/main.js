@@ -3359,26 +3359,26 @@ window.showService = function(serviceId) {
 
             <!-- GUARANTEE BANNER -->
             <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
-                <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:24px; padding:44px 32px; color:#fff; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(99,102,241,0.3);">
+                <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(99,102,241,0.3);">
                     <div>
-                        <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
-                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">100% Satisfaction</h3>
-                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Unlimited revisions until you love it.</p>
+                        <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">100% Satisfaction</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Unlimited revisions until you love it.</p>
                     </div>
                     <div>
-                        <i class="fa-solid fa-clock" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
-                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">On-Time or Free</h3>
-                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Miss the deadline? Your next month is on us.</p>
+                        <i class="fa-solid fa-clock" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">On-Time or Free</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Miss the deadline? Your next month is on us.</p>
                     </div>
                     <div>
-                        <i class="fa-solid fa-money-bill-transfer" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
-                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">Safe Payment</h3>
-                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">50% upfront, 50% only after you approve.</p>
+                        <i class="fa-solid fa-money-bill-transfer" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Safe Payment</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">50% upfront, 50% only after you approve.</p>
                     </div>
                     <div>
-                        <i class="fa-solid fa-rotate-right" style="font-size:2.2rem; margin-bottom:10px; opacity:0.95;"></i>
-                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700;">30-Day Free Support</h3>
-                        <p style="font-size:0.88rem; opacity:0.9; margin:0;">Bug fixes & tweaks — completely free post-launch.</p>
+                        <i class="fa-solid fa-rotate-right" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">30-Day Free Support</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Bug fixes & tweaks — completely free post-launch.</p>
                     </div>
                 </div>
             </div></section>
