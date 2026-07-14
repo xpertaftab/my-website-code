@@ -1733,7 +1733,8 @@ h1 {
     
     .hero-desc {
         font-size: 1rem;
-        margin-bottom: 30px;
+        margin-bottom: 32px;
+        margin-top: 8px;
     }
 
     .hero-buttons {
