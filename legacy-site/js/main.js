@@ -3316,8 +3316,8 @@ window.showService = function(serviceId) {
     // --- PRICING PACKAGES DATA ---
     const pricingPackages = {
         web: [
-            { name: 'Starter', price: '$299', desc: 'Perfect for small businesses & startups', features: ['5-Page Responsive Website', 'Mobile-First Design', 'Basic SEO Setup', 'Contact Form Integration', '1 Month Free Support', 'Free Domain Advice'] },
-            { name: 'Professional', price: '$699', desc: 'For growing businesses that demand results', features: ['Up to 15 Pages', 'Custom UI/UX Design', 'Full On-Page SEO', 'Blog / CMS Integration', 'Google Analytics Setup', '3 Months Support', 'Speed Optimization'], highlight: true },
+            { name: 'Starter', price: '$99', desc: 'Perfect for small businesses & startups', features: ['5-Page Responsive Website', 'Mobile-First Design', 'Basic SEO Setup', 'Contact Form Integration', '1 Month Free Support', 'Free Domain Advice'] },
+            { name: 'Professional', price: '$179', desc: 'For growing businesses that demand results', features: ['Up to 15 Pages', 'Custom UI/UX Design', 'Full On-Page SEO', 'Blog / CMS Integration', 'Google Analytics Setup', '3 Months Support', 'Speed Optimization'], highlight: true },
             { name: 'Enterprise', price: 'Custom', desc: 'Full-scale web applications & e-commerce', features: ['Unlimited Pages', 'E-Commerce / Client Portal', 'Custom API Integrations', 'Admin Dashboard', 'Advanced Security Layer', '6 Months Priority Support', 'Dedicated Project Manager'] }
         ],
         software: [
