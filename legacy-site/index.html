@@ -4,12 +4,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vextro Lyntra | Premium Digital Assets</title>
+    <title>Vextro Lyntra | Web, Software, AI, SEO, Ads & Design Services</title>
+    <meta name="description" content="Vextro Lyntra offers premium digital services: web & software development, AI automation, SEO, Google & Meta Ads, social media management, and elite graphic design & branding.">
+    <meta name="keywords" content="web development, custom software, SaaS, AI automation, SEO services, Google Ads, Facebook Ads, social media management, graphic design, branding, digital assets marketplace">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Vextro Lyntra">
+    <link rel="canonical" href="/">
+    <base href="/">
     <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Vextro Lyntra">
+    <meta property="og:title" content="Vextro Lyntra | Premium Digital Services & Assets">
+    <meta property="og:description" content="Web & software development, AI automation, SEO, paid ads, social media management, and elite graphic design & branding — all in one place.">
+    <meta property="og:url" content="/">
+    <meta property="og:image" content="assets/logo.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Vextro Lyntra | Premium Digital Services & Assets">
+    <meta name="twitter:description" content="Web, software, AI, SEO, ads, social media, and elite branding services.">
+    <meta name="twitter:image" content="assets/logo.png">
+
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Vextro Lyntra",
+      "url": "/legacy/",
+      "logo": "assets/logo.png",
+      "description": "Premium digital services and assets marketplace: web & software development, AI automation, SEO, paid ads, social media, and branding."
+    }
+    </script>
+
+    <!-- Structured Data: Services -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Vextro Lyntra Services",
+      "itemListElement": [
+        {"@type":"Service","position":1,"name":"Premium Website Development","description":"Custom, high-performance websites with bespoke UI/UX, technical SEO, and enterprise-grade security."},
+        {"@type":"Service","position":2,"name":"Custom Software & SaaS Development","description":"Cloud-native SaaS platforms, business automation, and secure APIs built to scale."},
+        {"@type":"Service","position":3,"name":"AI Automation & Integration","description":"AI agents, workflow automation, predictive ML, and custom LLM fine-tuning for your business."},
+        {"@type":"Service","position":4,"name":"Dominant SEO Services","description":"Technical SEO, content strategy, and link building to rank on page one of Google."},
+        {"@type":"Service","position":5,"name":"Google Ads Management","description":"ROI-focused Google Ads campaigns: Search, Display, Shopping, and YouTube."},
+        {"@type":"Service","position":6,"name":"Facebook & Instagram Ads","description":"High-converting Meta ad funnels with creative, targeting, and scaling handled end-to-end."},
+        {"@type":"Service","position":7,"name":"Premium Social Media Management","description":"Full-service social media management: content, community, analytics, and growth."},
+        {"@type":"Service","position":8,"name":"Elite Graphic Design & Branding","description":"Logo design, brand identity, pitch decks, and packaging by senior designers."}
+      ]
+    }
+    </script>
 </head>
 
 <body>
@@ -41,7 +93,7 @@
 
             <!-- DESKTOP RIGHT ACTIONS -->
             <div class="desktop-nav-actions" id="desktopNavActions">
-                <a href="javascript:void(0)" onclick="showPage('shop')" class="cart-icon"><i
+                <a href="javascript:void(0)" onclick="showPage('shop')" class="cart-icon" aria-label="Shop cart"><i
                         class="fa-solid fa-bag-shopping"></i></a>
                 <div class="divider"></div>
                 <div id="desktopAuthButtons" style="display: flex; align-items: center; gap: 15px;">
@@ -66,7 +118,7 @@
 
             <!-- MOBILE RIGHT ACTIONS -->
             <div class="mobile-nav-actions">
-                <a href="#" class="cart-icon" onclick="showPage('shop')" style="position:relative;">
+                <a href="#" class="cart-icon" aria-label="Shop cart" onclick="showPage('shop')" style="position:relative;">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span
                         style="position:absolute; top:-10px; right:-10px; background:#ef4444; color:white; font-size:0.65rem; padding:2px 6px; border-radius:50%; font-weight:800; border:2px solid white;">1</span>
@@ -74,7 +126,7 @@
                 <a href="javascript:void(0)" onclick="handleHeaderDashboardClick()"
                     style="font-size:1.4rem; color:#64748b; margin-left:18px;"><i
                         class="fa-solid fa-table-cells-large"></i></a>
-                <button class="menu-btn" onclick="toggleMobileMenu()" style="margin-left:18px;"><i
+                <button class="menu-btn" aria-label="Open menu" onclick="toggleMobileMenu()" style="margin-left:18px;"><i
                         class="fa-solid fa-bars"></i></button>
             </div>
         </div>
@@ -89,7 +141,7 @@
                     <span class="logo-d" style="color: #f97316;">V</span>extro Lyntra
                 </div>
                 <!-- Close Button -->
-                <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+                <button class="mobile-menu-close" aria-label="Close menu" onclick="toggleMobileMenu()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
