@@ -3450,6 +3450,202 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'seo' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i> DOMINANT SEO SERVICES
+                        </div>
+                        <h1>Take Over <span class="gradient-text">Google Page 1</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">Aggressive, data-backed SEO campaigns that monopolize your niche. 180+ ranked domains · 4x avg traffic growth in 6 months · 100+ Page-1 keywords per campaign.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want to rank #1 on Google with your SEO service.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Get Free SEO Audit</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">S</div>
+                                <div class="avatar a2">E</div>
+                                <div class="avatar a3">O</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(180+ domains ranked)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-seo-hero.jpg" alt="Dominant SEO Services" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(16,185,129,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">Ahrefs · SEMrush · GSC</span> <span class="text-xs">&nearr; White-hat</span></div>
+                                <div class="float-value">4x</div>
+                                <div class="float-label">Traffic in 6 Months</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-trophy text-orange"></i> Page-1 Keywords <span class="text-xs">&nearr; 100+</span></div>
+                                <div class="circle-progress"><span>180+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#064e3b,#0f172a); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(6,78,59,0.25);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#34d399,#a7f3d0); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">180+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Domains Ranked</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#34d399); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4x</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Avg Traffic Growth</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fbbf24,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">100+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Page-1 Keywords / Campaign</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">7+ yrs</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">SEO Experience</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#ecfdf5 0%,#f0fdfa 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(16,185,129,0.1); color:#10b981; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY OUR SEO WORKS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Rankings That Actually Convert</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">We don't chase vanity keywords. We hunt buyer-intent traffic that turns into revenue.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-chart-line', c:'#10b981', t:'Buyer-Intent Keywords', d:'Hidden, high-converting keywords your competitors completely ignore.'},
+                        {ic:'fa-file-lines', c:'#22d3ee', t:'Surgical On-Page SEO', d:'Every H1, meta tag, schema & URL aligned to Google\'s latest algorithm.'},
+                        {ic:'fa-link', c:'#8b5cf6', t:'High-DR Backlinks', d:'Authoritative, contextual links from trusted industry publications.'},
+                        {ic:'fa-gauge-high', c:'#f59e0b', t:'Technical SEO', d:'Crawl fixes, schema, Core Web Vitals & lightning server response times.'},
+                        {ic:'fa-pen-nib', c:'#f472b6', t:'Pillar Content', d:'Massive authority guides that magnetize traffic and earn natural links.'},
+                        {ic:'fa-chart-bar', c:'#6366f1', t:'ROI Reporting', d:'Transparent monthly breakdowns tying rankings directly to revenue.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(16,185,129,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- TECH STACK -->
+            <section style="margin:0; padding:60px 20px; background:#064e3b;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(52,211,153,0.15); color:#6ee7b7; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">PRO SEO STACK</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Enterprise SEO Tools We Use</h2>
+                    <p style="color:#a7f3d0;">$2,000+/mo worth of premium tools — included in every campaign.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${[
+                        {i:'fa-magnifying-glass',n:'Ahrefs'},{i:'fa-chart-line',n:'SEMrush'},{i:'fa-frog',n:'Screaming Frog'},
+                        {i:'fa-google',n:'Search Console',brand:true},{i:'fa-wave-square',n:'Surfer SEO'},{i:'fa-lightbulb',n:'Clearscope'},
+                        {i:'fa-gauge-high',n:'PageSpeed'},{i:'fa-google',n:'Analytics 4',brand:true},{i:'fa-globe',n:'Moz'},{i:'fa-link',n:'Majestic'}
+                    ].map(t=>`<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${t.brand?'fa-brands':'fa-solid'} ${t.i}" style="font-size:1.3rem; color:#34d399;"></i> ${t.n}</div>`).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fff7ed 0%,#ecfdf5 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT WINS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Real Rankings, Real Revenue</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Bilal Ahmed', r:'Owner, UrbanFit Gym', a:'B', c:'#10b981', t:'From invisible to #1 for "gym near me" in 4 months. Our membership signups tripled. These guys are the real deal.'},
+                        {n:'Laura Bennett', r:'CEO, HomeGlow Decor', a:'L', c:'#f472b6', t:'40+ Page-1 keywords in 5 months. Organic revenue overtook our paid ads. Best money we\'ve ever spent on marketing.'},
+                        {n:'Omar Farooq', r:'Founder, LegalEase PK', a:'O', c:'#22d3ee', t:'Ranked for every high-value legal keyword in our city. Getting 15+ qualified leads per week purely from organic.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#10b981,#0891b2); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(16,185,129,0.3);">
+                    <div>
+                        <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">100% White-Hat</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Zero risk of Google penalties — ever.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-chart-line" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Monthly Growth</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Measurable improvement every 30 days.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-file-invoice" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">No Long Contracts</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Month-to-month. Cancel any time.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-eye" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Full Transparency</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Live rank-tracking dashboard access.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- INDUSTRIES -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#064e3b; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(52,211,153,0.15); color:#6ee7b7; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">INDUSTRIES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">SEO That Dominates Your Niche</h2>
+                    <p style="color:#a7f3d0; max-width:600px; margin:0 auto;">200+ industries ranked. If people search it, we rank you for it.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'E-commerce', icon:'fa-cart-shopping'},
+                        {t:'Local Business', icon:'fa-location-dot'},
+                        {t:'SaaS / Tech', icon:'fa-microchip'},
+                        {t:'Real Estate', icon:'fa-house'},
+                        {t:'Healthcare', icon:'fa-heart-pulse'},
+                        {t:'Legal Firms', icon:'fa-scale-balanced'},
+                        {t:'Education', icon:'fa-book-open'},
+                        {t:'Fitness & Gym', icon:'fa-dumbbell'},
+                        {t:'Restaurants', icon:'fa-utensils'},
+                        {t:'Travel', icon:'fa-plane'},
+                        {t:'Finance', icon:'fa-money-bill-trend-up'},
+                        {t:'Automotive', icon:'fa-car'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#6ee7b7; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
     } else if (serviceId === 'ai' && heroWrap) {
         heroWrap.classList.add('service-detail-hero-homepage');
         heroWrap.innerHTML = `
