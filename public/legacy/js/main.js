@@ -3450,6 +3450,202 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'graphic' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-paintbrush"></i> ELITE GRAPHIC DESIGN & BRANDING
+                        </div>
+                        <h1>Luxury Brand Identities That <span class="gradient-text">Command Premium Prices</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">World-class logo design, brand identity systems, pitch decks & packaging for ambitious brands. 300+ identities delivered · decks that raised $50M+ in funding · award-winning work featured on Behance & Dribbble · senior designers with 9+ years experience.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want elite graphic design & branding for my business.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Get Free Brand Consultation</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">A</div>
+                                <div class="avatar a2">L</div>
+                                <div class="avatar a3">K</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(300+ brand identities · $50M+ raised)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-graphic-hero.jpg" alt="Elite Graphic Design & Branding — Logo, Identity, Pitch Decks, Packaging" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(217,119,6,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">Logo · Identity · Guidelines</span> <span class="text-xs">&nearr; award-winning</span></div>
+                                <div class="float-value">300+</div>
+                                <div class="float-label">Brand Identities Delivered</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-sack-dollar text-orange"></i> Decks <span class="text-xs">&nearr; funded</span></div>
+                                <div class="circle-progress"><span>$50M+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#0f172a,#78350f); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(120,53,15,0.25);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fbbf24,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">300+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Brand Identities Delivered</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fde68a,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">$50M+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Raised With Our Decks</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fb923c,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">9+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Yrs Senior Design Experience</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Unlimited</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Revisions Until Perfect</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#fffbeb 0%,#f8fafc 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(217,119,6,0.1); color:#b45309; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY OUR DESIGN WINS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Design That Elevates You Above The Competition</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">We craft psychology-driven, luxury visual identities that make your business look premium and worth more.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-crown', c:'#b45309', t:'Luxury Logo Systems', d:'Timeless primary, secondary, submark & responsive logo variations built for real-world applications.'},
+                        {ic:'fa-book', c:'#8b5cf6', t:'Full Brand Guidelines PDF', d:'Colors, typography, spacing, imagery, tone-of-voice — a complete rulebook so your brand stays consistent forever.'},
+                        {ic:'fa-file-powerpoint', c:'#ec4899', t:'Investor & Pitch Decks', d:'High-converting decks (Figma / PPT / Keynote) that have raised over $50M in venture capital & client contracts.'},
+                        {ic:'fa-box-open', c:'#10b981', t:'Luxury Packaging Design', d:'Retail & e-commerce packaging that creates a breathtaking unboxing moment worth sharing on social.'},
+                        {ic:'fa-mobile-screen', c:'#4285f4', t:'Social Media Templates', d:'On-brand Instagram, LinkedIn & story templates so your team can post consistently in your visual language.'},
+                        {ic:'fa-file-image', c:'#22d3ee', t:'Editable Source Files', d:'You get Figma, AI, PSD & InDesign files — full ownership, no lock-in, ready for print or web at any time.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(217,119,6,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- DESIGN STACK -->
+            <section style="margin:0; padding:60px 20px; background:#0f172a;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(251,191,36,0.15); color:#fde68a; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">PRO DESIGN STACK</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Industry-Standard Tools. Award-Winning Output.</h2>
+                    <p style="color:#fde68a;">Figma, Adobe Creative Suite, Blender, After Effects, Framer & more.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${[
+                        {i:'fa-figma',n:'Figma',brand:true},{i:'fa-adobe',n:'Illustrator',brand:true},{i:'fa-adobe',n:'Photoshop',brand:true},
+                        {i:'fa-adobe',n:'InDesign',brand:true},{i:'fa-adobe',n:'After Effects',brand:true},{i:'fa-cube',n:'Blender 3D'},
+                        {i:'fa-wand-magic-sparkles',n:'Framer'},{i:'fa-file-powerpoint',n:'Keynote / PPT'},{i:'fa-swatchbook',n:'Pantone System'},{i:'fa-print',n:'Print-Ready Files'}
+                    ].map(t=>`<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${t.brand?'fa-brands':'fa-solid'} ${t.i}" style="font-size:1.3rem; color:#fbbf24;"></i> ${t.n}</div>`).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fff7ed 0%,#fffbeb 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(180,83,9,0.12); color:#b45309; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT WINS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Brands That Now Look Like Industry Leaders</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Adeel Rehman', r:'Founder, Aurelian Perfumes', a:'A', c:'#b45309', t:'Our new brand identity looks like a Parisian luxury house. Retail buyers took us seriously overnight and we doubled our wholesale price.'},
+                        {n:'Laila Ahmed', r:'CEO, NovaHealth SaaS', a:'L', c:'#8b5cf6', t:'Their pitch deck helped us close a $4.2M seed round. Every VC commented on how premium and clear our brand felt. Worth 100x what we paid.'},
+                        {n:'Karim Bouchard', r:'Owner, Maison Karim Café Chain', a:'K', c:'#ec4899', t:'The packaging and menu redesign transformed our cafés. Customers now post our cups on Instagram every day — free marketing forever.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#b45309,#0f172a); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(180,83,9,0.3);">
+                    <div>
+                        <i class="fa-solid fa-award" style="font-size:2.2rem; margin-bottom:10px; color:#fbbf24;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Award-Winning Studio</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Featured on Behance & Dribbble.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-arrows-rotate" style="font-size:2.2rem; margin-bottom:10px; color:#fbbf24;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Unlimited Revisions</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">We refine until you love it.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-folder-open" style="font-size:2.2rem; margin-bottom:10px; color:#fbbf24;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Full Source Files</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Figma, AI, PSD — you own it all.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-clock" style="font-size:2.2rem; margin-bottom:10px; color:#fbbf24;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Fast Turnaround</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Logos in 5 days, brands in 14.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- DELIVERABLES / INDUSTRIES -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#0f172a; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(251,191,36,0.15); color:#fde68a; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">WHAT WE DESIGN</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Complete Design Deliverables</h2>
+                    <p style="color:#fde68a; max-width:600px; margin:0 auto;">Everything you need to launch, scale & impress — from logo to launch collateral.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'Logo Design', icon:'fa-pen-nib'},
+                        {t:'Brand Guidelines', icon:'fa-book'},
+                        {t:'Business Cards', icon:'fa-id-card'},
+                        {t:'Pitch Decks', icon:'fa-file-powerpoint'},
+                        {t:'Packaging Design', icon:'fa-box-open'},
+                        {t:'Social Templates', icon:'fa-mobile-screen'},
+                        {t:'Website Mockups', icon:'fa-desktop'},
+                        {t:'Menu & Print Design', icon:'fa-utensils'},
+                        {t:'Merch & Apparel', icon:'fa-shirt'},
+                        {t:'Icon Systems', icon:'fa-icons'},
+                        {t:'Illustration & 3D', icon:'fa-cube'},
+                        {t:'Motion Graphics', icon:'fa-film'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#fde68a; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
     } else if (serviceId === 'social' && heroWrap) {
         heroWrap.classList.add('service-detail-hero-homepage');
         heroWrap.innerHTML = `
