@@ -3442,33 +3442,8 @@ window.showService = function(serviceId) {
                 </div>
             </section>
 
-            <!-- ============ PORTFOLIO / RECENT WORK (clean, no image blocks) ============ -->
-            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
-                <div style="text-align:center; margin-bottom:40px;">
-                    <span style="display:inline-block; padding:6px 14px; background:#fff1ec; color:#ff5e3a; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">OUR WORK</span>
-                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Recent Projects</h2>
-                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Real websites we shipped for real clients.</p>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
-                    ${[
-                        {t:'E-commerce Fashion Store', c:'Shopify + Custom Theme', tag:'E-COMMERCE', icon:'fa-bag-shopping'},
-                        {t:'Real Estate Platform', c:'Next.js + Map API', tag:'REAL ESTATE', icon:'fa-building'},
-                        {t:'SaaS Dashboard', c:'React + Node.js', tag:'SAAS', icon:'fa-chart-line'},
-                        {t:'Restaurant Booking Site', c:'WordPress + Reservations', tag:'HOSPITALITY', icon:'fa-utensils'},
-                        {t:'Medical Clinic Portal', c:'Custom PHP + Patient CRM', tag:'HEALTHCARE', icon:'fa-stethoscope'},
-                        {t:'Online Learning Academy', c:'LMS + Video Streaming', tag:'EDUCATION', icon:'fa-graduation-cap'}
-                    ].map(p => `
-                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(15,23,42,0.04); display:flex; align-items:flex-start; gap:16px;">
-                            <div style="flex-shrink:0; width:52px; height:52px; border-radius:12px; background:#fff1ec; color:#ff5e3a; display:flex; align-items:center; justify-content:center; font-size:1.4rem;"><i class="fa-solid ${p.icon}"></i></div>
-                            <div style="min-width:0;">
-                                <span style="font-size:0.7rem; font-weight:800; color:#ff5e3a; letter-spacing:1px;">${p.tag}</span>
-                                <h3 style="font-size:1.05rem; color:#0f172a; margin:4px 0 4px; font-weight:700;">${p.t}</h3>
-                                <p style="font-size:0.85rem; color:#64748b; margin:0;">${p.c}</p>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
+
+
 
             <!-- ============ INDUSTRIES WE SERVE ============ -->
             <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#0f172a; border-radius:24px;">
