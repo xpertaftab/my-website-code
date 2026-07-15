@@ -3383,39 +3383,8 @@ window.showService = function(serviceId) {
                 </div>
             </div></section>
 
-            <!-- ============ PRICING COMPARISON TABLE ============ -->
-            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
-                <div style="text-align:center; margin-bottom:40px;">
-                    <span style="display:inline-block; padding:6px 14px; background:#fff1ec; color:#ff5e3a; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">PRICING</span>
-                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Choose Your Plan</h2>
-                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Transparent pricing. No hidden fees. Cancel anytime.</p>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px;">
-                    ${[
-                        {name:'Starter', price:'$99', tag:'Best for small biz', highlight:false, features:[['5 Pages',true],['Mobile Responsive',true],['Contact Form',true],['Basic SEO',true],['Free Hosting (3mo)',true],['E-commerce',false],['Custom Design',false],['Priority Support',false]]},
-                        {name:'Professional', price:'$179', tag:'Most Popular', highlight:true, features:[['10 Pages',true],['Mobile Responsive',true],['Contact + Booking Forms',true],['Advanced SEO',true],['Free Hosting (12mo)',true],['E-commerce Ready',true],['Custom Design',true],['Priority Support',false]]},
-                        {name:'Enterprise', price:'Custom', tag:'Full custom build', highlight:false, features:[['Unlimited Pages',true],['Mobile Responsive',true],['All Form Types',true],['Advanced SEO + Schema',true],['Free Hosting (24mo)',true],['E-commerce Advanced',true],['Fully Custom Design',true],['Dedicated Manager',true]]}
-                    ].map(p => `
-                        <div style="background:#fff; border:${p.highlight ? '2px solid #ff5e3a' : '1px solid #e2e8f0'}; border-radius:20px; padding:32px 24px; position:relative; box-shadow:${p.highlight ? '0 20px 50px rgba(255,94,58,0.18)' : '0 4px 12px rgba(15,23,42,0.04)'}; transform:${p.highlight ? 'scale(1.03)' : 'none'};">
-                            ${p.highlight ? '<div style="position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#ff5e3a,#ff2a68); color:#fff; padding:6px 16px; border-radius:999px; font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">MOST POPULAR</div>' : ''}
-                            <div style="text-align:center; margin-bottom:20px;">
-                                <h3 style="font-size:1.3rem; color:#0f172a; margin:0 0 6px; font-weight:700;">${p.name}</h3>
-                                <p style="color:#64748b; font-size:0.85rem; margin:0 0 16px;">${p.tag}</p>
-                                <div style="font-size:2.5rem; font-weight:800; color:#0f172a;">${p.price}</div>
-                            </div>
-                            <ul style="list-style:none; padding:0; margin:0 0 24px;">
-                                ${p.features.map(([f,ok]) => `
-                                    <li style="padding:10px 0; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:10px; color:${ok ? '#0f172a' : '#cbd5e1'}; font-size:0.9rem;">
-                                        <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}" style="color:${ok ? '#10b981' : '#cbd5e1'}; width:16px;"></i>
-                                        <span>${f}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want the ' + p.name + ' web plan (' + p.price + ')')}" style="display:block; text-align:center; padding:12px; background:${p.highlight ? 'linear-gradient(135deg,#ff5e3a,#ff2a68)' : '#0f172a'}; color:#fff; border-radius:12px; font-weight:700; text-decoration:none; font-size:0.95rem;">Get Started</a>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
+
+
 
             <!-- ============ PROCESS / TIMELINE ============ -->
             <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:linear-gradient(180deg,#fff6f2 0%,#fff0f4 100%); border-radius:24px;">
