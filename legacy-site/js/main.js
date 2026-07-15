@@ -3450,6 +3450,202 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'fb_ads' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-brands fa-meta"></i> FACEBOOK & INSTAGRAM ADS MANAGEMENT
+                        </div>
+                        <h1>Scale Your Sales With <span class="gradient-text">Meta Ads That Convert</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">Expert Facebook & Instagram Ads management for e-commerce, DTC brands & lead-gen businesses. $3M+ ad spend managed · 5-10x average ROAS · UGC video ads · CAPI server-side tracking · iOS-14+ proof.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want expert Facebook & Instagram Ads management for my business.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Get Free Meta Ads Audit</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">F</div>
+                                <div class="avatar a2">B</div>
+                                <div class="avatar a3">I</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>($3M+ Meta ad spend managed)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-fb-ads-hero.jpg" alt="Facebook & Instagram Ads Management — Meta Advertising Experts" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(236,72,153,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">Reels · Stories · Feed · Shop</span> <span class="text-xs">&nearr; UGC ready</span></div>
+                                <div class="float-value">7.2x</div>
+                                <div class="float-label">Avg ROAS</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-users text-orange"></i> Lookalikes <span class="text-xs">&nearr; 1-3%</span></div>
+                                <div class="circle-progress"><span>$3M+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#4c1d95,#831843); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(131,24,67,0.25);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#fda4af); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">$3M+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Meta Ad Spend Managed</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#a78bfa,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">5-10x</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">E-com ROAS Achieved</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fb923c,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">-48%</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Avg Cost per Purchase</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">200+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Campaigns Optimized</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#fdf2f8 0%,#eff6ff 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(236,72,153,0.1); color:#ec4899; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY OUR META ADS WIN</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Facebook & Instagram Ads That Actually Sell</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">We combine scroll-stopping creative, precise targeting & server-side tracking to deliver profitable growth on Meta platforms.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-video', c:'#ec4899', t:'UGC & Video Ad Creative', d:'Scroll-stopping Reels, Stories & feed videos designed to convert cold traffic into buyers.'},
+                        {ic:'fa-bullseye', c:'#8b5cf6', t:'Advantage+ & Custom Audiences', d:'Precise interest, lookalike (1-3%) & retargeting audiences trained on your best buyers.'},
+                        {ic:'fa-shield-halved', c:'#4285f4', t:'CAPI Server-Side Tracking', d:'Meta Conversions API restores up to 95% of iOS-14+ attribution loss for accurate optimization.'},
+                        {ic:'fa-flask', c:'#f59e0b', t:'Creative Testing Framework', d:'Systematic A/B testing of hooks, angles, thumbnails & offers — winners scale, losers get killed.'},
+                        {ic:'fa-filter', c:'#10b981', t:'Full-Funnel Campaigns', d:'TOF awareness → MOF engagement → BOF retargeting — engineered for compounding ROAS.'},
+                        {ic:'fa-chart-line', c:'#22d3ee', t:'Daily Optimization', d:'CBO/ABO budget shifts, bid tuning & audience refresh — managed by real humans, not just AI.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(236,72,153,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- CAMPAIGN TYPES / STACK -->
+            <section style="margin:0; padding:60px 20px; background:#1e1b4b;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.15); color:#f9a8d4; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">META AD FORMATS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Every Facebook & Instagram Placement Covered</h2>
+                    <p style="color:#f9a8d4;">Reels, Stories, Feed, Marketplace, Shop & Messenger — mastered.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${[
+                        {i:'fa-facebook',n:'Feed Ads',brand:true},{i:'fa-instagram',n:'Reels Ads',brand:true},{i:'fa-clock-rotate-left',n:'Stories Ads'},
+                        {i:'fa-images',n:'Carousel'},{i:'fa-bag-shopping',n:'Shop Ads'},{i:'fa-comments',n:'Messenger Ads'},
+                        {i:'fa-repeat',n:'Retargeting'},{i:'fa-users',n:'Lookalikes 1-3%'},{i:'fa-code',n:'CAPI Tracking'},{i:'fa-user-check',n:'Lead Ads'}
+                    ].map(t=>`<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${t.brand?'fa-brands':'fa-solid'} ${t.i}" style="font-size:1.3rem; color:#f472b6;"></i> ${t.n}</div>`).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fff7ed 0%,#fdf2f8 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT WINS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Real Meta Ads. Real Revenue.</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Ayesha Khan', r:'Founder, GlowNest Skincare', a:'A', c:'#ec4899', t:'Went from 1.8x to 6.4x ROAS in 45 days. Their UGC video ads are on another level — our best-selling serum sold out twice.'},
+                        {n:'Marco Rossi', r:'CEO, UrbanKick Sneakers', a:'M', c:'#8b5cf6', t:'Scaled us from $8k to $95k/month on Meta profitably. CAPI setup restored 40% of lost iOS conversions. Total pros.'},
+                        {n:'Fatima Yusuf', r:'Owner, LumaHome Decor', a:'F', c:'#4285f4', t:'Cost per purchase dropped 52% while spend tripled. Our Instagram Shop is finally a real revenue channel.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#ec4899,#8b5cf6); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(236,72,153,0.3);">
+                    <div>
+                        <i class="fa-brands fa-meta" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Meta Business Partner</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Certified Facebook & Instagram media buyers.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-eye" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">You Own the Ad Account</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Ad spend goes directly to Meta.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-file-contract" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">No Long Contracts</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Month-to-month. Cancel anytime.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-video" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">UGC Video Included</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Ad creative production baked in.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- INDUSTRIES -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#1e1b4b; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.15); color:#f9a8d4; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">INDUSTRIES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Meta Ads That Scale Any Business</h2>
+                    <p style="color:#f9a8d4; max-width:600px; margin:0 auto;">200+ campaigns across e-commerce, DTC, coaching, SaaS & local services.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'E-commerce / DTC', icon:'fa-cart-shopping'},
+                        {t:'Fashion & Apparel', icon:'fa-shirt'},
+                        {t:'Beauty & Skincare', icon:'fa-spray-can-sparkles'},
+                        {t:'Fitness Coaches', icon:'fa-dumbbell'},
+                        {t:'Info Products', icon:'fa-graduation-cap'},
+                        {t:'SaaS / Apps', icon:'fa-microchip'},
+                        {t:'Real Estate', icon:'fa-house'},
+                        {t:'Restaurants', icon:'fa-utensils'},
+                        {t:'Local Services', icon:'fa-location-dot'},
+                        {t:'Jewelry & Luxury', icon:'fa-gem'},
+                        {t:'Home Decor', icon:'fa-couch'},
+                        {t:'Health & Wellness', icon:'fa-heart-pulse'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#f9a8d4; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
     } else if (serviceId === 'google_ads' && heroWrap) {
         heroWrap.classList.add('service-detail-hero-homepage');
         heroWrap.innerHTML = `
