@@ -3484,51 +3484,8 @@ window.showService = function(serviceId) {
                 </div>
             </section>
 
-            <!-- ============ FAQ ACCORDION ============ -->
-            <section style="max-width:900px; margin:60px auto 0; padding:0 20px;">
-                <div style="text-align:center; margin-bottom:40px;">
-                    <span style="display:inline-block; padding:6px 14px; background:#fff1ec; color:#ff5e3a; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">FAQ</span>
-                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Frequently Asked Questions</h2>
-                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Everything you need to know before starting.</p>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    ${[
-                        {q:'How long does it take to build my website?', a:'A standard 5-10 page website takes 7-14 business days. Complex custom builds or e-commerce can take 3-4 weeks. You get daily updates throughout.'},
-                        {q:'How many revisions do I get?', a:'Unlimited revisions on the design phase until you love it. During development, you get 2 rounds of major revisions free of charge.'},
-                        {q:'Do I own the website & code?', a:'100% yes. After final payment, you get full ownership — source code, design files, assets, and admin access. No lock-in.'},
-                        {q:'What is your payment structure?', a:'50% upfront to start the project, 50% after you approve the final build. We accept bank transfer, PayPal, Wise, and crypto.'},
-                        {q:'Do you provide hosting & domain?', a:'Yes! Free hosting is included for 3-24 months depending on your plan. We also help register your domain and set up business email.'},
-                        {q:'What if I need changes after launch?', a:'You get 30 days of free bug fixes and small tweaks post-launch. After that, our monthly maintenance plan is just $29/month.'},
-                        {q:'Can you redesign my existing website?', a:'Absolutely. We handle redesigns, migrations from WordPress/Wix/Shopify, and platform upgrades without losing your SEO rankings.'},
-                        {q:'Do you offer a money-back guarantee?', a:'Yes — if we miss the agreed deadline, your next month of maintenance is FREE. If you\\\'re unhappy after design phase, full refund of upfront payment.'}
-                    ].map((f,idx) => `
-                        <details style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:0; overflow:hidden;">
-                            <summary style="padding:18px 20px; cursor:pointer; font-weight:700; color:#0f172a; font-size:0.95rem; list-style:none; display:flex; justify-content:space-between; align-items:center;">
-                                <span>${f.q}</span>
-                                <i class="fa-solid fa-plus" style="color:#ff5e3a;"></i>
-                            </summary>
-                            <div style="padding:0 20px 18px; color:#64748b; font-size:0.9rem; line-height:1.6;">${f.a}</div>
-                        </details>
-                    `).join('')}
-                </div>
-            </section>
 
-            <!-- ============ FINAL CTA / FREE CONSULTATION ============ -->
-            <section style="max-width:1200px; margin:60px auto 60px; padding:0 20px;">
-                <div style="background:linear-gradient(135deg,#ff5e3a 0%,#ff2a68 100%); border-radius:24px; padding:60px 32px; text-align:center; color:#fff; position:relative; overflow:hidden; box-shadow:0 30px 60px rgba(255,94,58,0.3);">
-                    <div style="position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:rgba(255,255,255,0.1); border-radius:50%;"></div>
-                    <div style="position:absolute; bottom:-60px; left:-60px; width:250px; height:250px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
-                    <div style="position:relative; z-index:2;">
-                        <div style="display:inline-block; padding:6px 14px; background:rgba(255,255,255,0.2); border-radius:999px; font-size:0.75rem; font-weight:700; letter-spacing:1px; margin-bottom:16px; color:#fff;">🎁 FREE 30-MIN CONSULTATION</div>
-                        <h2 style="font-size:2.2rem; margin:0 0 12px; font-weight:800; color:#fff; line-height:1.2;">Ready to Launch Your Dream Website?</h2>
-                        <p style="font-size:1.05rem; margin:0 0 28px; color:rgba(255,255,255,0.95); max-width:600px; margin-left:auto; margin-right:auto;">Book a free strategy call. No pressure, no obligation — just clear answers about timeline, budget & tech.</p>
-                        <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
-                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want to book a free consultation for my website project.')}" style="display:inline-flex; align-items:center; gap:8px; padding:14px 28px; background:#fff; color:#ff5e3a; border-radius:12px; font-weight:800; text-decoration:none; font-size:1rem;"><i class="fa-brands fa-whatsapp"></i> Book Free Call</a>
-                            <a href="#contactPage" onclick="showPage('contact')" style="display:inline-flex; align-items:center; gap:8px; padding:14px 28px; background:rgba(255,255,255,0.15); color:#fff; border-radius:12px; font-weight:800; text-decoration:none; font-size:1rem; border:2px solid rgba(255,255,255,0.3);"><i class="fa-solid fa-envelope"></i> Send Message</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+
         `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
