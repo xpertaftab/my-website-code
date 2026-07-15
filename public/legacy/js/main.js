@@ -4902,9 +4902,9 @@ window.showService = function(serviceId) {
             { name: 'Brand Authority', price: '$999/mo', desc: 'Complete brand domination across all channels', features: ['All Platforms Managed', 'Unlimited Content Creation', 'Influencer Outreach Program', 'LinkedIn Executive Ghostwriting', 'Paid Ad Coordination', 'Reputation & Crisis Management'] }
         ],
         graphic: [
-            { name: 'Brand Starter', price: '$199', desc: 'A solid visual foundation for your business', features: ['Logo Design (3 Concepts)', '2 Revision Rounds', 'Brand Color Palette', 'Typography Selection', 'All Source Files Delivered'] },
-            { name: 'Brand Pro', price: '$599', desc: 'A complete, professional brand identity', features: ['Logo + Full Brand Style Guide', 'Business Card Design', 'Social Media Kit (10 Templates)', 'Brand Guidelines PDF', 'Stationery Design', '5 Revision Rounds'], highlight: true },
-            { name: 'Brand Empire', price: 'Custom', desc: 'Enterprise-level identity & full asset suite', features: ['Everything in Brand Pro', 'Figma UI/UX Design', 'Investor Pitch Deck', 'Product Packaging Design', 'Animated / Motion Logo', 'Dedicated Art Director'] }
+            { name: 'Brand Starter', price: '$79', desc: 'A solid visual foundation for your business', features: ['Logo Design (3 Concepts)', '2 Revision Rounds', 'Brand Color Palette', 'Typography Selection', 'All Source Files Delivered'] },
+            { name: 'Brand Pro', price: '$199', desc: 'A complete, professional brand identity', features: ['Logo + Full Brand Style Guide', 'Business Card Design', 'Social Media Kit (10 Templates)', 'Brand Guidelines PDF', 'Stationery Design', '5 Revision Rounds'], highlight: true },
+            { name: 'Brand Empire', price: '$449', desc: 'Enterprise-level identity & full asset suite', features: ['Everything in Brand Pro', 'Figma UI/UX Design', 'Investor Pitch Deck', 'Product Packaging Design', 'Animated / Motion Logo', 'Dedicated Art Director'] }
         ]
     };
 
