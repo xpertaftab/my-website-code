@@ -3382,6 +3382,211 @@ window.showService = function(serviceId) {
                     </div>
                 </div>
             </div></section>
+
+            <!-- ============ PRICING COMPARISON TABLE ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:#eef2ff; color:#4f46e5; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">PRICING</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Choose Your Plan</h2>
+                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Transparent pricing. No hidden fees. Cancel anytime.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px;">
+                    ${[
+                        {name:'Starter', price:'$99', tag:'Best for small biz', highlight:false, features:[['5 Pages',true],['Mobile Responsive',true],['Contact Form',true],['Basic SEO',true],['Free Hosting (3mo)',true],['E-commerce',false],['Custom Design',false],['Priority Support',false]]},
+                        {name:'Professional', price:'$179', tag:'Most Popular', highlight:true, features:[['10 Pages',true],['Mobile Responsive',true],['Contact + Booking Forms',true],['Advanced SEO',true],['Free Hosting (12mo)',true],['E-commerce Ready',true],['Custom Design',true],['Priority Support',false]]},
+                        {name:'Enterprise', price:'Custom', tag:'Full custom build', highlight:false, features:[['Unlimited Pages',true],['Mobile Responsive',true],['All Form Types',true],['Advanced SEO + Schema',true],['Free Hosting (24mo)',true],['E-commerce Advanced',true],['Fully Custom Design',true],['Dedicated Manager',true]]}
+                    ].map(p => `
+                        <div style="background:#fff; border:${p.highlight ? '2px solid #6366f1' : '1px solid #e2e8f0'}; border-radius:20px; padding:32px 24px; position:relative; box-shadow:${p.highlight ? '0 20px 50px rgba(99,102,241,0.2)' : '0 4px 12px rgba(15,23,42,0.04)'}; transform:${p.highlight ? 'scale(1.03)' : 'none'};">
+                            ${p.highlight ? '<div style="position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; padding:6px 16px; border-radius:999px; font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">MOST POPULAR</div>' : ''}
+                            <div style="text-align:center; margin-bottom:20px;">
+                                <h3 style="font-size:1.3rem; color:#0f172a; margin:0 0 6px; font-weight:700;">${p.name}</h3>
+                                <p style="color:#64748b; font-size:0.85rem; margin:0 0 16px;">${p.tag}</p>
+                                <div style="font-size:2.5rem; font-weight:800; color:#0f172a;">${p.price}</div>
+                            </div>
+                            <ul style="list-style:none; padding:0; margin:0 0 24px;">
+                                ${p.features.map(([f,ok]) => `
+                                    <li style="padding:10px 0; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:10px; color:${ok ? '#0f172a' : '#cbd5e1'}; font-size:0.9rem;">
+                                        <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}" style="color:${ok ? '#10b981' : '#cbd5e1'}; width:16px;"></i>
+                                        <span>${f}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want the ' + p.name + ' web plan (' + p.price + ')')}" style="display:block; text-align:center; padding:12px; background:${p.highlight ? 'linear-gradient(135deg,#6366f1,#a855f7)' : '#0f172a'}; color:#fff; border-radius:12px; font-weight:700; text-decoration:none; font-size:0.95rem;">Get Started</a>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ PROCESS / TIMELINE ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:linear-gradient(180deg,#f0f5ff 0%,#faf5ff 100%); border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:#fff; color:#4f46e5; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">HOW WE WORK</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Our 5-Step Process</h2>
+                    <p style="color:#64748b; max-width:600px; margin:0 auto;">From idea to launch in 7-14 days. Here's exactly how.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px;">
+                    ${[
+                        {n:'01', t:'Discovery', d:'Free 30-min call to map your goals, audience & scope.', icon:'fa-comments'},
+                        {n:'02', t:'Design', d:'Figma mockups + 2 revision rounds until pixel-perfect.', icon:'fa-pen-ruler'},
+                        {n:'03', t:'Development', d:'Clean code, mobile-first build with daily updates.', icon:'fa-code'},
+                        {n:'04', t:'Testing', d:'QA across devices, browsers & speed benchmarks.', icon:'fa-flask'},
+                        {n:'05', t:'Launch', d:'Deploy, DNS setup, and 30 days of free support.', icon:'fa-rocket'}
+                    ].map(s => `
+                        <div style="background:#fff; border-radius:16px; padding:24px 20px; text-align:center; box-shadow:0 4px 12px rgba(99,102,241,0.08); position:relative;">
+                            <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#6366f1,#a855f7); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem;">${s.n}</div>
+                            <div style="font-size:2rem; color:#6366f1; margin:16px 0 12px;"><i class="fa-solid ${s.icon}"></i></div>
+                            <h3 style="font-size:1rem; color:#0f172a; margin:0 0 8px; font-weight:700;">${s.t}</h3>
+                            <p style="font-size:0.85rem; color:#64748b; margin:0; line-height:1.5;">${s.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ PORTFOLIO / RECENT WORK ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:#fef3c7; color:#b45309; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">OUR WORK</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Recent Projects</h2>
+                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Real websites we shipped for real clients.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px;">
+                    ${[
+                        {t:'E-commerce Fashion Store', c:'Shopify + Custom Theme', tag:'E-COMMERCE', grad:'linear-gradient(135deg,#f472b6,#a855f7)', icon:'fa-bag-shopping'},
+                        {t:'Real Estate Platform', c:'Next.js + Map API', tag:'REAL ESTATE', grad:'linear-gradient(135deg,#22d3ee,#6366f1)', icon:'fa-building'},
+                        {t:'SaaS Dashboard', c:'React + Node.js', tag:'SAAS', grad:'linear-gradient(135deg,#4ade80,#22d3ee)', icon:'fa-chart-line'},
+                        {t:'Restaurant Booking Site', c:'WordPress + Reservations', tag:'HOSPITALITY', grad:'linear-gradient(135deg,#fbbf24,#f472b6)', icon:'fa-utensils'},
+                        {t:'Medical Clinic Portal', c:'Custom PHP + Patient CRM', tag:'HEALTHCARE', grad:'linear-gradient(135deg,#818cf8,#c084fc)', icon:'fa-stethoscope'},
+                        {t:'Online Learning Academy', c:'LMS + Video Streaming', tag:'EDUCATION', grad:'linear-gradient(135deg,#fb7185,#fbbf24)', icon:'fa-graduation-cap'}
+                    ].map(p => `
+                        <div style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 8px 24px rgba(15,23,42,0.08); transition:transform 0.2s;">
+                            <div style="height:160px; background:${p.grad}; display:flex; align-items:center; justify-content:center; color:#fff; font-size:3.5rem;">
+                                <i class="fa-solid ${p.icon}"></i>
+                            </div>
+                            <div style="padding:20px;">
+                                <span style="font-size:0.7rem; font-weight:800; color:#6366f1; letter-spacing:1px;">${p.tag}</span>
+                                <h3 style="font-size:1.05rem; color:#0f172a; margin:6px 0 4px; font-weight:700;">${p.t}</h3>
+                                <p style="font-size:0.85rem; color:#64748b; margin:0;">${p.c}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ INDUSTRIES WE SERVE ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#0f172a; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(255,255,255,0.1); color:#a5b4fc; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">INDUSTRIES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Industries We Serve</h2>
+                    <p style="color:#94a3b8; max-width:600px; margin:0 auto;">200+ industries, one commitment: results.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'E-commerce', icon:'fa-cart-shopping'},
+                        {t:'Real Estate', icon:'fa-house'},
+                        {t:'Healthcare', icon:'fa-heart-pulse'},
+                        {t:'Education', icon:'fa-book-open'},
+                        {t:'Restaurants', icon:'fa-utensils'},
+                        {t:'SaaS / Tech', icon:'fa-microchip'},
+                        {t:'Fitness & Gym', icon:'fa-dumbbell'},
+                        {t:'Travel & Tours', icon:'fa-plane'},
+                        {t:'Legal Firms', icon:'fa-scale-balanced'},
+                        {t:'Beauty & Salon', icon:'fa-scissors'},
+                        {t:'Automotive', icon:'fa-car'},
+                        {t:'Non-Profit', icon:'fa-hand-holding-heart'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center; transition:background 0.2s;">
+                            <div style="font-size:1.8rem; color:#818cf8; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ ADD-ON SERVICES ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:#dcfce7; color:#15803d; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">ADD-ONS</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Boost Your Package</h2>
+                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Popular add-on services to power up your project.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;">
+                    ${[
+                        {t:'Logo & Branding', p:'from $49', d:'Custom logo, color palette & brand guide.', icon:'fa-palette', c:'#f472b6'},
+                        {t:'SEO Setup', p:'from $89', d:'Keyword research, on-page SEO & Google Search Console.', icon:'fa-magnifying-glass-chart', c:'#22d3ee'},
+                        {t:'Content Writing', p:'from $39/page', d:'Persuasive copy that converts visitors to buyers.', icon:'fa-pen-nib', c:'#fbbf24'},
+                        {t:'Monthly Maintenance', p:'$29/mo', d:'Updates, backups, security patches & bug fixes.', icon:'fa-shield-halved', c:'#4ade80'},
+                        {t:'Google Ads Setup', p:'from $129', d:'Campaign creation, targeting & conversion tracking.', icon:'fa-bullhorn', c:'#a855f7'},
+                        {t:'Email Marketing', p:'from $69', d:'Newsletter setup, templates & automation flows.', icon:'fa-envelope-open-text', c:'#fb7185'}
+                    ].map(a => `
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(15,23,42,0.04);">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div style="width:44px; height:44px; border-radius:12px; background:${a.c}20; color:${a.c}; display:flex; align-items:center; justify-content:center; font-size:1.2rem;"><i class="fa-solid ${a.icon}"></i></div>
+                                <div>
+                                    <h3 style="font-size:1rem; color:#0f172a; margin:0; font-weight:700;">${a.t}</h3>
+                                    <div style="font-size:0.8rem; color:${a.c}; font-weight:700;">${a.p}</div>
+                                </div>
+                            </div>
+                            <p style="font-size:0.88rem; color:#64748b; margin:0; line-height:1.5;">${a.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ CLIENT LOGOS STRIP ============ -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:40px 20px; background:#fafbfc; border-radius:24px; text-align:center;">
+                <p style="color:#64748b; font-size:0.85rem; font-weight:700; letter-spacing:2px; margin:0 0 24px;">TRUSTED BY 250+ BUSINESSES</p>
+                <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:36px;">
+                    ${['Acme Corp','Nexora','Bluewave','Solaris','Vantage','Kinetix','Orbital','Pulsecraft'].map(n => `
+                        <div style="font-size:1.3rem; font-weight:800; color:#94a3b8; letter-spacing:1px; font-family:Georgia,serif;">${n}</div>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ FAQ ACCORDION ============ -->
+            <section style="max-width:900px; margin:60px auto 0; padding:0 20px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:#eef2ff; color:#4f46e5; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">FAQ</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Frequently Asked Questions</h2>
+                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Everything you need to know before starting.</p>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    ${[
+                        {q:'How long does it take to build my website?', a:'A standard 5-10 page website takes 7-14 business days. Complex custom builds or e-commerce can take 3-4 weeks. You get daily updates throughout.'},
+                        {q:'How many revisions do I get?', a:'Unlimited revisions on the design phase until you love it. During development, you get 2 rounds of major revisions free of charge.'},
+                        {q:'Do I own the website & code?', a:'100% yes. After final payment, you get full ownership — source code, design files, assets, and admin access. No lock-in.'},
+                        {q:'What is your payment structure?', a:'50% upfront to start the project, 50% after you approve the final build. We accept bank transfer, PayPal, Wise, and crypto.'},
+                        {q:'Do you provide hosting & domain?', a:'Yes! Free hosting is included for 3-24 months depending on your plan. We also help register your domain and set up business email.'},
+                        {q:'What if I need changes after launch?', a:'You get 30 days of free bug fixes and small tweaks post-launch. After that, our monthly maintenance plan is just $29/month.'},
+                        {q:'Can you redesign my existing website?', a:'Absolutely. We handle redesigns, migrations from WordPress/Wix/Shopify, and platform upgrades without losing your SEO rankings.'},
+                        {q:'Do you offer a money-back guarantee?', a:'Yes — if we miss the agreed deadline, your next month of maintenance is FREE. If you\\\'re unhappy after design phase, full refund of upfront payment.'}
+                    ].map((f,idx) => `
+                        <details style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:0; overflow:hidden;">
+                            <summary style="padding:18px 20px; cursor:pointer; font-weight:700; color:#0f172a; font-size:0.95rem; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+                                <span>${f.q}</span>
+                                <i class="fa-solid fa-plus" style="color:#6366f1;"></i>
+                            </summary>
+                            <div style="padding:0 20px 18px; color:#64748b; font-size:0.9rem; line-height:1.6;">${f.a}</div>
+                        </details>
+                    `).join('')}
+                </div>
+            </section>
+
+            <!-- ============ FINAL CTA / FREE CONSULTATION ============ -->
+            <section style="max-width:1200px; margin:60px auto 60px; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#6366f1 0%,#a855f7 50%,#ec4899 100%); border-radius:24px; padding:60px 32px; text-align:center; color:#fff; position:relative; overflow:hidden; box-shadow:0 30px 60px rgba(99,102,241,0.3);">
+                    <div style="position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:rgba(255,255,255,0.1); border-radius:50%;"></div>
+                    <div style="position:absolute; bottom:-60px; left:-60px; width:250px; height:250px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
+                    <div style="position:relative; z-index:2;">
+                        <div style="display:inline-block; padding:6px 14px; background:rgba(255,255,255,0.2); border-radius:999px; font-size:0.75rem; font-weight:700; letter-spacing:1px; margin-bottom:16px; color:#fff;">🎁 FREE 30-MIN CONSULTATION</div>
+                        <h2 style="font-size:2.2rem; margin:0 0 12px; font-weight:800; color:#fff; line-height:1.2;">Ready to Launch Your Dream Website?</h2>
+                        <p style="font-size:1.05rem; margin:0 0 28px; color:rgba(255,255,255,0.95); max-width:600px; margin-left:auto; margin-right:auto;">Book a free strategy call. No pressure, no obligation — just clear answers about timeline, budget & tech.</p>
+                        <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want to book a free consultation for my website project.')}" style="display:inline-flex; align-items:center; gap:8px; padding:14px 28px; background:#fff; color:#6366f1; border-radius:12px; font-weight:800; text-decoration:none; font-size:1rem;"><i class="fa-brands fa-whatsapp"></i> Book Free Call</a>
+                            <a href="#contactPage" onclick="showPage('contact')" style="display:inline-flex; align-items:center; gap:8px; padding:14px 28px; background:rgba(255,255,255,0.15); color:#fff; border-radius:12px; font-weight:800; text-decoration:none; font-size:1rem; border:2px solid rgba(255,255,255,0.3);"><i class="fa-solid fa-envelope"></i> Send Message</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
         `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
