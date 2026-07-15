@@ -3450,6 +3450,202 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'social' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-hashtag"></i> PREMIUM SOCIAL MEDIA MANAGEMENT
+                        </div>
+                        <h1>Turn Your Social Profiles Into A <span class="gradient-text">Viral Growth Machine</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">Full-service social media management for Instagram, TikTok, LinkedIn, Facebook & X (Twitter). 90+ brands managed · 25M+ organic impressions · viral Reels & TikToks · daily community management · monthly analytics & growth reports.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want premium social media management for my brand.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Get Free Social Audit</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">S</div>
+                                <div class="avatar a2">M</div>
+                                <div class="avatar a3">V</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(90+ brands · 25M+ impressions)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-social-hero.jpg" alt="Premium Social Media Management — Instagram, TikTok, LinkedIn, Facebook" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(219,39,119,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">Reels · TikTok · Stories</span> <span class="text-xs">&nearr; viral ready</span></div>
+                                <div class="float-value">10x</div>
+                                <div class="float-label">Avg Engagement Lift</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-users text-orange"></i> Followers <span class="text-xs">&nearr; organic</span></div>
+                                <div class="circle-progress"><span>25M+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#831843,#4c1d95); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(131,24,67,0.25);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#fda4af); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">90+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Brands Managed</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#a78bfa,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">25M+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Organic Impressions</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fb923c,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">20+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Posts / Reels Monthly</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">6+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Years Experience</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#fdf2f8 0%,#eff6ff 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(219,39,119,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY OUR SOCIAL MEDIA WORKS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Social Media That Builds Real Communities & Sales</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">We combine premium content, viral strategy & daily engagement to turn followers into loyal buyers.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-calendar-days', c:'#db2777', t:'30-Day Content Calendar', d:'Fully planned posts, Reels, TikToks & Stories mapped to your brand voice & business goals.'},
+                        {ic:'fa-video', c:'#8b5cf6', t:'Viral Reels & TikTok Production', d:'Trend-driven short-form video with pro editing, captions & hooks designed to hit the explore page.'},
+                        {ic:'fa-palette', c:'#f59e0b', t:'Premium Feed Design', d:'On-brand graphics, carousels & stories crafted in Figma, Photoshop & CapCut Pro for a luxury look.'},
+                        {ic:'fa-comments', c:'#10b981', t:'Daily Community Management', d:'DM replies, comment moderation & follower engagement — real humans, real conversations, no bots.'},
+                        {ic:'fa-hashtag', c:'#4285f4', t:'Hashtag & Trend Research', d:'Weekly trend alerts, niche hashtags & viral sound tracking to keep your content in the algorithm.'},
+                        {ic:'fa-chart-simple', c:'#22d3ee', t:'Monthly Growth Reports', d:'Deep analytics on reach, engagement, followers & conversions — transparent, no vanity metrics.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(219,39,119,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- PLATFORMS -->
+            <section style="margin:0; padding:60px 20px; background:#1e1b4b;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.15); color:#f9a8d4; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">PLATFORMS WE MASTER</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Every Social Platform, Perfectly Managed</h2>
+                    <p style="color:#f9a8d4;">Instagram, TikTok, LinkedIn, Facebook, X, YouTube Shorts & Pinterest.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${[
+                        {i:'fa-instagram',n:'Instagram',brand:true},{i:'fa-tiktok',n:'TikTok',brand:true},{i:'fa-linkedin',n:'LinkedIn',brand:true},
+                        {i:'fa-facebook',n:'Facebook',brand:true},{i:'fa-x-twitter',n:'X (Twitter)',brand:true},{i:'fa-youtube',n:'YouTube Shorts',brand:true},
+                        {i:'fa-pinterest',n:'Pinterest',brand:true},{i:'fa-video',n:'Reels & TikToks'},{i:'fa-camera',n:'Stories & Highlights'},{i:'fa-comments',n:'Community DMs'}
+                    ].map(t=>`<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${t.brand?'fa-brands':'fa-solid'} ${t.i}" style="font-size:1.3rem; color:#f472b6;"></i> ${t.n}</div>`).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fff7ed 0%,#fdf2f8 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT WINS</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Real Brands. Real Communities. Real Growth.</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Sarah Malik', r:'Founder, Bloomé Beauty', a:'S', c:'#db2777', t:'They took our Instagram from 4k to 82k followers in 6 months. Our Reels regularly hit 500k+ views and DMs turn into actual sales daily.'},
+                        {n:'Mohammed Al-Farsi', r:'CEO, Nexara SaaS', a:'M', c:'#8b5cf6', t:'Our LinkedIn became a real lead pipeline. 3M+ impressions, 1200+ qualified inbound leads in 90 days. Best social investment we ever made.'},
+                        {n:'Valentina Rossi', r:'Owner, Casa Luna Interiors', a:'V', c:'#f59e0b', t:'Their TikTok content pushed us onto the FYP twice. Went viral with 2.4M views on one video and our store had its best month ever.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#db2777,#8b5cf6); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(219,39,119,0.3);">
+                    <div>
+                        <i class="fa-solid fa-user-tie" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Dedicated Brand Manager</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Real human, 6+ years experience.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-video" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Content Production Included</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Reels, TikToks, graphics & captions.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-file-contract" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">No Long Contracts</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Month-to-month. Cancel anytime.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-chart-line" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Monthly Growth Reports</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Transparent analytics, no fluff.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- INDUSTRIES -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#1e1b4b; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.15); color:#f9a8d4; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">INDUSTRIES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Social Media That Fits Your Niche</h2>
+                    <p style="color:#f9a8d4; max-width:600px; margin:0 auto;">90+ brands managed across e-commerce, personal brands, coaches, SaaS, hospitality & more.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'E-commerce / DTC', icon:'fa-cart-shopping'},
+                        {t:'Personal Brands', icon:'fa-user-tie'},
+                        {t:'Fashion & Apparel', icon:'fa-shirt'},
+                        {t:'Beauty & Skincare', icon:'fa-spray-can-sparkles'},
+                        {t:'Coaches & Creators', icon:'fa-microphone'},
+                        {t:'SaaS / Tech', icon:'fa-microchip'},
+                        {t:'Real Estate', icon:'fa-house'},
+                        {t:'Restaurants & Cafés', icon:'fa-utensils'},
+                        {t:'Fitness & Wellness', icon:'fa-dumbbell'},
+                        {t:'Hotels & Travel', icon:'fa-plane'},
+                        {t:'Luxury & Jewelry', icon:'fa-gem'},
+                        {t:'Interior & Home', icon:'fa-couch'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#f9a8d4; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
     } else if (serviceId === 'fb_ads' && heroWrap) {
         heroWrap.classList.add('service-detail-hero-homepage');
         heroWrap.innerHTML = `
