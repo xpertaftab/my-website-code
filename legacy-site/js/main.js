@@ -3495,6 +3495,152 @@ window.showService = function(serviceId) {
                     </div>
                 </div>
             </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(15,23,42,0.15);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#818cf8,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">60+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">SaaS Platforms Shipped</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">99.9%</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Uptime SLA</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">10+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Yrs Senior Engineers</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fbbf24,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">SOC2</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">GDPR · HIPAA Ready</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#f0f5ff 0%,#faf5ff 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(99,102,241,0.1); color:#6366f1; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY BUSINESSES CHOOSE US</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Software Built to Scale</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">From your first 100 users to millions — we engineer software that never breaks under pressure.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-server', c:'#6366f1', t:'Cloud-Native', d:'AWS, GCP, Kubernetes & microservices — auto-scale to millions of users.'},
+                        {ic:'fa-shield-halved', c:'#4ade80', t:'Enterprise Security', d:'End-to-end encryption, JWT, penetration tested — GDPR/HIPAA compliant.'},
+                        {ic:'fa-gears', c:'#f59e0b', t:'Full Automation', d:'Eliminate manual work. Automate workflows, reporting & inventory.'},
+                        {ic:'fa-chart-pie', c:'#22d3ee', t:'Real-Time Analytics', d:'Custom admin panels with live data, exports & deep business metrics.'},
+                        {ic:'fa-plug', c:'#c084fc', t:'API-First', d:'REST & GraphQL APIs. Connect mobile apps, CRMs, ERPs — anything.'},
+                        {ic:'fa-code-branch', c:'#f472b6', t:'Clean, Testable Code', d:'DRY/SOLID, unit tested, Git-versioned — future updates stay cheap & fast.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(99,102,241,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- TECH STACK -->
+            <section style="margin:0; padding:60px 20px; background:#0f172a;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(34,211,238,0.15); color:#22d3ee; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">ENTERPRISE STACK</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Battle-Tested Technologies</h2>
+                    <p style="color:#94a3b8;">The same stack that powers Stripe, Netflix & Shopify.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${['fa-node-js|Node.js','fa-python|Python','fa-react|React','fa-docker|Docker','fa-aws|AWS','fa-google|GCP','fa-github|GitHub','fa-linux|Linux','fa-stripe|Stripe','fa-database|PostgreSQL'].map(t=>{const[i,n]=t.split('|');const isDb=i==='fa-database';return `<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${isDb?'fa-solid':'fa-brands'} ${i}" style="font-size:1.3rem; color:#818cf8;"></i> ${n}</div>`}).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fdf2f8 0%,#fff7ed 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT LOVE</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Trusted by Founders & CTOs</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Daniel Okafor', r:'CTO, LedgerPay', a:'D', c:'#6366f1', t:'They shipped our multi-tenant SaaS MVP in 8 weeks. Clean architecture, zero downtime since launch. Absolute pros.'},
+                        {n:'Sana Iqbal', r:'Founder, ClinicOS', a:'S', c:'#f472b6', t:'HIPAA-compliant patient portal delivered on time. Their code is so clean our new devs onboarded in 2 days.'},
+                        {n:'James Whitaker', r:'COO, FleetGrid', a:'J', c:'#22d3ee', t:'Custom ERP that replaced 4 SaaS subscriptions. ROI in 6 months. These guys understand real business problems.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(99,102,241,0.3);">
+                    <div>
+                        <i class="fa-solid fa-code" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Full Source Code</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">You own 100% of the code, schema & IP.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-shield-halved" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">NDA Protected</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Your idea & data stay strictly confidential.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-money-bill-transfer" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Milestone Payments</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Pay only after each sprint is approved.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-rotate-right" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">60-Day Support</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Post-launch bug fixes — completely free.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- INDUSTRIES WE SERVE -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#0f172a; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(129,140,248,0.15); color:#a5b4fc; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">USE CASES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Software We Build</h2>
+                    <p style="color:#94a3b8; max-width:600px; margin:0 auto;">From MVPs to enterprise platforms — any domain, any complexity.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'SaaS Platforms', icon:'fa-cloud'},
+                        {t:'ERP Systems', icon:'fa-building'},
+                        {t:'CRM Software', icon:'fa-users-gear'},
+                        {t:'Admin Dashboards', icon:'fa-gauge-high'},
+                        {t:'Booking Systems', icon:'fa-calendar-check'},
+                        {t:'HR & Payroll', icon:'fa-user-tie'},
+                        {t:'Inventory Tools', icon:'fa-warehouse'},
+                        {t:'Fintech Apps', icon:'fa-money-check-dollar'},
+                        {t:'Healthcare EMR', icon:'fa-notes-medical'},
+                        {t:'Marketplaces', icon:'fa-store'},
+                        {t:'LMS Platforms', icon:'fa-graduation-cap'},
+                        {t:'Internal Tools', icon:'fa-screwdriver-wrench'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#a5b4fc; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
         `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
