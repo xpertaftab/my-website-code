@@ -3444,45 +3444,8 @@ window.showService = function(serviceId) {
                 </div>
             </section>
 
-            <!-- ============ ADD-ON SERVICES ============ -->
-            <section style="max-width:1200px; margin:60px auto 0; padding:0 20px;">
-                <div style="text-align:center; margin-bottom:40px;">
-                    <span style="display:inline-block; padding:6px 14px; background:#fff1ec; color:#ff5e3a; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">ADD-ONS</span>
-                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#0f172a; font-weight:800;">Boost Your Package</h2>
-                    <p style="color:#64748b; max-width:600px; margin:0 auto;">Popular add-on services to power up your project.</p>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;">
-                    ${[
-                        {t:'Logo & Branding', p:'from $49', d:'Custom logo, color palette & brand guide.', icon:'fa-palette'},
-                        {t:'SEO Setup', p:'from $89', d:'Keyword research, on-page SEO & Google Search Console.', icon:'fa-magnifying-glass-chart'},
-                        {t:'Content Writing', p:'from $39/page', d:'Persuasive copy that converts visitors to buyers.', icon:'fa-pen-nib'},
-                        {t:'Monthly Maintenance', p:'$29/mo', d:'Updates, backups, security patches & bug fixes.', icon:'fa-shield-halved'},
-                        {t:'Google Ads Setup', p:'from $129', d:'Campaign creation, targeting & conversion tracking.', icon:'fa-bullhorn'},
-                        {t:'Email Marketing', p:'from $69', d:'Newsletter setup, templates & automation flows.', icon:'fa-envelope-open-text'}
-                    ].map(a => `
-                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(15,23,42,0.04);">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div style="width:44px; height:44px; border-radius:12px; background:#fff1ec; color:#ff5e3a; display:flex; align-items:center; justify-content:center; font-size:1.2rem;"><i class="fa-solid ${a.icon}"></i></div>
-                                <div>
-                                    <h3 style="font-size:1rem; color:#0f172a; margin:0; font-weight:700;">${a.t}</h3>
-                                    <div style="font-size:0.8rem; color:#ff5e3a; font-weight:700;">${a.p}</div>
-                                </div>
-                            </div>
-                            <p style="font-size:0.88rem; color:#64748b; margin:0; line-height:1.5;">${a.d}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
 
-            <!-- ============ CLIENT LOGOS STRIP ============ -->
-            <section style="max-width:1200px; margin:60px auto 0; padding:40px 20px; background:#f8fafc; border-radius:24px; text-align:center;">
-                <p style="color:#64748b; font-size:0.85rem; font-weight:700; letter-spacing:2px; margin:0 0 24px;">TRUSTED BY 250+ BUSINESSES</p>
-                <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:36px;">
-                    ${['Acme Corp','Nexora','Bluewave','Solaris','Vantage','Kinetix','Orbital','Pulsecraft'].map(n => `
-                        <div style="font-size:1.2rem; font-weight:800; color:#94a3b8; letter-spacing:1px;">${n}</div>
-                    `).join('')}
-                </div>
-            </section>
+
 
 
 
