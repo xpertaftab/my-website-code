@@ -3450,6 +3450,202 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'ai' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-robot"></i> AI AUTOMATION & INTEGRATION
+                        </div>
+                        <h1>Deploy AI That <span class="gradient-text">Runs Your Business 24/7</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">Autonomous AI agents, workflow automation & custom LLMs — cut manual work by 70%. 120+ workflows deployed · GPT-4o · Claude · private models.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want AI Automation for my business.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Automate My Business</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">A</div>
+                                <div class="avatar a2">I</div>
+                                <div class="avatar a3">X</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(120+ AI workflows shipped)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-ai-hero.jpg" alt="AI Automation & Integration" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(139,92,246,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">GPT-4o · Claude · Gemini</span> <span class="text-xs">&nearr; Fine-tuned</span></div>
+                                <div class="float-value">70%</div>
+                                <div class="float-label">Manual Work Cut</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-brain text-orange"></i> Agents Live <span class="text-xs">&nearr; 24/7</span></div>
+                                <div class="circle-progress"><span>120+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRUST / STATS BAR -->
+            <section style="max-width:1200px; margin:40px auto 0; padding:0 20px;">
+                <div style="background:linear-gradient(135deg,#1e1b4b,#3b0764); border-radius:20px; padding:32px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:24px; box-shadow:0 20px 50px rgba(88,28,135,0.25);">
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#a78bfa,#f0abfc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">120+</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">AI Workflows Deployed</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#22d3ee,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">70%</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Manual Work Reduced</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#f472b6,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">24/7</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Agents Monitored</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#4ade80,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">4.9★</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Client Rating</div>
+                    </div>
+                    <div style="text-align:center; color:#fff;">
+                        <div style="font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,#fbbf24,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">3-6mo</div>
+                        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;">Full ROI Payback</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY CHOOSE US -->
+            <section style="margin:70px 0 0; padding:60px 20px; background:linear-gradient(180deg,#faf5ff 0%,#f0f9ff 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(139,92,246,0.1); color:#8b5cf6; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">WHY AI WITH US</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">AI That Actually Delivers ROI</h2>
+                    <p style="color:#64748b; max-width:640px; margin:0 auto;">No hype, no hallucinations. Real automations that pay for themselves in months.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+                    ${[
+                        {ic:'fa-comments', c:'#8b5cf6', t:'AI Support Agents', d:'24/7 chatbots that resolve real issues & escalate hot leads to humans.'},
+                        {ic:'fa-brain', c:'#22d3ee', t:'Predictive ML', d:'Forecast sales, predict churn & optimize pricing from your own data.'},
+                        {ic:'fa-wand-magic-sparkles', c:'#f59e0b', t:'Workflow Automation', d:'Zapier, Make & n8n pipelines that automate emails, reports & data entry.'},
+                        {ic:'fa-magnifying-glass-chart', c:'#6366f1', t:'Data Extraction', d:'Extract & classify data from PDFs, invoices & emails with near-100% accuracy.'},
+                        {ic:'fa-file-lines', c:'#f472b6', t:'Content at Scale', d:'Programmatic SEO — thousands of on-brand product & blog pages.'},
+                        {ic:'fa-lock', c:'#4ade80', t:'Private LLMs', d:'Fine-tuned models on your data — nothing leaves your infrastructure.'}
+                    ].map(x=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:26px; transition:all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 15px 35px rgba(139,92,246,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.03)';">
+                            <div style="width:52px; height:52px; border-radius:14px; background:${x.c}20; color:${x.c}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px;"><i class="fa-solid ${x.ic}"></i></div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin:0 0 8px;">${x.t}</h3>
+                            <p style="color:#64748b; font-size:0.92rem; line-height:1.55; margin:0;">${x.d}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- TECH STACK -->
+            <section style="margin:0; padding:60px 20px; background:#1e1b4b;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:34px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(167,139,250,0.15); color:#c4b5fd; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">AI STACK</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#fff; font-weight:800;">Best-in-Class AI Tools</h2>
+                    <p style="color:#c4b5fd;">GPT-4o, Claude, Gemini, LangChain & more — the top of the AI ecosystem.</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+                    ${[
+                        {i:'fa-robot',n:'GPT-4o'},{i:'fa-brain',n:'Claude 3.5'},{i:'fa-star',n:'Gemini'},
+                        {i:'fa-link',n:'LangChain'},{i:'fa-database',n:'Pinecone'},{i:'fa-bolt',n:'Zapier'},
+                        {i:'fa-diagram-project',n:'Make'},{i:'fa-code',n:'n8n'},{i:'fa-python',n:'Python',brand:true},{i:'fa-node-js',n:'Node.js',brand:true}
+                    ].map(t=>`<div style="display:flex; align-items:center; gap:10px; padding:12px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-weight:600; color:#e2e8f0; backdrop-filter:blur(10px);"><i class="${t.brand?'fa-brands':'fa-solid'} ${t.i}" style="font-size:1.3rem; color:#a78bfa;"></i> ${t.n}</div>`).join('')}
+                </div>
+            </div></section>
+
+            <!-- CLIENT TESTIMONIALS -->
+            <section style="margin:0; padding:60px 20px; background:linear-gradient(180deg,#fdf2f8 0%,#faf5ff 100%);"><div style="max-width:1200px; margin:0 auto;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="display:inline-block; padding:6px 14px; background:rgba(244,114,182,0.1); color:#db2777; border-radius:20px; font-size:0.8rem; font-weight:600; letter-spacing:1px;">CLIENT LOVE</div>
+                    <h2 style="font-size:2.2rem; margin:14px 0 10px; color:#0f172a; font-weight:800;">Real Results From Real Businesses</h2>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+                    ${[
+                        {n:'Rehan Malik', r:'CEO, ShipFast Logistics', a:'R', c:'#8b5cf6', t:'Their AI support agent handles 82% of our WhatsApp tickets. We cut 3 support hires and improved response time by 10x.'},
+                        {n:'Emma Rodriguez', r:'Marketing Lead, StyleHub', a:'E', c:'#f472b6', t:'Programmatic SEO with AI content generated 40k organic visits in 3 months. Insane ROI. Cannot recommend enough.'},
+                        {n:'Kavya Nair', r:'COO, InvoiceOne', a:'K', c:'#22d3ee', t:'Their AI extracts data from 5000+ invoices/day with 99% accuracy. Replaced an entire back-office team.'}
+                    ].map(t=>`
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="color:#fbbf24; margin-bottom:12px; letter-spacing:2px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            <p style="color:#334155; font-size:0.98rem; line-height:1.65; margin:0 0 20px; font-style:italic;">"${t.t}"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:${t.c}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${t.a}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">${t.n}</div>
+                                    <div style="font-size:0.82rem; color:#64748b;">${t.r}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div></section>
+
+            <!-- GUARANTEE BANNER -->
+            <section style="margin:0; padding:60px 20px 80px; background:#fafbfc;"><div style="max-width:1200px; margin:0 auto;">
+                <div style="background:linear-gradient(135deg,#8b5cf6,#ec4899); border-radius:24px; padding:44px 32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; text-align:center; box-shadow:0 25px 60px rgba(139,92,246,0.3);">
+                    <div>
+                        <i class="fa-solid fa-lock" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Private & Secure</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">On-premise LLMs. Your data never leaves.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-chart-line" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">ROI in 90 Days</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Or we keep optimizing — free of charge.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-user-graduate" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Team Training</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Full staff onboarding & prompt library.</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-rotate-right" style="font-size:2.2rem; margin-bottom:10px; color:#fff;"></i>
+                        <h3 style="font-size:1.1rem; margin:6px 0; font-weight:700; color:#fff;">Ongoing Tuning</h3>
+                        <p style="font-size:0.88rem; margin:0; color:rgba(255,255,255,0.9);">Model performance monitored & optimized.</p>
+                    </div>
+                </div>
+            </div></section>
+
+            <!-- USE CASES -->
+            <section style="max-width:1200px; margin:60px auto 0; padding:60px 20px; background:#1e1b4b; border-radius:24px;">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <span style="display:inline-block; padding:6px 14px; background:rgba(167,139,250,0.15); color:#c4b5fd; border-radius:999px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">USE CASES</span>
+                    <h2 style="font-size:2rem; margin:12px 0 8px; color:#fff; font-weight:800;">Where AI Wins for You</h2>
+                    <p style="color:#c4b5fd; max-width:600px; margin:0 auto;">12 proven ways businesses deploy AI with us.</p>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+                    ${[
+                        {t:'Support Chatbots', icon:'fa-comments'},
+                        {t:'Lead Qualification', icon:'fa-filter'},
+                        {t:'Content Generation', icon:'fa-pen-nib'},
+                        {t:'Data Extraction', icon:'fa-file-invoice'},
+                        {t:'Sales Forecasting', icon:'fa-chart-line'},
+                        {t:'Email Automation', icon:'fa-envelope-open-text'},
+                        {t:'Voice Agents', icon:'fa-microphone'},
+                        {t:'Image Generation', icon:'fa-image'},
+                        {t:'Doc Summarization', icon:'fa-file-lines'},
+                        {t:'Recommendation AI', icon:'fa-thumbs-up'},
+                        {t:'Fraud Detection', icon:'fa-shield-halved'},
+                        {t:'Private LLMs', icon:'fa-brain'}
+                    ].map(i => `
+                        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:20px 12px; text-align:center;">
+                            <div style="font-size:1.8rem; color:#c4b5fd; margin-bottom:10px;"><i class="fa-solid ${i.icon}"></i></div>
+                            <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">${i.t}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
     } else if (serviceId === 'software' && heroWrap) {
         heroWrap.classList.add('service-detail-hero-homepage');
         heroWrap.innerHTML = `
