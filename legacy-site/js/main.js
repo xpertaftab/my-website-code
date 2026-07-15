@@ -3450,6 +3450,52 @@ window.showService = function(serviceId) {
 
 
         `;
+    } else if (serviceId === 'software' && heroWrap) {
+        heroWrap.classList.add('service-detail-hero-homepage');
+        heroWrap.innerHTML = `
+            <a href="javascript:void(0)" onclick="showPage('servicesMain')" class="service-detail-back">
+                <i class="fa-solid fa-arrow-left"></i> All Services
+            </a>
+            <section class="hero" style="padding-top: 20px;">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <div class="badge">
+                            <i class="fa-solid fa-code"></i> CUSTOM SOFTWARE & SAAS DEVELOPMENT
+                        </div>
+                        <h1>Enterprise Software That <span class="gradient-text">Scales With You</span></h1>
+                        <p class="hero-desc" style="margin-bottom: 28px;">Cloud-native SaaS platforms, ERPs & business automation tools — engineered by senior engineers. 60+ platforms shipped · 99.9% uptime · GDPR/HIPAA/SOC2 compliant.</p>
+                        <div class="hero-buttons" style="margin-top: 8px;">
+                            <a href="https://wa.me/923281270900?text=${encodeURIComponent('Hi! I want a Custom Software / SaaS built for my business.')}" target="_blank" class="btn-primary"><i class="fa-brands fa-whatsapp"></i> Start My Project</a>
+                            <a href="#servicePricingSection" class="btn-secondary" onclick="document.getElementById('servicePricingSection').scrollIntoView({behavior:'smooth'}); return false;">View Pricing <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="reviews">
+                            <div class="avatars">
+                                <div class="avatar a1">S</div>
+                                <div class="avatar a2">A</div>
+                                <div class="avatar a3">S</div>
+                            </div>
+                            <div class="rating">
+                                <i class="fa-solid fa-star"></i> <strong>4.9</strong> <span>(60+ SaaS platforms shipped)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="video-container" style="background: transparent;">
+                            <img src="assets/service-software-hero.jpg" alt="Custom Software & SaaS Development" style="width:100%; height:auto; display:block; border-radius: 20px; box-shadow: 0 25px 60px rgba(99,102,241,0.35);">
+                            <div class="float-card float-left">
+                                <div class="float-header"><span class="text-green">&lt;/&gt; Node · Python · Go</span> <span class="text-xs">&nearr; Cloud-native</span></div>
+                                <div class="float-value">99.9%</div>
+                                <div class="float-label">Uptime SLA</div>
+                            </div>
+                            <div class="float-card float-right">
+                                <div class="float-header"><i class="fa-solid fa-shield-halved text-orange"></i> Compliance <span class="text-xs">&nearr; SOC2</span></div>
+                                <div class="circle-progress"><span>60+</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        `;
     } else if (heroWrap) {
         heroWrap.classList.remove('service-detail-hero-homepage');
         heroWrap.innerHTML = heroWrap.dataset.defaultHtml;
