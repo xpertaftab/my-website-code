@@ -787,6 +787,7 @@ function adminBindBlogForm() {
 
 window.adminAddBlogNew = function() {
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-newspaper" style="color:#ff6b35;"></i> Add New Blog Post</h3>${adminBlogFormHtml({})}`, (ov)=>{
+    adminBindBlogForm();
     document.getElementById('bfCancel').onclick = () => ov.remove();
     document.getElementById('bfSave').onclick = async () => {
       const data = adminReadBlogForm();
