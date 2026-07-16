@@ -289,48 +289,64 @@ window.reloadFrontendData = async function() {
   window.allBlogs = [];
 };
 
-// Override fetchBlogs to use Firestore first, then API, then JSON, then hardcoded
+// Override fetchBlogs — priority: localStorage (admin) > Firestore > API > JSON > hardcoded
+// Deleted blog IDs in `blogs_deleted` are filtered from every source so removed blogs never reappear.
 const originalFetchBlogs = window.fetchBlogs;
 window.fetchBlogs = async function() {
-  // 1. Try Firestore first
+  const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
+  const isDeleted = id => deletedIds.map(String).includes(String(id));
+  const applyList = (list, label) => {
+    const filtered = list.filter(b => !isDeleted(b.id));
+    window.allBlogs = filtered;
+    try { if (typeof allBlogs !== 'undefined') allBlogs = filtered; } catch(e) {}
+    if (typeof window.renderBlogs === 'function') window.renderBlogs(filtered);
+    console.log(`${label}: Loaded ${filtered.length} blogs`);
+  };
+
+  // 1. localStorage first — admin panel writes go here (adds/edits/deletes)
+  const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
+  if (savedLocal && Array.isArray(savedLocal) && savedLocal.length > 0) {
+    applyList(savedLocal, 'Local storage');
+    return;
+  }
+
+  // 2. Firestore
   if (window.fsLoadMap) {
     try {
       const fsData = await window.fsLoadMap('blogs');
       if (fsData && Object.keys(fsData).length > 0) {
-        window.allBlogs = Object.values(fsData);
-        if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs);
-        console.log(`Firestore: Loaded ${window.allBlogs.length} blogs`);
+        const list = Object.values(fsData);
+        applyList(list, 'Firestore');
+        if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
         return;
       }
     } catch(e) {
       console.warn('Firestore: Could not load blogs', e.message);
     }
   }
-  // 2. Try API
+  // 3. API
   try {
     const blogs = await API.get('blogs');
     if (blogs && blogs.length > 0) {
-      window.allBlogs = blogs;
-      if (typeof window.renderBlogs === 'function') window.renderBlogs(blogs);
-      console.log(`API: Loaded ${blogs.length} blogs`);
+      applyList(blogs, 'API');
+      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
       return;
     }
   } catch(e) {
     console.warn('API: Could not load blogs', e.message);
   }
-  // 3. Try local JSON
+  // 4. Local JSON seed
   try {
     const blogs = await loadLocalJSON('data/blogs.json');
     if (blogs && blogs.length > 0) {
-      window.allBlogs = blogs;
-      if (typeof window.renderBlogs === 'function') window.renderBlogs(blogs);
-      console.log(`Local: Loaded ${blogs.length} blogs`);
+      applyList(blogs, 'Local');
+      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
       return;
     }
   } catch(e2) {
     console.warn('Local: Could not load blogs.json', e2.message);
   }
-  // 4. Fallback to original (hardcoded)
+  // 5. Hardcoded fallback
   if (originalFetchBlogs) originalFetchBlogs();
 };
 
