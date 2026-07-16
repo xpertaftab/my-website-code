@@ -176,29 +176,64 @@ function createAdminDashboard() {
       #adminSidebarToggle { display: inline-flex !important; }
       #adminSidebar {
         position: fixed !important; top: 0; left: 0; bottom: 0;
-        width: 250px !important; z-index: 999;
+        width: 82% !important; max-width: 300px; z-index: 999;
         transform: translateX(-100%);
         transition: transform 0.28s ease;
         box-shadow: 0 20px 40px rgba(15,23,42,0.15);
       }
       #adminSidebar.open { transform: translateX(0); }
       #adminSidebarBackdrop.open { display: block !important; }
-      .admin-header { padding: 14px 16px !important; }
-      #adminPageTitle { font-size: 1.15rem !important; }
-      #adminPageSubtitle { font-size: 0.75rem !important; }
-      #adminContent { padding: 20px 16px !important; gap: 20px !important; }
+      .admin-header { padding: 12px 14px !important; position: sticky; top: 0; }
+      #adminPageTitle { font-size: 1.05rem !important; }
+      #adminPageSubtitle { font-size: 0.72rem !important; }
+      #adminContent { padding: 16px 14px 90px !important; gap: 18px !important; }
       .admin-view-site { padding: 9px 12px !important; }
       .admin-view-site-label { display: none; }
-      .admin-panel-card { border-radius: 12px !important; }
-      .admin-table th, .admin-table td { padding: 12px 14px !important; font-size: 0.82rem !important; }
-      #adminModalOverlay > div { padding: 20px !important; border-radius: 12px !important; }
+      .admin-panel-card { border-radius: 14px !important; }
+      .admin-sidebar-item { padding: 14px !important; font-size: 0.95rem !important; }
+      /* Grid stat cards to 1-col */
+      #adminContent > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
     }
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
+      /* Card-style stacked rows */
+      .admin-table, .admin-table thead, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; box-sizing: border-box; }
       .admin-table thead { display: none; }
-      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
-      .admin-table tr { border-bottom: 1px solid rgba(15,23,42,0.06); padding: 10px 0; }
-      .admin-table td { border-bottom: none !important; padding: 6px 14px !important; }
+      .admin-table tr {
+        background: #ffffff;
+        border: 1px solid rgba(15,23,42,0.08);
+        border-radius: 14px;
+        padding: 14px;
+        margin: 12px;
+        box-shadow: 0 2px 6px rgba(15,23,42,0.04);
+      }
+      .admin-table td {
+        padding: 8px 0 !important;
+        border: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: #334155 !important;
+        font-size: 0.88rem !important;
+      }
+      .admin-table td:first-child { padding-bottom: 12px !important; margin-bottom: 4px; border-bottom: 1px dashed rgba(15,23,42,0.08) !important; }
+      .admin-table td[style*="text-align:right"] { justify-content: flex-end; padding-top: 12px !important; margin-top: 4px; border-top: 1px dashed rgba(15,23,42,0.08) !important; }
+      .admin-table td button { min-height: 40px; padding: 9px 14px !important; font-size: 0.82rem !important; }
+      .admin-panel-card { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .admin-panel-card > div[style*="padding"] { padding: 0 !important; }
+      /* Bottom sheet modal */
+      #adminModalOverlay { align-items: flex-end !important; padding: 0 !important; }
+      #adminModalOverlay > div {
+        border-radius: 20px 20px 0 0 !important;
+        padding: 20px 18px 30px !important;
+        max-height: 92vh !important;
+        animation: adminSheetUp 0.28s ease;
+      }
+      #adminModalOverlay > div h3 { font-size: 1.15rem !important; }
+      #adminModalOverlay input, #adminModalOverlay select, #adminModalOverlay textarea { font-size: 16px !important; padding: 12px 14px !important; }
+      #adminModalOverlay button { min-height: 44px; }
     }
+    @keyframes adminSheetUp { from { transform: translateY(30px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
   `;
   document.head.appendChild(style);
 
