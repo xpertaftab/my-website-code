@@ -462,15 +462,8 @@ async function fetchBlogs() {
         console.warn("blogs.json load failed:", error);
     }
 
-    // 5. Hardcoded fallback
-    allBlogs = [
-        { id:1, title:"Top 10 PHP Scripts for Your Online Business in 2026", category:"Technology", excerpt:"Discover the most powerful PHP scripts that can transform your online business operations and boost revenue.", image:"assets/products/wp_pexels_cottonbro.jpg", readTime:"6 min read", date:"June 1, 2026", content:"<p>PHP continues to dominate the web development landscape...</p>" },
-        { id:2, title:"How to Automate Your Social Media Marketing", category:"Business", excerpt:"Learn how to save hours of work daily by automating your social media posts, engagement, and analytics tracking.", image:"assets/products/wp_pexels_mowgli.jpg", readTime:"5 min read", date:"May 28, 2026", content:"<p>Social media automation is no longer optional...</p>" },
-        { id:3, title:"Google AdSense Approval Guide 2026 - Fast Track", category:"Business", excerpt:"Step-by-step guide to getting your Google AdSense account approved quickly with proven strategies and tips.", image:"assets/products/wp_pexels_ketut.jpg", readTime:"8 min read", date:"May 22, 2026", content:"<p>Getting AdSense approval can be challenging...</p>" },
-        { id:4, title:"Building Scalable Web Applications with Node.js", category:"Technology", excerpt:"A comprehensive guide to building high-performance, scalable web applications using Node.js and modern JavaScript.", image:"assets/products/wp_pexels_mowgli2.jpg", readTime:"7 min read", date:"May 18, 2026", content:"<p>Node.js has revolutionized backend development...</p>" },
-        { id:5, title:"SEO Trends 2026: What You Need to Know", category:"Technology", excerpt:"Stay ahead of the competition with the latest SEO trends and algorithm updates for 2026.", image:"assets/products/wp_web_dev_xm.webp", readTime:"5 min read", date:"May 15, 2026", content:"<p>Search engine optimization continues to evolve...</p>" },
-        { id:6, title:"The Ultimate Guide to Digital Asset Investing", category:"Business", excerpt:"Learn how to build wealth by investing in digital assets - websites, YouTube channels, and social media accounts.", image:"assets/products/wp_tj.webp", readTime:"10 min read", date:"May 10, 2026", content:"<p>Digital assets are the new real estate...</p>" }
-    ].filter(b => !isDeleted(b.id));
+    // 5. No hardcoded fallback — start empty so admin controls blogs
+    allBlogs = [];
     if (window.vextroSave) window.vextroSave('blogs', allBlogs);
     renderBlogs(allBlogs);
 }
