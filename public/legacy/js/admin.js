@@ -105,15 +105,20 @@ function createAdminDashboard() {
 
     <!-- Admin Main Content -->
     <main style="flex:1;background:radial-gradient(circle at top right, rgba(255,107,53,0.08), transparent 50%), #f8fafc;display:flex;flex-direction:column;overflow:hidden;">
-      <header style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;z-index:10;">
-        <div>
-          <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:0.5px;">Products</h2>
-          <p id="adminPageSubtitle" style="font-size:0.85rem;color:#94a3b8;margin:4px 0 0;">Manage your products</p>
+      <header style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:10;" class="admin-header">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1;">
+          <button id="adminSidebarToggle" onclick="toggleAdminSidebar();return false;" aria-label="Menu" style="display:none;width:40px;height:40px;flex-shrink:0;border-radius:10px;background:#ffffff;border:1px solid rgba(15,23,42,0.12);color:#0f172a;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;"><i class="fa-solid fa-bars"></i></button>
+          <div style="min-width:0;">
+            <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Products</h2>
+            <p id="adminPageSubtitle" style="font-size:0.85rem;color:#94a3b8;margin:4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Manage your products</p>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:16px;">
-          <a href="/" onclick="adminGoToSite();return false;" style="padding:10px 20px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;" onmouseover="this.style.background='rgba(15,23,42,0.12)'" onmouseout="this.style.background='rgba(15,23,42,0.08)'"><i class="fa-solid fa-globe"></i> View Site</a>
+        <div style="display:flex;align-items:center;gap:16px;flex-shrink:0;">
+          <a href="/" onclick="adminGoToSite();return false;" class="admin-view-site" style="padding:10px 20px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;white-space:nowrap;"><i class="fa-solid fa-globe"></i> <span class="admin-view-site-label">View Site</span></a>
         </div>
       </header>
+      <div id="adminSidebarBackdrop" onclick="toggleAdminSidebar(false);return false;" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:998;"></div>
+
       <div id="adminContent" style="flex:1;overflow-y:auto;padding:40px;display:flex;flex-direction:column;gap:30px;" class="custom-admin-scrollbar"></div>
     </main>
   </div>
@@ -165,8 +170,53 @@ function createAdminDashboard() {
     /* Inputs inside admin */
     .admin-table select { background: rgba(248,250,252,0.8); color: #334155; border: 1px solid rgba(15,23,42,0.12); outline: none; }
     .admin-table select:focus { border-color: #ff6b35; }
+
+    /* Mobile responsive */
+    @media (max-width: 900px) {
+      #adminSidebarToggle { display: inline-flex !important; }
+      #adminSidebar {
+        position: fixed !important; top: 0; left: 0; bottom: 0;
+        width: 250px !important; z-index: 999;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+      }
+      #adminSidebar.open { transform: translateX(0); }
+      #adminSidebarBackdrop.open { display: block !important; }
+      .admin-header { padding: 14px 16px !important; }
+      #adminPageTitle { font-size: 1.15rem !important; }
+      #adminPageSubtitle { font-size: 0.75rem !important; }
+      #adminContent { padding: 20px 16px !important; gap: 20px !important; }
+      .admin-view-site { padding: 9px 12px !important; }
+      .admin-view-site-label { display: none; }
+      .admin-panel-card { border-radius: 12px !important; }
+      .admin-table th, .admin-table td { padding: 12px 14px !important; font-size: 0.82rem !important; }
+      #adminModalOverlay > div { padding: 20px !important; border-radius: 12px !important; }
+    }
+    @media (max-width: 560px) {
+      .admin-table thead { display: none; }
+      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+      .admin-table tr { border-bottom: 1px solid rgba(15,23,42,0.06); padding: 10px 0; }
+      .admin-table td { border-bottom: none !important; padding: 6px 14px !important; }
+    }
   `;
   document.head.appendChild(style);
+
+  // Sidebar toggle for mobile
+  window.toggleAdminSidebar = function(force) {
+    const sb = document.getElementById('adminSidebar');
+    const bd = document.getElementById('adminSidebarBackdrop');
+    if (!sb || !bd) return;
+    const shouldOpen = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+    sb.classList.toggle('open', shouldOpen);
+    bd.classList.toggle('open', shouldOpen);
+  };
+  // Close sidebar on nav item click (mobile)
+  document.querySelectorAll('#adminSidebar .admin-sidebar-item').forEach(el => {
+    el.addEventListener('click', () => {
+      if (window.innerWidth <= 900) window.toggleAdminSidebar(false);
+    });
+  });
 
   adminDashboardCreated = true;
 }
