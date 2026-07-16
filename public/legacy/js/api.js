@@ -295,7 +295,7 @@ const originalFetchBlogs = window.fetchBlogs;
 window.fetchBlogs = async function() {
   // One-time reset: clear all previously cached blogs (localStorage + Firestore)
   try {
-    const RESET_KEY = 'blogs_reset_v2';
+    const RESET_KEY = 'blogs_reset_v3';
     if (window.vextroLoad && !window.vextroLoad(RESET_KEY)) {
       if (window.vextroSave) {
         window.vextroSave('blogs', []);
