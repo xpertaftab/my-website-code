@@ -840,9 +840,18 @@ window.adminDeleteBlogNew = async function(id) {
   if (!confirm('Delete this blog permanently?')) return;
   try { await fetch(`/api/blogs/${id}`, { method:'DELETE' }); } catch(e) {}
   window._adminChangesMade = true;
-  if (window.allBlogs) { window.allBlogs = window.allBlogs.filter(b=>b.id!=id); if (typeof window.renderBlogs==='function') window.renderBlogs(window.allBlogs); }
+  // Sync the two blog lists (admin uses window.allBlogs, public site uses top-level allBlogs)
+  if (window.allBlogs) window.allBlogs = window.allBlogs.filter(b => String(b.id) !== String(id));
+  try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs = allBlogs.filter(b => String(b.id) !== String(id)); window.allBlogs = allBlogs; } } catch(e) {}
+  // Track deletion so seed data (blogs.json / hardcoded) can't restore it
+  if (window.vextroLoad && window.vextroSave) {
+    const deleted = window.vextroLoad('blogs_deleted') || [];
+    if (!deleted.map(String).includes(String(id))) deleted.push(id);
+    window.vextroSave('blogs_deleted', deleted);
+  }
   if (window.fsDeleteDoc) window.fsDeleteDoc('blogs', id);
-  if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+  if (window.vextroSave) window.vextroSave('blogs', window.allBlogs || []);
+  if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs || []);
   showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
 };
 
