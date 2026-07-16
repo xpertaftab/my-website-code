@@ -327,7 +327,7 @@ window.adminEditProductNew = function(id) {
   if (!p) return alert('Product not found');
   const IS = adminInputStyle(), LS = adminLabelStyle();
   adminModal(`
-    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:14px;">Edit Product</h3>
+    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">Edit Product</h3>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div><label style="${LS}">Title</label><input id="epTitle" value="${(p.title||'').replace(/"/g,'&quot;')}" style="${IS}"></div>
       <div style="display:flex;gap:14px;">
@@ -343,7 +343,7 @@ window.adminEditProductNew = function(id) {
       <div><label style="${LS}">Short Description</label><textarea id="epShort" rows="2" style="${IS}">${p.shortDesc||''}</textarea></div>
       <div><label style="${LS}">Features (comma-separated)</label><textarea id="epFeatures" rows="3" style="${IS}">${(Array.isArray(p.features)?p.features:p.features?[p.features]:[]).join(', ')}</textarea></div>
       <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
-        <button id="epCancel" style="padding:10px 20px;background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;cursor:pointer;font-weight:600;">Cancel</button>
+        <button id="epCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
         <button id="epSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Changes</button>
       </div>
     </div>`, (ov) => {
@@ -378,7 +378,7 @@ window.adminEditProductNew = function(id) {
 window.adminAddProductNew = function() {
   const IS = adminInputStyle(), LS = adminLabelStyle();
   adminModal(`
-    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:14px;">Add New Product</h3>
+    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">Add New Product</h3>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div><label style="${LS}">Product Title *</label><input id="apTitle" style="${IS}" placeholder="Enter product name"></div>
       <div style="display:flex;gap:14px;">
@@ -396,7 +396,7 @@ window.adminAddProductNew = function() {
       <div><label style="${LS}">Short Description</label><textarea id="apShort" rows="2" style="${IS}" placeholder="Brief product description..."></textarea></div>
       <div><label style="${LS}">Features (comma-separated)</label><textarea id="apFeatures" rows="3" style="${IS}" placeholder="Responsive Design, Full Source Code, 1 Year Support"></textarea></div>
       <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
-        <button id="apCancel" style="padding:10px 20px;background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;cursor:pointer;font-weight:600;">Cancel</button>
+        <button id="apCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
         <button id="apSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Product</button>
       </div>
     </div>`, (ov) => {
