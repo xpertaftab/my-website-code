@@ -255,8 +255,8 @@ window.showAdminView = async function(view, el) {
 function adminModal(html, onMounted) {
   const ov = document.createElement('div');
   ov.id = 'adminModalOverlay';
-  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  ov.innerHTML = `<div style="background:#0f172a;border:1px solid rgba(15,23,42,0.12);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:32px;box-shadow:0 24px 60px rgba(0,0,0,0.7);color:white;font-family:'Inter',sans-serif;">${html}</div>`;
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  ov.innerHTML = `<div style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:32px;box-shadow:0 24px 60px rgba(15,23,42,0.18);color:#0f172a;font-family:'Inter',sans-serif;">${html}</div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
   if (onMounted) onMounted(ov);
@@ -264,10 +264,10 @@ function adminModal(html, onMounted) {
 }
 
 function adminInputStyle() {
-  return 'width:100%;padding:11px 14px;background:rgba(15,23,42,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;outline:none;font-size:0.9rem;box-sizing:border-box;';
+  return "width:100%;padding:11px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:8px;color:#0f172a;outline:none;font-size:0.9rem;box-sizing:border-box;font-family:'Inter',sans-serif;";
 }
 function adminLabelStyle() {
-  return 'font-size:0.82rem;color:#64748b;margin-bottom:6px;display:block;font-weight:600;';
+  return 'font-size:0.82rem;color:#475569;margin-bottom:6px;display:block;font-weight:600;';
 }
 
 // ── PRODUCTS ───────────────────────────────────────────────────
