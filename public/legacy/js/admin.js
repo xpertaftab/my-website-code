@@ -811,6 +811,7 @@ window.adminEditBlogNew = function(id) {
   const b = (window.allBlogs||[]).find(x=>String(x.id)===String(id));
   if (!b) return alert('Blog not found');
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-pen-to-square" style="color:#3b82f6;"></i> Edit Blog Post</h3>${adminBlogFormHtml(b)}`, (ov)=>{
+    adminBindBlogForm();
     document.getElementById('bfCancel').onclick = () => ov.remove();
     document.getElementById('bfSave').onclick = async () => {
       const data = adminReadBlogForm();
