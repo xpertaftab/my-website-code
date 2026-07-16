@@ -653,7 +653,7 @@ function adminBlogFormHtml(b) {
             <button type="button" id="bfCoverClear" style="padding:9px 14px;background:#f1f5f9;color:#0f172a;border:1px solid rgba(15,23,42,0.08);border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;display:${coverImg?'inline-block':'none'};">Remove</button>
           </div>
           <input id="bfImg" type="hidden" value="${esc(coverImg)}">
-          <div style="font-size:0.72rem;color:#94a3b8;margin-top:8px;">PNG, JPG, WebP · up to ~5MB</div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:8px;">PNG, JPG, WebP · up to ~20MB</div>
         </div>
       </div>
       <div><label style="${LS}">Short Excerpt / Summary</label><textarea id="bfExcerpt" rows="2" style="${IS}" placeholder="Brief summary shown on blog cards">${esc(b.excerpt||b.summary)}</textarea></div>
@@ -730,7 +730,7 @@ function adminBindBlogForm() {
   $('bfCoverPick').onclick = () => coverFile.click();
   coverFile.onchange = () => {
     const f = coverFile.files && coverFile.files[0]; if (!f) return;
-    if (f.size > 5*1024*1024) return alert('Image too large (max 5MB)');
+    if (f.size > 20*1024*1024) return alert('Image too large (max 20MB)');
     const r = new FileReader();
     r.onload = e => { coverHidden.value = e.target.result; coverPrev.src = e.target.result; coverPrev.style.display='block'; coverClear.style.display='inline-block'; };
     r.readAsDataURL(f);
@@ -767,7 +767,7 @@ function adminBindBlogForm() {
   $('bfBtnImage').onclick = () => { saveSel(); imgFile.click(); };
   imgFile.onchange = () => {
     const f = imgFile.files && imgFile.files[0]; if (!f) return;
-    if (f.size > 5*1024*1024) { alert('Image too large (max 5MB)'); imgFile.value=''; return; }
+    if (f.size > 20*1024*1024) { alert('Image too large (max 20MB)'); imgFile.value=''; return; }
     const r = new FileReader();
     r.onload = e => { restoreSel(); document.execCommand('insertHTML', false, `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`); saveSel(); imgFile.value=''; };
     r.readAsDataURL(f);
