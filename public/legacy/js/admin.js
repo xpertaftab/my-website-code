@@ -633,6 +633,9 @@ function adminBlogFormHtml(b) {
   const IS = adminInputStyle(), LS = adminLabelStyle();
   const esc = s => (s||'').toString().replace(/"/g,'&quot;');
   const cats = ['General','Technology','Design','Business','Tutorial','News','Marketing','Development'];
+  const coverImg = b.image || b.cover || '';
+  const content = (b.content || b.body || '').toString();
+  const tb = 'background:#ffffff;border:1px solid rgba(15,23,42,0.12);border-radius:6px;padding:7px 10px;cursor:pointer;color:#0f172a;font-size:0.85rem;min-width:36px;font-weight:600;';
   return `
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div><label style="${LS}">Blog Title *</label><input id="bfTitle" value="${esc(b.title)}" style="${IS}" placeholder="Enter an eye-catching title"></div>
@@ -640,9 +643,46 @@ function adminBlogFormHtml(b) {
         <div style="flex:1;min-width:180px;"><label style="${LS}">Author Name</label><input id="bfAuthor" value="${esc(b.authorName||b.author)}" style="${IS}" placeholder="Author"></div>
         <div style="flex:1;min-width:180px;"><label style="${LS}">Category</label><select id="bfCat" style="${IS}">${cats.map(c=>`<option ${((b.category||'General')===c)?'selected':''}>${c}</option>`).join('')}</select></div>
       </div>
-      <div><label style="${LS}">Cover Image URL</label><input id="bfImg" value="${esc(b.image||b.cover)}" style="${IS}" placeholder="https://..."></div>
+      <div>
+        <label style="${LS}">Cover Image</label>
+        <div style="border:2px dashed rgba(15,23,42,0.15);border-radius:10px;padding:14px;background:#f8fafc;text-align:center;">
+          <img id="bfCoverPreview" src="${esc(coverImg)}" style="max-width:100%;max-height:180px;border-radius:8px;display:${coverImg?'block':'none'};margin:0 auto 10px;object-fit:cover;">
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <input id="bfCoverFile" type="file" accept="image/*" style="display:none;">
+            <button type="button" id="bfCoverPick" style="padding:9px 18px;background:#ff6b35;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;"><i class="fa-solid fa-upload"></i> Upload Image</button>
+            <button type="button" id="bfCoverClear" style="padding:9px 14px;background:#f1f5f9;color:#0f172a;border:1px solid rgba(15,23,42,0.08);border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;display:${coverImg?'inline-block':'none'};">Remove</button>
+          </div>
+          <input id="bfImg" type="hidden" value="${esc(coverImg)}">
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:8px;">PNG, JPG, WebP · up to ~5MB</div>
+        </div>
+      </div>
       <div><label style="${LS}">Short Excerpt / Summary</label><textarea id="bfExcerpt" rows="2" style="${IS}" placeholder="Brief summary shown on blog cards">${esc(b.excerpt||b.summary)}</textarea></div>
-      <div><label style="${LS}">Full Content (HTML/Markdown supported)</label><textarea id="bfContent" rows="8" style="${IS};font-family:monospace;font-size:0.85rem;" placeholder="Write your blog content here...">${esc(b.content||b.body)}</textarea></div>
+      <div>
+        <label style="${LS}">Full Content</label>
+        <div style="border:1px solid rgba(15,23,42,0.12);border-radius:10px;overflow:hidden;background:#ffffff;">
+          <div id="bfToolbar" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#f8fafc;border-bottom:1px solid rgba(15,23,42,0.08);">
+            <button type="button" data-cmd="bold" title="Bold" style="${tb}"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italic" style="${tb}"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Underline" style="${tb}"><u>U</u></button>
+            <button type="button" data-cmd="strikeThrough" title="Strikethrough" style="${tb}"><s>S</s></button>
+            <button type="button" data-block="H2" title="Heading 2" style="${tb}">H2</button>
+            <button type="button" data-block="H3" title="Heading 3" style="${tb}">H3</button>
+            <button type="button" data-block="P" title="Paragraph" style="${tb}">P</button>
+            <button type="button" data-block="BLOCKQUOTE" title="Quote" style="${tb}"><i class="fa-solid fa-quote-right"></i></button>
+            <button type="button" data-cmd="insertUnorderedList" title="Bullet list" style="${tb}"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" data-cmd="insertOrderedList" title="Numbered list" style="${tb}"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" id="bfBtnLink" title="Insert link" style="${tb}"><i class="fa-solid fa-link"></i></button>
+            <button type="button" id="bfBtnUnlink" title="Remove link" style="${tb}"><i class="fa-solid fa-link-slash"></i></button>
+            <button type="button" id="bfBtnImage" title="Insert image" style="${tb};background:#fff7ed;color:#ff6b35;border-color:rgba(255,107,53,0.3);"><i class="fa-solid fa-image"></i></button>
+            <button type="button" data-cmd="justifyLeft" title="Align left" style="${tb}"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" data-cmd="justifyCenter" title="Align center" style="${tb}"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" data-cmd="removeFormat" title="Clear formatting" style="${tb}"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+          <div id="bfEditor" contenteditable="true" style="min-height:240px;max-height:400px;overflow-y:auto;padding:14px 16px;color:#0f172a;font-size:0.95rem;line-height:1.65;outline:none;font-family:'Inter',sans-serif;">${content}</div>
+          <input id="bfEditorImgFile" type="file" accept="image/*" style="display:none;">
+        </div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-top:6px;"><i class="fa-solid fa-circle-info"></i> Select text and click <b>link</b> to add a URL · Click the <b>image</b> icon to upload images inside the blog</div>
+      </div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;">
         <div style="flex:1;min-width:180px;"><label style="${LS}">Tags (comma-separated)</label><input id="bfTags" value="${esc(Array.isArray(b.tags)?b.tags.join(', '):(b.tags||''))}" style="${IS}" placeholder="web, design, tips"></div>
         <div style="flex:1;min-width:120px;"><label style="${LS}">Read Time (min)</label><input id="bfRead" type="number" value="${b.readTime||5}" style="${IS}"></div>
@@ -668,13 +708,14 @@ function adminBlogFormHtml(b) {
 }
 
 function adminReadBlogForm() {
+  const editor = document.getElementById('bfEditor');
   return {
     title: document.getElementById('bfTitle').value.trim(),
     authorName: document.getElementById('bfAuthor').value.trim() || 'Admin',
     category: document.getElementById('bfCat').value,
     image: document.getElementById('bfImg').value.trim(),
     excerpt: document.getElementById('bfExcerpt').value.trim(),
-    content: document.getElementById('bfContent').value,
+    content: editor ? editor.innerHTML : '',
     tags: document.getElementById('bfTags').value.split(',').map(s=>s.trim()).filter(Boolean),
     readTime: parseInt(document.getElementById('bfRead').value)||5,
     status: document.getElementById('bfStatus').value,
@@ -683,8 +724,70 @@ function adminReadBlogForm() {
   };
 }
 
+function adminBindBlogForm() {
+  const $ = id => document.getElementById(id);
+  const coverFile = $('bfCoverFile'), coverPrev = $('bfCoverPreview'), coverHidden = $('bfImg'), coverClear = $('bfCoverClear');
+  $('bfCoverPick').onclick = () => coverFile.click();
+  coverFile.onchange = () => {
+    const f = coverFile.files && coverFile.files[0]; if (!f) return;
+    if (f.size > 5*1024*1024) return alert('Image too large (max 5MB)');
+    const r = new FileReader();
+    r.onload = e => { coverHidden.value = e.target.result; coverPrev.src = e.target.result; coverPrev.style.display='block'; coverClear.style.display='inline-block'; };
+    r.readAsDataURL(f);
+  };
+  coverClear.onclick = () => { coverHidden.value=''; coverPrev.src=''; coverPrev.style.display='none'; coverClear.style.display='none'; coverFile.value=''; };
+
+  const editor = $('bfEditor'), toolbar = $('bfToolbar');
+  let savedRange = null;
+  const saveSel = () => { const s = window.getSelection(); if (s && s.rangeCount && editor.contains(s.anchorNode)) savedRange = s.getRangeAt(0).cloneRange(); };
+  const restoreSel = () => { editor.focus(); if (savedRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(savedRange); } };
+  editor.addEventListener('mouseup', saveSel);
+  editor.addEventListener('keyup', saveSel);
+  editor.addEventListener('touchend', saveSel);
+  toolbar.addEventListener('mousedown', e => e.preventDefault());
+  toolbar.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    restoreSel();
+    if (btn.dataset.cmd) document.execCommand(btn.dataset.cmd, false, null);
+    else if (btn.dataset.block) document.execCommand('formatBlock', false, btn.dataset.block);
+    saveSel();
+  });
+  $('bfBtnLink').onclick = () => {
+    restoreSel();
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return alert('Select the text first, then click link');
+    const url = prompt('Enter link URL', 'https://');
+    if (!url) return;
+    document.execCommand('createLink', false, url);
+    editor.querySelectorAll('a').forEach(a => { if (a.getAttribute('href')===url) { a.target='_blank'; a.rel='noopener noreferrer'; } });
+    saveSel();
+  };
+  $('bfBtnUnlink').onclick = () => { restoreSel(); document.execCommand('unlink'); saveSel(); };
+  const imgFile = $('bfEditorImgFile');
+  $('bfBtnImage').onclick = () => { saveSel(); imgFile.click(); };
+  imgFile.onchange = () => {
+    const f = imgFile.files && imgFile.files[0]; if (!f) return;
+    if (f.size > 5*1024*1024) { alert('Image too large (max 5MB)'); imgFile.value=''; return; }
+    const r = new FileReader();
+    r.onload = e => { restoreSel(); document.execCommand('insertHTML', false, `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`); saveSel(); imgFile.value=''; };
+    r.readAsDataURL(f);
+  };
+  editor.addEventListener('paste', e => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (items) for (const it of items) if (it.type && it.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = it.getAsFile(); if (!file) return;
+      const r = new FileReader();
+      r.onload = ev => document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt="">`);
+      r.readAsDataURL(file);
+      return;
+    }
+  });
+}
+
 window.adminAddBlogNew = function() {
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-newspaper" style="color:#ff6b35;"></i> Add New Blog Post</h3>${adminBlogFormHtml({})}`, (ov)=>{
+    adminBindBlogForm();
     document.getElementById('bfCancel').onclick = () => ov.remove();
     document.getElementById('bfSave').onclick = async () => {
       const data = adminReadBlogForm();
@@ -708,6 +811,7 @@ window.adminEditBlogNew = function(id) {
   const b = (window.allBlogs||[]).find(x=>String(x.id)===String(id));
   if (!b) return alert('Blog not found');
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-pen-to-square" style="color:#3b82f6;"></i> Edit Blog Post</h3>${adminBlogFormHtml(b)}`, (ov)=>{
+    adminBindBlogForm();
     document.getElementById('bfCancel').onclick = () => ov.remove();
     document.getElementById('bfSave').onclick = async () => {
       const data = adminReadBlogForm();
