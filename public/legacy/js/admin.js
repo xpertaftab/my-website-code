@@ -170,8 +170,53 @@ function createAdminDashboard() {
     /* Inputs inside admin */
     .admin-table select { background: rgba(248,250,252,0.8); color: #334155; border: 1px solid rgba(15,23,42,0.12); outline: none; }
     .admin-table select:focus { border-color: #ff6b35; }
+
+    /* Mobile responsive */
+    @media (max-width: 900px) {
+      #adminSidebarToggle { display: inline-flex !important; }
+      #adminSidebar {
+        position: fixed !important; top: 0; left: 0; bottom: 0;
+        width: 250px !important; z-index: 999;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+      }
+      #adminSidebar.open { transform: translateX(0); }
+      #adminSidebarBackdrop.open { display: block !important; }
+      .admin-header { padding: 14px 16px !important; }
+      #adminPageTitle { font-size: 1.15rem !important; }
+      #adminPageSubtitle { font-size: 0.75rem !important; }
+      #adminContent { padding: 20px 16px !important; gap: 20px !important; }
+      .admin-view-site { padding: 9px 12px !important; }
+      .admin-view-site-label { display: none; }
+      .admin-panel-card { border-radius: 12px !important; }
+      .admin-table th, .admin-table td { padding: 12px 14px !important; font-size: 0.82rem !important; }
+      #adminModalOverlay > div { padding: 20px !important; border-radius: 12px !important; }
+    }
+    @media (max-width: 560px) {
+      .admin-table thead { display: none; }
+      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+      .admin-table tr { border-bottom: 1px solid rgba(15,23,42,0.06); padding: 10px 0; }
+      .admin-table td { border-bottom: none !important; padding: 6px 14px !important; }
+    }
   `;
   document.head.appendChild(style);
+
+  // Sidebar toggle for mobile
+  window.toggleAdminSidebar = function(force) {
+    const sb = document.getElementById('adminSidebar');
+    const bd = document.getElementById('adminSidebarBackdrop');
+    if (!sb || !bd) return;
+    const shouldOpen = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+    sb.classList.toggle('open', shouldOpen);
+    bd.classList.toggle('open', shouldOpen);
+  };
+  // Close sidebar on nav item click (mobile)
+  document.querySelectorAll('#adminSidebar .admin-sidebar-item').forEach(el => {
+    el.addEventListener('click', () => {
+      if (window.innerWidth <= 900) window.toggleAdminSidebar(false);
+    });
+  });
 
   adminDashboardCreated = true;
 }
