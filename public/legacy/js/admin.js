@@ -798,8 +798,11 @@ window.adminAddBlogNew = function() {
       try { const r = await fetch('/api/blogs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newBlog) }); if(r.ok){ const saved = await r.json(); Object.assign(newBlog, saved); } } catch(e) {}
       window.allBlogs = window.allBlogs || [];
       window.allBlogs.unshift(newBlog);
+      // Sync top-level allBlogs used by the public site so it appears on refresh & now
+      try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs.unshift(newBlog); } } catch(e) {}
       if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
       if (window.fsSetDoc) window.fsSetDoc('blogs', newBlog.id, newBlog);
+      if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs);
       window._adminChangesMade = true;
       ov.remove();
       showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
