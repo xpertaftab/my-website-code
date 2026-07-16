@@ -122,6 +122,31 @@ window.fsSaveMap = async function(collectionName, dataMap) {
   }
 };
 
+// Save one document to Firestore via REST API
+window.fsSetDoc = async function(collectionName, id, data) {
+  if (!collectionName || !id || !data) return false;
+  try {
+    const clean = { ...data };
+    delete clean.id;
+    const res = await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: objToFields(clean) })
+    });
+    if (!res.ok && res.status === 404) {
+      await fetch(`${FB_BASE}/${collectionName}?documentId=${id}&key=${FB_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: objToFields(clean) })
+      });
+    }
+    return true;
+  } catch(e) {
+    console.warn('FS: set', collectionName, id, 'failed', e.message);
+    return false;
+  }
+};
+
 // Delete a document from Firestore via REST API
 window.fsDeleteDoc = async function(collectionName, id) {
   try {

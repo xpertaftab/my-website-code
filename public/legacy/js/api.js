@@ -295,16 +295,17 @@ const originalFetchBlogs = window.fetchBlogs;
 window.fetchBlogs = async function() {
   // One-time reset: clear all previously cached blogs (localStorage + Firestore)
   try {
-    const RESET_KEY = 'blogs_reset_v3';
+    const RESET_KEY = 'blogs_reset_v4';
     if (window.vextroLoad && !window.vextroLoad(RESET_KEY)) {
       if (window.vextroSave) {
         window.vextroSave('blogs', []);
         window.vextroSave('blogs_deleted', []);
         window.vextroSave(RESET_KEY, true);
       }
-      if (window.fsSaveMap) {
-        try { await window.fsSaveMap('blogs', {}); } catch(e) {}
-      }
+      window.allBlogs = [];
+      try { if (typeof allBlogs !== 'undefined') allBlogs = []; } catch(e) {}
+      if (typeof window.renderBlogs === 'function') window.renderBlogs([]);
+      return;
     }
   } catch(e) {}
 
@@ -321,7 +322,7 @@ window.fetchBlogs = async function() {
 
   // 1. localStorage first — admin panel writes go here (adds/edits/deletes)
   const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
-  if (savedLocal && Array.isArray(savedLocal) && savedLocal.length > 0) {
+  if (Array.isArray(savedLocal)) {
     applyList(savedLocal, 'Local storage');
     return;
   }
@@ -362,8 +363,8 @@ window.fetchBlogs = async function() {
   } catch(e2) {
     console.warn('Local: Could not load blogs.json', e2.message);
   }
-  // 5. Hardcoded fallback
-  if (originalFetchBlogs) originalFetchBlogs();
+  // 5. No hardcoded fallback — empty means no blogs until admin adds new ones
+  applyList([], 'Empty blogs');
 };
 
 // Override submitBlog to save to API
