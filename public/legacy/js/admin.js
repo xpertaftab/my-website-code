@@ -105,15 +105,20 @@ function createAdminDashboard() {
 
     <!-- Admin Main Content -->
     <main style="flex:1;background:radial-gradient(circle at top right, rgba(255,107,53,0.08), transparent 50%), #f8fafc;display:flex;flex-direction:column;overflow:hidden;">
-      <header style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;z-index:10;">
-        <div>
-          <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:0.5px;">Products</h2>
-          <p id="adminPageSubtitle" style="font-size:0.85rem;color:#94a3b8;margin:4px 0 0;">Manage your products</p>
+      <header style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:10;" class="admin-header">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1;">
+          <button id="adminSidebarToggle" onclick="toggleAdminSidebar();return false;" aria-label="Menu" style="display:none;width:40px;height:40px;flex-shrink:0;border-radius:10px;background:#ffffff;border:1px solid rgba(15,23,42,0.12);color:#0f172a;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;"><i class="fa-solid fa-bars"></i></button>
+          <div style="min-width:0;">
+            <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Products</h2>
+            <p id="adminPageSubtitle" style="font-size:0.85rem;color:#94a3b8;margin:4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Manage your products</p>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:16px;">
-          <a href="/" onclick="adminGoToSite();return false;" style="padding:10px 20px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;" onmouseover="this.style.background='rgba(15,23,42,0.12)'" onmouseout="this.style.background='rgba(15,23,42,0.08)'"><i class="fa-solid fa-globe"></i> View Site</a>
+        <div style="display:flex;align-items:center;gap:16px;flex-shrink:0;">
+          <a href="/" onclick="adminGoToSite();return false;" class="admin-view-site" style="padding:10px 20px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;white-space:nowrap;"><i class="fa-solid fa-globe"></i> <span class="admin-view-site-label">View Site</span></a>
         </div>
       </header>
+      <div id="adminSidebarBackdrop" onclick="toggleAdminSidebar(false);return false;" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:998;"></div>
+
       <div id="adminContent" style="flex:1;overflow-y:auto;padding:40px;display:flex;flex-direction:column;gap:30px;" class="custom-admin-scrollbar"></div>
     </main>
   </div>
