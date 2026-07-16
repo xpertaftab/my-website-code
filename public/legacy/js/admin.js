@@ -596,29 +596,134 @@ async function renderAdminAllBlogsNew(container) {
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">All Blog Posts</div><div style="color:#94a3b8;font-size:0.85rem;">${blogs.length} post${blogs.length!==1?'s':''} total</div></div>
+        <button onclick="adminAddBlogNew()" style="background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> Add New Blog</button>
       </div>
       <div class="admin-panel-card">
-        ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><p style="font-size:0.85rem;">Blog posts written by users will appear here.</p></div>`:`
+        ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><button onclick="adminAddBlogNew()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Blog</button></div>`:`
         <table class="admin-table">
-          <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th style="text-align:right;">Action</th></tr></thead>
+          <thead><tr><th>Blog</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
           <tbody>${blogs.map(b=>`
             <tr>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#0f172a;">${b.title||'Untitled'}</td>
+              <td><div style="display:flex;align-items:center;gap:12px;">
+                <img src="${b.image||b.cover||'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'">
+                <div><div style="font-weight:700;color:#0f172a;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.title||'Untitled'}</div>${b.featured?'<div style="font-size:0.68rem;color:#f59e0b;font-weight:700;"><i class="fa-solid fa-star"></i> Featured</div>':''}</div>
+              </div></td>
               <td><span style="color:#64748b;">${b.authorName||b.author||'User'}</span></td>
               <td><span class="admin-badge admin-badge-blue">${b.category||'General'}</span></td>
-              <td><select onchange="adminChangeBlogStatusNew('${b.id}',this.value)" style="padding:5px 8px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:6px;font-size:0.78rem;color:#0f172a;">
-                <option value="Published" ${b.status==='Published'?'selected':''} style="background:#0f172a;">✅ Published</option>
-                <option value="Draft" ${b.status==='Draft'?'selected':''} style="background:#0f172a;">📝 Draft</option>
-                <option value="Pending" ${b.status==='Pending'?'selected':''} style="background:#0f172a;">⏳ Pending</option>
+              <td><select onchange="adminChangeBlogStatusNew('${b.id}',this.value)" style="padding:5px 8px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:6px;font-size:0.78rem;color:#0f172a;">
+                <option value="Published" ${b.status==='Published'?'selected':''}>✅ Published</option>
+                <option value="Draft" ${b.status==='Draft'?'selected':''}>📝 Draft</option>
+                <option value="Pending" ${b.status==='Pending'?'selected':''}>⏳ Pending</option>
               </select></td>
               <td style="font-size:0.78rem;color:#94a3b8;">${b.date||b.createdAt||'N/A'}</td>
-              <td style="text-align:right;"><button onclick="adminDeleteBlogNew('${b.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button></td>
+              <td style="text-align:right;">
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                  <button onclick="adminEditBlogNew('${b.id}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                  <button onclick="adminDeleteBlogNew('${b.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+              </td>
             </tr>`).join('')}
           </tbody>
         </table>`}
       </div>`;
   } catch(e) { container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error: ${e.message}</p></div>`; }
 }
+
+function adminBlogFormHtml(b) {
+  const IS = adminInputStyle(), LS = adminLabelStyle();
+  const esc = s => (s||'').toString().replace(/"/g,'&quot;');
+  const cats = ['General','Technology','Design','Business','Tutorial','News','Marketing','Development'];
+  return `
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><label style="${LS}">Blog Title *</label><input id="bfTitle" value="${esc(b.title)}" style="${IS}" placeholder="Enter an eye-catching title"></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Author Name</label><input id="bfAuthor" value="${esc(b.authorName||b.author)}" style="${IS}" placeholder="Author"></div>
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Category</label><select id="bfCat" style="${IS}">${cats.map(c=>`<option ${((b.category||'General')===c)?'selected':''}>${c}</option>`).join('')}</select></div>
+      </div>
+      <div><label style="${LS}">Cover Image URL</label><input id="bfImg" value="${esc(b.image||b.cover)}" style="${IS}" placeholder="https://..."></div>
+      <div><label style="${LS}">Short Excerpt / Summary</label><textarea id="bfExcerpt" rows="2" style="${IS}" placeholder="Brief summary shown on blog cards">${esc(b.excerpt||b.summary)}</textarea></div>
+      <div><label style="${LS}">Full Content (HTML/Markdown supported)</label><textarea id="bfContent" rows="8" style="${IS};font-family:monospace;font-size:0.85rem;" placeholder="Write your blog content here...">${esc(b.content||b.body)}</textarea></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Tags (comma-separated)</label><input id="bfTags" value="${esc(Array.isArray(b.tags)?b.tags.join(', '):(b.tags||''))}" style="${IS}" placeholder="web, design, tips"></div>
+        <div style="flex:1;min-width:120px;"><label style="${LS}">Read Time (min)</label><input id="bfRead" type="number" value="${b.readTime||5}" style="${IS}"></div>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Status</label><select id="bfStatus" style="${IS}">
+          <option value="Published" ${b.status==='Published'?'selected':''}>✅ Published</option>
+          <option value="Draft" ${(!b.status||b.status==='Draft')?'selected':''}>📝 Draft</option>
+          <option value="Pending" ${b.status==='Pending'?'selected':''}>⏳ Pending Review</option>
+        </select></div>
+        <div style="flex:1;min-width:180px;display:flex;align-items:flex-end;">
+          <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:8px;cursor:pointer;width:100%;font-weight:600;color:#0f172a;font-size:0.9rem;">
+            <input id="bfFeatured" type="checkbox" ${b.featured?'checked':''} style="width:18px;height:18px;accent-color:#ff6b35;"> Feature on homepage
+          </label>
+        </div>
+      </div>
+      <div><label style="${LS}">SEO Meta Description</label><textarea id="bfSeo" rows="2" style="${IS}" placeholder="Description for search engines (optional)">${esc(b.seoDescription||b.metaDescription)}</textarea></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
+        <button id="bfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
+        <button id="bfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Blog</button>
+      </div>
+    </div>`;
+}
+
+function adminReadBlogForm() {
+  return {
+    title: document.getElementById('bfTitle').value.trim(),
+    authorName: document.getElementById('bfAuthor').value.trim() || 'Admin',
+    category: document.getElementById('bfCat').value,
+    image: document.getElementById('bfImg').value.trim(),
+    excerpt: document.getElementById('bfExcerpt').value.trim(),
+    content: document.getElementById('bfContent').value,
+    tags: document.getElementById('bfTags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    readTime: parseInt(document.getElementById('bfRead').value)||5,
+    status: document.getElementById('bfStatus').value,
+    featured: document.getElementById('bfFeatured').checked,
+    seoDescription: document.getElementById('bfSeo').value.trim()
+  };
+}
+
+window.adminAddBlogNew = function() {
+  adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-newspaper" style="color:#ff6b35;"></i> Add New Blog Post</h3>${adminBlogFormHtml({})}`, (ov)=>{
+    document.getElementById('bfCancel').onclick = () => ov.remove();
+    document.getElementById('bfSave').onclick = async () => {
+      const data = adminReadBlogForm();
+      if (!data.title) return alert('Please enter a blog title');
+      const btn = document.getElementById('bfSave');
+      btn.innerText = 'Saving...'; btn.disabled = true;
+      const newBlog = { id: 'blog_'+Date.now(), ...data, date: new Date().toISOString().split('T')[0], createdAt: new Date().toISOString() };
+      try { const r = await fetch('/api/blogs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newBlog) }); if(r.ok){ const saved = await r.json(); Object.assign(newBlog, saved); } } catch(e) {}
+      window.allBlogs = window.allBlogs || [];
+      window.allBlogs.unshift(newBlog);
+      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      if (window.fsSetDoc) window.fsSetDoc('blogs', newBlog.id, newBlog);
+      window._adminChangesMade = true;
+      ov.remove();
+      showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+    };
+  });
+};
+
+window.adminEditBlogNew = function(id) {
+  const b = (window.allBlogs||[]).find(x=>String(x.id)===String(id));
+  if (!b) return alert('Blog not found');
+  adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-pen-to-square" style="color:#3b82f6;"></i> Edit Blog Post</h3>${adminBlogFormHtml(b)}`, (ov)=>{
+    document.getElementById('bfCancel').onclick = () => ov.remove();
+    document.getElementById('bfSave').onclick = async () => {
+      const data = adminReadBlogForm();
+      if (!data.title) return alert('Please enter a blog title');
+      const btn = document.getElementById('bfSave');
+      btn.innerText = 'Saving...'; btn.disabled = true;
+      Object.assign(b, data, { updatedAt: new Date().toISOString() });
+      try { await fetch(`/api/blogs/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }); } catch(e) {}
+      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      if (window.fsSetDoc) window.fsSetDoc('blogs', b.id, b);
+      window._adminChangesMade = true;
+      ov.remove();
+      showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+    };
+  });
+};
 
 window.adminChangeBlogStatusNew = async function(id, status) {
   try { await fetch(`/api/blogs/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); } catch(e) {}
