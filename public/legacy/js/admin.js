@@ -75,43 +75,43 @@ function createAdminDashboard() {
   const mainContainer = document.querySelector('.main-container') || document.body;
   
   const adminHTML = `
-  <div id="adminFullDashboard" style="display:flex;min-height:100vh;background:#020617;font-family:'Inter',sans-serif;color:#f8fafc;">
+  <div id="adminFullDashboard" style="display:flex;min-height:100vh;background:#f8fafc;font-family:'Inter',sans-serif;color:#0f172a;">
     <!-- Admin Sidebar -->
-    <aside id="adminSidebar" style="width:260px;background:#0a0f1c;border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;flex-shrink:0;">
-      <div style="padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.05);">
+    <aside id="adminSidebar" style="width:260px;background:#ffffff;border-right:1px solid rgba(15,23,42,0.08);display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="padding:24px 20px;border-bottom:1px solid rgba(15,23,42,0.08);">
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.2rem;box-shadow:0 4px 10px rgba(16,185,129,0.3);">V</div>
-          <div><div style="color:#f8fafc;font-weight:700;font-size:1rem;letter-spacing:0.5px;">Admin Panel</div><div style="color:#64748b;font-size:0.75rem;">vextrolyntra@gmail.com</div></div>
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#ff6b35,#f7931e);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.2rem;box-shadow:0 4px 10px rgba(255,107,53,0.3);">V</div>
+          <div><div style="color:#0f172a;font-weight:700;font-size:1rem;letter-spacing:0.5px;">Admin Panel</div><div style="color:#94a3b8;font-size:0.75rem;">vextrolyntra@gmail.com</div></div>
         </div>
       </div>
       <nav style="flex:1;padding:16px 10px;display:flex;flex-direction:column;gap:4px;">
-        <div style="padding:8px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#475569;font-weight:800;">DASHBOARD</div>
-        <a href="#" class="admin-sidebar-item active" data-view="adminStats" onclick="showAdminView('adminStats',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-chart-simple" style="width:18px;"></i> Analytics</a>
+        <div style="padding:8px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:800;">DASHBOARD</div>
+        <a href="#" class="admin-sidebar-item active" data-view="adminStats" onclick="showAdminView('adminStats',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-chart-simple" style="width:18px;"></i> Analytics</a>
         
-        <div style="padding:20px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#475569;font-weight:800;">MANAGEMENT</div>
-        <a href="#" class="admin-sidebar-item" data-view="products" onclick="showAdminView('products',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-box" style="width:18px;"></i> Products</a>
-        <a href="#" class="admin-sidebar-item" data-view="adminListings" onclick="showAdminView('adminListings',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-store" style="width:18px;"></i> Listings</a>
-        <a href="#" class="admin-sidebar-item" data-view="adminBlogs" onclick="showAdminView('adminBlogs',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-newspaper" style="width:18px;"></i> Blogs</a>
-        <a href="#" class="admin-sidebar-item" data-view="adminOrders" onclick="showAdminView('adminOrders',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-receipt" style="width:18px;"></i> Orders</a>
+        <div style="padding:20px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:800;">MANAGEMENT</div>
+        <a href="#" class="admin-sidebar-item" data-view="products" onclick="showAdminView('products',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-box" style="width:18px;"></i> Products</a>
+        <a href="#" class="admin-sidebar-item" data-view="adminListings" onclick="showAdminView('adminListings',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-store" style="width:18px;"></i> Listings</a>
+        <a href="#" class="admin-sidebar-item" data-view="adminBlogs" onclick="showAdminView('adminBlogs',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-newspaper" style="width:18px;"></i> Blogs</a>
+        <a href="#" class="admin-sidebar-item" data-view="adminOrders" onclick="showAdminView('adminOrders',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-receipt" style="width:18px;"></i> Orders</a>
         
-        <div style="padding:20px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#475569;font-weight:800;">PEOPLE</div>
-        <a href="#" class="admin-sidebar-item" data-view="adminUsers" onclick="showAdminView('adminUsers',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-users" style="width:18px;"></i> Users</a>
-        <a href="#" class="admin-sidebar-item" data-view="adminContacts" onclick="showAdminView('adminContacts',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#94a3b8;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-envelope" style="width:18px;"></i> Messages</a>
+        <div style="padding:20px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:800;">PEOPLE</div>
+        <a href="#" class="admin-sidebar-item" data-view="adminUsers" onclick="showAdminView('adminUsers',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-users" style="width:18px;"></i> Users</a>
+        <a href="#" class="admin-sidebar-item" data-view="adminContacts" onclick="showAdminView('adminContacts',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-envelope" style="width:18px;"></i> Messages</a>
       </nav>
-      <div style="padding:20px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div style="padding:20px;border-top:1px solid rgba(15,23,42,0.08);">
         <a href="#" onclick="adminLogout();return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#ef4444;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.2s;background:rgba(239,68,68,0.05);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
       </div>
     </aside>
 
     <!-- Admin Main Content -->
-    <main style="flex:1;background:url('https://www.transparenttextures.com/patterns/cubes.png'), radial-gradient(circle at top right, rgba(16,185,129,0.05), transparent 40%), #020617;display:flex;flex-direction:column;overflow:hidden;">
-      <header style="background:rgba(2,6,23,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;z-index:10;">
+    <main style="flex:1;background:radial-gradient(circle at top right, rgba(255,107,53,0.08), transparent 50%), #f8fafc;display:flex;flex-direction:column;overflow:hidden;">
+      <header style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);padding:20px 40px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;z-index:10;">
         <div>
-          <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#f8fafc;margin:0;letter-spacing:0.5px;">Products</h2>
-          <p id="adminPageSubtitle" style="font-size:0.85rem;color:#64748b;margin:4px 0 0;">Manage your products</p>
+          <h2 id="adminPageTitle" style="font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:0.5px;">Products</h2>
+          <p id="adminPageSubtitle" style="font-size:0.85rem;color:#94a3b8;margin:4px 0 0;">Manage your products</p>
         </div>
         <div style="display:flex;align-items:center;gap:16px;">
-          <a href="/" onclick="adminGoToSite();return false;" style="padding:10px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f8fafc;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'"><i class="fa-solid fa-globe"></i> View Site</a>
+          <a href="/" onclick="adminGoToSite();return false;" style="padding:10px 20px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;text-decoration:none;font-size:0.88rem;font-weight:600;transition:all 0.3s;" onmouseover="this.style.background='rgba(15,23,42,0.12)'" onmouseout="this.style.background='rgba(15,23,42,0.08)'"><i class="fa-solid fa-globe"></i> View Site</a>
         </div>
       </header>
       <div id="adminContent" style="flex:1;overflow-y:auto;padding:40px;display:flex;flex-direction:column;gap:30px;" class="custom-admin-scrollbar"></div>
@@ -133,38 +133,38 @@ function createAdminDashboard() {
   const style = document.createElement('style');
   style.id = 'adminFullStyle';
   style.textContent = `
-    .admin-sidebar-item:hover { background: rgba(255,255,255,0.05); color: #f8fafc !important; }
-    .admin-sidebar-item.active { background: linear-gradient(90deg, rgba(16,185,129,0.15) 0%, transparent 100%); color: #10b981 !important; border-left: 3px solid #10b981; padding-left: 9px !important; }
+    .admin-sidebar-item:hover { background: rgba(15,23,42,0.08); color: #0f172a !important; }
+    .admin-sidebar-item.active { background: linear-gradient(90deg, rgba(255,107,53,0.15) 0%, transparent 100%); color: #ff6b35 !important; border-left: 3px solid #ff6b35; padding-left: 9px !important; }
     
     .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
-    .admin-table th { text-align: left; padding: 16px 20px; background: rgba(255,255,255,0.02); color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .admin-table td { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); color: #cbd5e1; }
+    .admin-table th { text-align: left; padding: 16px 20px; background: #f8fafc; color: #94a3b8; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(15,23,42,0.08); }
+    .admin-table td { padding: 16px 20px; border-bottom: 1px solid rgba(15,23,42,0.05); color: #334155; }
     .admin-table tr:last-child td { border-bottom: none; }
-    .admin-table tr:hover td { background: rgba(255,255,255,0.02); color: #f8fafc; }
+    .admin-table tr:hover td { background: rgba(15,23,42,0.03); color: #0f172a; }
     
     .admin-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
-    .admin-badge-green { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+    .admin-badge-green { background: rgba(255,107,53,0.1); color: #ff6b35; border: 1px solid rgba(255,107,53,0.2); }
     .admin-badge-red { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
     .admin-badge-yellow { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
     .admin-badge-blue { background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
     
-    .admin-panel-card { background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); overflow: hidden; backdrop-filter: blur(10px); }
+    .admin-panel-card { background: #ffffff; border-radius: 16px; border: 1px solid rgba(15,23,42,0.08); box-shadow: 0 10px 30px -10px rgba(15,23,42,0.08); overflow: hidden; }
     
-    .admin-empty { text-align: center; padding: 80px 20px; color: #475569; }
-    .admin-empty i { font-size: 3rem; margin-bottom: 20px; color: #334155; opacity: 0.5; }
+    .admin-empty { text-align: center; padding: 80px 20px; color: #94a3b8; }
+    .admin-empty i { font-size: 3rem; margin-bottom: 20px; color: #cbd5e1; opacity: 0.5; }
     
-    .admin-stat-card { padding: 24px; border-radius: 16px; color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
+    .admin-stat-card { padding: 24px; border-radius: 16px; color: white; border: 1px solid rgba(15,23,42,0.12); box-shadow: 0 10px 20px -5px rgba(15,23,42,0.08); transition: transform 0.3s ease; }
     .admin-stat-card:hover { transform: translateY(-3px); }
     
     /* Custom Scrollbar */
     .custom-admin-scrollbar::-webkit-scrollbar { width: 8px; }
     .custom-admin-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-admin-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-    .custom-admin-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    .custom-admin-scrollbar::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.12); border-radius: 4px; }
+    .custom-admin-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(15,23,42,0.25); }
     
     /* Inputs inside admin */
-    .admin-table select { background: rgba(15,23,42,0.8); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); outline: none; }
-    .admin-table select:focus { border-color: #10b981; }
+    .admin-table select { background: rgba(248,250,252,0.8); color: #334155; border: 1px solid rgba(15,23,42,0.12); outline: none; }
+    .admin-table select:focus { border-color: #ff6b35; }
   `;
   document.head.appendChild(style);
 
@@ -256,7 +256,7 @@ function adminModal(html, onMounted) {
   const ov = document.createElement('div');
   ov.id = 'adminModalOverlay';
   ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  ov.innerHTML = `<div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:32px;box-shadow:0 24px 60px rgba(0,0,0,0.7);color:white;font-family:'Inter',sans-serif;">${html}</div>`;
+  ov.innerHTML = `<div style="background:#0f172a;border:1px solid rgba(15,23,42,0.12);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:32px;box-shadow:0 24px 60px rgba(0,0,0,0.7);color:white;font-family:'Inter',sans-serif;">${html}</div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
   if (onMounted) onMounted(ov);
@@ -264,10 +264,10 @@ function adminModal(html, onMounted) {
 }
 
 function adminInputStyle() {
-  return 'width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;outline:none;font-size:0.9rem;box-sizing:border-box;';
+  return 'width:100%;padding:11px 14px;background:rgba(15,23,42,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;outline:none;font-size:0.9rem;box-sizing:border-box;';
 }
 function adminLabelStyle() {
-  return 'font-size:0.82rem;color:#94a3b8;margin-bottom:6px;display:block;font-weight:600;';
+  return 'font-size:0.82rem;color:#64748b;margin-bottom:6px;display:block;font-weight:600;';
 }
 
 // ── PRODUCTS ───────────────────────────────────────────────────
@@ -282,22 +282,22 @@ async function renderAdminProductsNew(container) {
     console.log('Rendering admin products, count:', products.length);
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div><div style="color:#f8fafc;font-weight:800;font-size:1.1rem;">All Products</div><div style="color:#64748b;font-size:0.85rem;">${products.length} product${products.length!==1?'s':''} total</div></div>
-        <button onclick="adminAddProductNew()" style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.3);"><i class="fa-solid fa-plus"></i> Add Product</button>
+        <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">All Products</div><div style="color:#94a3b8;font-size:0.85rem;">${products.length} product${products.length!==1?'s':''} total</div></div>
+        <button onclick="adminAddProductNew()" style="background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> Add Product</button>
       </div>
       <div class="admin-panel-card">
-        ${products.length === 0 ? `<div class="admin-empty"><i class="fa-solid fa-box"></i><p style="font-weight:600;">No products yet</p><button onclick="adminAddProductNew()" style="margin-top:16px;padding:10px 22px;background:#10b981;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Product</button></div>` : `
+        ${products.length === 0 ? `<div class="admin-empty"><i class="fa-solid fa-box"></i><p style="font-weight:600;">No products yet</p><button onclick="adminAddProductNew()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Product</button></div>` : `
         <table class="admin-table">
           <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Sold</th><th style="text-align:right;">Actions</th></tr></thead>
           <tbody>${products.map(p=>`
             <tr>
               <td><div style="display:flex;align-items:center;gap:12px;">
                 <img src="${p.image||'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=60&q=80'}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=60&q=80'">
-                <div><div style="font-weight:700;color:#f8fafc;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.title||'Untitled'}</div><div style="font-size:0.72rem;color:#64748b;">ID: #${p.id}</div></div>
+                <div><div style="font-weight:700;color:#0f172a;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.title||'Untitled'}</div><div style="font-size:0.72rem;color:#94a3b8;">ID: #${p.id}</div></div>
               </div></td>
               <td><span class="admin-badge admin-badge-blue">${p.category||'N/A'}</span></td>
-              <td><span style="font-weight:700;color:#10b981;">$${p.price||0}</span></td>
-              <td><span style="color:#94a3b8;">${p.sold||0}</span></td>
+              <td><span style="font-weight:700;color:#ff6b35;">$${p.price||0}</span></td>
+              <td><span style="color:#64748b;">${p.sold||0}</span></td>
               <td style="text-align:right;">
                 <div style="display:flex;gap:8px;justify-content:flex-end;">
                   <button onclick="adminEditProductNew('${p.id}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
@@ -344,7 +344,7 @@ window.adminEditProductNew = function(id) {
       <div><label style="${LS}">Features (comma-separated)</label><textarea id="epFeatures" rows="3" style="${IS}">${(Array.isArray(p.features)?p.features:p.features?[p.features]:[]).join(', ')}</textarea></div>
       <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
         <button id="epCancel" style="padding:10px 20px;background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;cursor:pointer;font-weight:600;">Cancel</button>
-        <button id="epSave" style="padding:10px 22px;background:#10b981;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Changes</button>
+        <button id="epSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Changes</button>
       </div>
     </div>`, (ov) => {
     document.getElementById('epCancel').onclick = () => ov.remove();
@@ -389,7 +389,7 @@ window.adminAddProductNew = function() {
         <label style="${LS}">Product Image</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <input id="apImg" style="${IS};flex:1;min-width:0;" placeholder="Paste image URL (https://...)">
-          <label style="padding:10px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:0.85rem;color:#94a3b8;white-space:nowrap;"><i class="fa-solid fa-upload"></i> Upload <input type="file" id="apImgFile" accept="image/*" style="display:none;"></label>
+          <label style="padding:10px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:0.85rem;color:#64748b;white-space:nowrap;"><i class="fa-solid fa-upload"></i> Upload <input type="file" id="apImgFile" accept="image/*" style="display:none;"></label>
         </div>
         <div id="apImgPreview" style="margin-top:8px;"></div>
       </div>
@@ -397,7 +397,7 @@ window.adminAddProductNew = function() {
       <div><label style="${LS}">Features (comma-separated)</label><textarea id="apFeatures" rows="3" style="${IS}" placeholder="Responsive Design, Full Source Code, 1 Year Support"></textarea></div>
       <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
         <button id="apCancel" style="padding:10px 20px;background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;cursor:pointer;font-weight:600;">Cancel</button>
-        <button id="apSave" style="padding:10px 22px;background:#10b981;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Product</button>
+        <button id="apSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Product</button>
       </div>
     </div>`, (ov) => {
     // Image file upload preview
@@ -406,13 +406,13 @@ window.adminAddProductNew = function() {
       const reader = new FileReader();
       reader.onload = e => {
         document.getElementById('apImg').value = e.target.result;
-        document.getElementById('apImgPreview').innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">`;
+        document.getElementById('apImgPreview').innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(15,23,42,0.12);">`;
       };
       reader.readAsDataURL(file);
     };
     // URL preview
     document.getElementById('apImg').oninput = function() {
-      if (this.value.startsWith('http')) document.getElementById('apImgPreview').innerHTML = `<img src="${this.value}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);" onerror="this.style.display='none'">`;
+      if (this.value.startsWith('http')) document.getElementById('apImgPreview').innerHTML = `<img src="${this.value}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(15,23,42,0.12);" onerror="this.style.display='none'">`;
     };
     document.getElementById('apCancel').onclick = () => ov.remove();
     document.getElementById('apSave').onclick = async () => {
@@ -456,7 +456,7 @@ async function renderAdminListingsNew(container) {
     const listings = Object.values(window.MARKETPLACE_DATA || {});
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div><div style="color:#f8fafc;font-weight:800;font-size:1.1rem;">Marketplace Listings</div><div style="color:#64748b;font-size:0.85rem;">${listings.length} listing${listings.length!==1?'s':''} total</div></div>
+        <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">Marketplace Listings</div><div style="color:#94a3b8;font-size:0.85rem;">${listings.length} listing${listings.length!==1?'s':''} total</div></div>
       </div>
       <div class="admin-panel-card">
         ${listings.length===0?`<div class="admin-empty"><i class="fa-solid fa-store"></i><p style="font-weight:600;">No listings yet</p><p style="font-size:0.85rem;">Users' marketplace listings will appear here.</p></div>`:`
@@ -464,9 +464,9 @@ async function renderAdminListingsNew(container) {
           <thead><tr><th>Listing</th><th>Category</th><th>Price</th><th>Status</th><th style="text-align:right;">Action</th></tr></thead>
           <tbody>${listings.map(l=>`
             <tr>
-              <td><div style="font-weight:700;color:#f8fafc;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.title||'Untitled'}</div><div style="font-size:0.72rem;color:#64748b;">ID: #${l.id}</div></td>
+              <td><div style="font-weight:700;color:#0f172a;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.title||'Untitled'}</div><div style="font-size:0.72rem;color:#94a3b8;">ID: #${l.id}</div></td>
               <td><span class="admin-badge admin-badge-blue">${l.category||'N/A'}</span></td>
-              <td><span style="font-weight:700;color:#10b981;">$${l.price||0}</span></td>
+              <td><span style="font-weight:700;color:#ff6b35;">$${l.price||0}</span></td>
               <td><span class="admin-badge ${l.status==='Active'?'admin-badge-green':'admin-badge-yellow'}">${l.status||'Active'}</span></td>
               <td style="text-align:right;"><button onclick="adminDeleteListingNew('${l.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i> Delete</button></td>
             </tr>`).join('')}
@@ -510,7 +510,7 @@ async function renderAdminAllBlogsNew(container) {
     const blogs = window.allBlogs || [];
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div><div style="color:#f8fafc;font-weight:800;font-size:1.1rem;">All Blog Posts</div><div style="color:#64748b;font-size:0.85rem;">${blogs.length} post${blogs.length!==1?'s':''} total</div></div>
+        <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">All Blog Posts</div><div style="color:#94a3b8;font-size:0.85rem;">${blogs.length} post${blogs.length!==1?'s':''} total</div></div>
       </div>
       <div class="admin-panel-card">
         ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><p style="font-size:0.85rem;">Blog posts written by users will appear here.</p></div>`:`
@@ -518,15 +518,15 @@ async function renderAdminAllBlogsNew(container) {
           <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th style="text-align:right;">Action</th></tr></thead>
           <tbody>${blogs.map(b=>`
             <tr>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#f8fafc;">${b.title||'Untitled'}</td>
-              <td><span style="color:#94a3b8;">${b.authorName||b.author||'User'}</span></td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#0f172a;">${b.title||'Untitled'}</td>
+              <td><span style="color:#64748b;">${b.authorName||b.author||'User'}</span></td>
               <td><span class="admin-badge admin-badge-blue">${b.category||'General'}</span></td>
-              <td><select onchange="adminChangeBlogStatusNew('${b.id}',this.value)" style="padding:5px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;font-size:0.78rem;color:#f8fafc;">
+              <td><select onchange="adminChangeBlogStatusNew('${b.id}',this.value)" style="padding:5px 8px;background:rgba(15,23,42,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:6px;font-size:0.78rem;color:#0f172a;">
                 <option value="Published" ${b.status==='Published'?'selected':''} style="background:#0f172a;">✅ Published</option>
                 <option value="Draft" ${b.status==='Draft'?'selected':''} style="background:#0f172a;">📝 Draft</option>
                 <option value="Pending" ${b.status==='Pending'?'selected':''} style="background:#0f172a;">⏳ Pending</option>
               </select></td>
-              <td style="font-size:0.78rem;color:#64748b;">${b.date||b.createdAt||'N/A'}</td>
+              <td style="font-size:0.78rem;color:#94a3b8;">${b.date||b.createdAt||'N/A'}</td>
               <td style="text-align:right;"><button onclick="adminDeleteBlogNew('${b.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button></td>
             </tr>`).join('')}
           </tbody>
@@ -568,7 +568,7 @@ async function renderAdminOrdersNew(container) {
               <td style="font-size:0.85rem;">${o.buyerEmail || '-'}</td>
               <td style="font-weight:600;">$${o.amount}</td>
               <td><span class="admin-badge ${o.status === 'completed' ? 'admin-badge-green' : o.status === 'pending' ? 'admin-badge-yellow' : 'admin-badge-red'}">${o.status}</span></td>
-              <td style="font-size:0.8rem;color:#64748b;">${o.createdAt}</td>
+              <td style="font-size:0.8rem;color:#94a3b8;">${o.createdAt}</td>
             </tr>`).join('')}</tbody>
         </table>`}
       </div>
@@ -592,7 +592,7 @@ async function renderAdminUsersNew(container) {
               <td>${u.email || '-'}</td>
               <td>${u.phone || '-'}</td>
               <td><span class="admin-badge ${u.role === 'admin' ? 'admin-badge-green' : 'admin-badge-blue'}">${u.role}</span></td>
-              <td style="font-size:0.8rem;color:#64748b;">${u.createdAt}</td>
+              <td style="font-size:0.8rem;color:#94a3b8;">${u.createdAt}</td>
             </tr>`).join('')}</tbody>
         </table>`}
       </div>
@@ -616,7 +616,7 @@ async function renderAdminContactsNew(container) {
               <td style="font-size:0.85rem;">${c.email}</td>
               <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.subject || '-'}</td>
               <td><span class="admin-badge ${c.priority === 'CRITICAL' ? 'admin-badge-red' : c.priority === 'HIGH' ? 'admin-badge-yellow' : 'admin-badge-blue'}">${c.priority}</span></td>
-              <td style="font-size:0.8rem;color:#64748b;">${c.createdAt}</td>
+              <td style="font-size:0.8rem;color:#94a3b8;">${c.createdAt}</td>
             </tr>`).join('')}</tbody>
         </table>`}
       </div>
@@ -636,21 +636,21 @@ async function renderAdminStatsNew(container) {
 
     container.innerHTML = `
       <!-- Welcome Banner -->
-      <div style="background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(59,130,246,0.1));border:1px solid rgba(16,185,129,0.2);border-radius:20px;padding:30px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+      <div style="background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(59,130,246,0.1));border:1px solid rgba(255,107,53,0.2);border-radius:20px;padding:30px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
         <div>
-          <div style="font-size:0.85rem;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:6px;">WELCOME BACK</div>
-          <h2 style="margin:0;font-size:2rem;font-weight:900;color:#f8fafc;letter-spacing:-0.5px;">Vextro Lyntra Admin</h2>
-          <p style="margin:8px 0 0;color:#64748b;font-size:0.95rem;">Here's an overview of your platform activity.</p>
+          <div style="font-size:0.85rem;color:#ff6b35;font-weight:700;letter-spacing:1px;margin-bottom:6px;">WELCOME BACK</div>
+          <h2 style="margin:0;font-size:2rem;font-weight:900;color:#0f172a;letter-spacing:-0.5px;">Vextro Lyntra Admin</h2>
+          <p style="margin:8px 0 0;color:#94a3b8;font-size:0.95rem;">Here's an overview of your platform activity.</p>
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))" style="padding:12px 22px;background:#10b981;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'"><i class="fa-solid fa-box"></i> Manage Products</button>
-          <button onclick="adminAddProductNew()" style="padding:12px 22px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f8fafc;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-solid fa-plus"></i> Add Product</button>
+          <button onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))" style="padding:12px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='#f7931e'" onmouseout="this.style.background='#ff6b35'"><i class="fa-solid fa-box"></i> Manage Products</button>
+          <button onclick="adminAddProductNew()" style="padding:12px 22px;background:rgba(255,255,255,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-solid fa-plus"></i> Add Product</button>
         </div>
       </div>
 
       <!-- Stat Cards -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
-        <div class="admin-stat-card" style="background:linear-gradient(135deg,#065f46,#10b981);cursor:pointer;" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))">
+        <div class="admin-stat-card" style="background:linear-gradient(135deg,#065f46,#ff6b35);cursor:pointer;" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
               <div style="font-size:0.8rem;opacity:0.8;margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">PRODUCTS</div>
@@ -699,9 +699,9 @@ async function renderAdminStatsNew(container) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex-wrap:wrap;">
         <!-- Recent Products -->
         <div class="admin-panel-card" style="min-width:280px;">
-          <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-weight:700;color:#f8fafc;font-size:1rem;">Recent Products</div>
-            <a href="#" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'));return false;" style="font-size:0.8rem;color:#10b981;text-decoration:none;font-weight:600;">View all →</a>
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-weight:700;color:#0f172a;font-size:1rem;">Recent Products</div>
+            <a href="#" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'));return false;" style="font-size:0.8rem;color:#ff6b35;text-decoration:none;font-weight:600;">View all →</a>
           </div>
           ${recentProducts.length === 0 ? '<div class="admin-empty" style="padding:40px;"><i class="fa-solid fa-box"></i><p>No products yet</p></div>' : `
           <table class="admin-table">
@@ -717,9 +717,9 @@ async function renderAdminStatsNew(container) {
 
         <!-- Recent Listings -->
         <div class="admin-panel-card" style="min-width:280px;">
-          <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-weight:700;color:#f8fafc;font-size:1rem;">Recent Listings</div>
-            <a href="#" onclick="showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view=\\'adminListings\\']'));return false;" style="font-size:0.8rem;color:#10b981;text-decoration:none;font-weight:600;">View all →</a>
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-weight:700;color:#0f172a;font-size:1rem;">Recent Listings</div>
+            <a href="#" onclick="showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view=\\'adminListings\\']'));return false;" style="font-size:0.8rem;color:#ff6b35;text-decoration:none;font-weight:600;">View all →</a>
           </div>
           ${recentListings.length === 0 ? '<div class="admin-empty" style="padding:40px;"><i class="fa-solid fa-store"></i><p>No listings yet</p></div>' : `
           <table class="admin-table">
@@ -736,9 +736,9 @@ async function renderAdminStatsNew(container) {
 
       <!-- Quick Actions -->
       <div class="admin-panel-card" style="padding:24px;">
-        <div style="font-weight:700;color:#f8fafc;font-size:1rem;margin-bottom:20px;">⚡ Quick Actions</div>
+        <div style="font-weight:700;color:#0f172a;font-size:1rem;margin-bottom:20px;">⚡ Quick Actions</div>
         <div style="display:flex;flex-wrap:wrap;gap:12px;">
-          <button onclick="adminAddProductNew()" style="padding:10px 20px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#10b981;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'"><i class="fa-solid fa-plus"></i> Add Product</button>
+          <button onclick="adminAddProductNew()" style="padding:10px 20px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:10px;color:#ff6b35;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,107,53,0.2)'" onmouseout="this.style.background='rgba(255,107,53,0.1)'"><i class="fa-solid fa-plus"></i> Add Product</button>
           <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:10px 20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#3b82f6;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'"><i class="fa-solid fa-newspaper"></i> Manage Blogs</button>
           <button onclick="showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view=\\'adminUsers\\']'))" style="padding:10px 20px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;color:#f59e0b;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.2)'" onmouseout="this.style.background='rgba(245,158,11,0.1)'"><i class="fa-solid fa-users"></i> View Users</button>
           <button onclick="adminGoToSite()" style="padding:10px 20px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#8b5cf6;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(139,92,246,0.2)'" onmouseout="this.style.background='rgba(139,92,246,0.1)'"><i class="fa-solid fa-globe"></i> View Live Site</button>
