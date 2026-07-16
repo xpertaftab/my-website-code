@@ -293,6 +293,21 @@ window.reloadFrontendData = async function() {
 // Deleted blog IDs in `blogs_deleted` are filtered from every source so removed blogs never reappear.
 const originalFetchBlogs = window.fetchBlogs;
 window.fetchBlogs = async function() {
+  // One-time reset: clear all previously cached blogs (localStorage + Firestore)
+  try {
+    const RESET_KEY = 'blogs_reset_v2';
+    if (window.vextroLoad && !window.vextroLoad(RESET_KEY)) {
+      if (window.vextroSave) {
+        window.vextroSave('blogs', []);
+        window.vextroSave('blogs_deleted', []);
+        window.vextroSave(RESET_KEY, true);
+      }
+      if (window.fsSaveMap) {
+        try { await window.fsSaveMap('blogs', {}); } catch(e) {}
+      }
+    }
+  } catch(e) {}
+
   const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
   const isDeleted = id => deletedIds.map(String).includes(String(id));
   const applyList = (list, label) => {
@@ -302,6 +317,7 @@ window.fetchBlogs = async function() {
     if (typeof window.renderBlogs === 'function') window.renderBlogs(filtered);
     console.log(`${label}: Loaded ${filtered.length} blogs`);
   };
+
 
   // 1. localStorage first — admin panel writes go here (adds/edits/deletes)
   const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
