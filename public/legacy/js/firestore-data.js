@@ -77,29 +77,28 @@ window.fsLoadMap = async function(collectionName) {
     const data = await res.json();
     if (!data.documents || data.documents.length === 0) return null;
     const map = {};
-    const seenInnerIds = {};
+    // First pass: prefer real id-keyed docs (non purely-numeric keys).
+    // A prior bug called fsSaveMap with an array, which created stray
+    // numeric-keyed duplicates ("0","1",...) alongside the real docs.
+    // Drop and delete those legacy numeric-keyed docs on load.
+    const idKeyed = [];
+    const numericKeyed = [];
     data.documents.forEach(doc => {
-      const obj = docToObj(doc);
-      // Firestore doc key = last URL segment of doc.name
       const docKey = (doc.name || '').split('/').pop();
-      // Dedupe: if the same logical id appears under multiple doc keys
-      // (legacy bug wrote numeric-keyed duplicates), keep the one whose
-      // doc key matches obj.id and delete the stray.
-      const innerId = obj.id || docKey;
-      if (seenInnerIds[innerId]) {
-        const prev = seenInnerIds[innerId];
-        const stray = prev.docKey === innerId ? docKey : prev.docKey;
-        if (window.fsDeleteDoc && stray && stray !== innerId) {
-          try { window.fsDeleteDoc(collectionName, stray); } catch(e) {}
-        }
-        if (prev.docKey !== innerId && docKey === innerId) {
-          delete map[prev.docKey];
-          map[docKey] = obj;
-          seenInnerIds[innerId] = { docKey };
-        }
+      (/^\d+$/.test(docKey) ? numericKeyed : idKeyed).push({ doc, docKey });
+    });
+    const hasIdKeyed = idKeyed.length > 0;
+    idKeyed.forEach(({ doc, docKey }) => {
+      const obj = docToObj(doc);
+      obj.id = docKey;
+      map[docKey] = obj;
+    });
+    numericKeyed.forEach(({ doc, docKey }) => {
+      if (hasIdKeyed) {
+        if (window.fsDeleteDoc) { try { window.fsDeleteDoc(collectionName, docKey); } catch(e) {} }
         return;
       }
-      seenInnerIds[innerId] = { docKey };
+      const obj = docToObj(doc);
       map[docKey] = obj;
     });
     return map;
