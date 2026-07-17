@@ -293,21 +293,7 @@ window.reloadFrontendData = async function() {
 // Deleted blog IDs in `blogs_deleted` are filtered from every source so removed blogs never reappear.
 const originalFetchBlogs = window.fetchBlogs;
 window.fetchBlogs = async function() {
-  // One-time reset: clear all previously cached blogs (localStorage + Firestore)
-  try {
-    const RESET_KEY = 'blogs_reset_v4';
-    if (window.vextroLoad && !window.vextroLoad(RESET_KEY)) {
-      if (window.vextroSave) {
-        window.vextroSave('blogs', []);
-        window.vextroSave('blogs_deleted', []);
-        window.vextroSave(RESET_KEY, true);
-      }
-      window.allBlogs = [];
-      try { if (typeof allBlogs !== 'undefined') allBlogs = []; } catch(e) {}
-      if (typeof window.renderBlogs === 'function') window.renderBlogs([]);
-      return;
-    }
-  } catch(e) {}
+
 
   const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
   const isDeleted = id => deletedIds.map(String).includes(String(id));
