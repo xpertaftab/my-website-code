@@ -847,15 +847,17 @@ window.adminAddBlogNew = function() {
       btn.innerText = 'Saving...'; btn.disabled = true;
       const newBlog = { id: 'blog_'+Date.now(), ...data, date: new Date().toISOString().split('T')[0], createdAt: new Date().toISOString() };
       try { const r = await fetch('/api/blogs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newBlog) }); if(r.ok){ const saved = await r.json(); Object.assign(newBlog, saved); } } catch(e) {}
-      window.allBlogs = window.allBlogs || [];
+      window.allBlogs = Array.isArray(window.allBlogs) ? window.allBlogs : [];
+      // Guard against a duplicate entry from a previous partial run
+      window.allBlogs = window.allBlogs.filter(x => String(x.id) !== String(newBlog.id));
       window.allBlogs.unshift(newBlog);
-      // Sync top-level allBlogs used by the public site so it appears on refresh & now
-      try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs.unshift(newBlog); } } catch(e) {}
+      // Keep the top-level `allBlogs` used by the public site pointing at the same array (single source of truth — no second unshift)
+      try { if (typeof allBlogs !== 'undefined') { allBlogs = window.allBlogs; } } catch(e) {}
       const okSave = window.adminSafeSave ? window.adminSafeSave('blogs', window.allBlogs) : (window.vextroSave && window.vextroSave('blogs', window.allBlogs), true);
       if (!okSave) {
         // Roll back so the visible state matches what actually persisted
         window.allBlogs = window.allBlogs.filter(x => x.id !== newBlog.id);
-        try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) allBlogs = allBlogs.filter(x => x.id !== newBlog.id); } catch(e) {}
+        try { if (typeof allBlogs !== 'undefined') allBlogs = window.allBlogs; } catch(e) {}
         btn.innerText = 'Save Blog'; btn.disabled = false;
         return;
       }
