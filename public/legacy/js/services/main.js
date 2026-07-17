@@ -409,27 +409,19 @@ window.updateMobileNavHighlight = function(pageStr) {
 // Deleted blog IDs are tracked in `blogs_deleted` so they never come back.
 async function fetchBlogs() {
     const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
-    const hasLocalBlogState = Array.isArray(savedLocal);
-
-
-
     const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
     const isDeleted = id => deletedIds.map(String).includes(String(id));
+    const dedupe = list => {
+        const seen = new Set();
+        return list.filter(b => { const k = String(b && b.id); if (!b || seen.has(k)) return false; seen.add(k); return true; });
+    };
 
-    // 1. localStorage first — admin panel writes go here
-    if (hasLocalBlogState) {
-        allBlogs = savedLocal.filter(b => !isDeleted(b.id));
-        window.allBlogs = allBlogs;
-        renderBlogs(allBlogs);
-        return;
-    }
-
-    // 2. Firestore
+    // 1. Firestore FIRST — shared source of truth across all users/browsers
     if (window.fsLoadMap) {
         try {
             const fsData = await window.fsLoadMap('blogs');
             if (fsData && Object.keys(fsData).length > 0) {
-                allBlogs = Object.values(fsData).filter(b => !isDeleted(b.id));
+                allBlogs = dedupe(Object.values(fsData).filter(b => !isDeleted(b.id)));
                 window.allBlogs = allBlogs;
                 if (window.vextroSave) window.vextroSave('blogs', allBlogs);
                 renderBlogs(allBlogs);
@@ -438,13 +430,21 @@ async function fetchBlogs() {
         } catch (e) {}
     }
 
+    // 2. localStorage cache (offline / Firestore unreachable)
+    if (Array.isArray(savedLocal) && savedLocal.length > 0) {
+        allBlogs = dedupe(savedLocal.filter(b => !isDeleted(b.id)));
+        window.allBlogs = allBlogs;
+        renderBlogs(allBlogs);
+        return;
+    }
+
     // 3. Backend API
     try {
         const r = await fetch('/api/blogs');
         if (r.ok) {
             const d = await r.json();
             if (Array.isArray(d) && d.length > 0) {
-                allBlogs = d.filter(b => !isDeleted(b.id));
+                allBlogs = dedupe(d.filter(b => !isDeleted(b.id)));
                 window.allBlogs = allBlogs;
                 if (window.vextroSave) window.vextroSave('blogs', allBlogs);
                 renderBlogs(allBlogs);
@@ -453,13 +453,13 @@ async function fetchBlogs() {
         }
     } catch (e) {}
 
-    // 4. Static json seed (only when nothing else exists)
+    // 4. Static json seed
     try {
         const response = await fetch('./data/blogs.json');
         if (response.ok) {
             const seed = await response.json();
             if (Array.isArray(seed) && seed.length > 0) {
-                allBlogs = seed.filter(b => !isDeleted(b.id));
+                allBlogs = dedupe(seed.filter(b => !isDeleted(b.id)));
                 window.allBlogs = allBlogs;
                 if (window.vextroSave) window.vextroSave('blogs', allBlogs);
                 renderBlogs(allBlogs);
@@ -468,6 +468,7 @@ async function fetchBlogs() {
         }
     } catch (error) {
         console.warn("blogs.json load failed:", error);
+
     }
 
     // 5. No hardcoded fallback — start empty so admin controls blogs
