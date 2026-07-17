@@ -650,9 +650,25 @@ async function mountBlogViewsAndComments(id) {
 
     const key = String(id);
     const cur = window.blogStats[key] || { views: Math.floor(20 + Math.random() * 60) };
-    cur.views = (Number(cur.views) || 0) + 1;
+    // Only count 1 view per browser per blog per 12 hours (prevents inflated counts on refresh/re-open)
+    let shouldCount = false;
+    try {
+        const lsKey = 'blog_viewed_' + key;
+        const last = Number(localStorage.getItem(lsKey) || 0);
+        const now = Date.now();
+        if (!last || (now - last) > 12 * 60 * 60 * 1000) {
+            shouldCount = true;
+            localStorage.setItem(lsKey, String(now));
+        }
+    } catch(e) { shouldCount = true; }
+    if (shouldCount) {
+        cur.views = (Number(cur.views) || 0) + 1;
+        if (window.fsSetDoc) { try { window.fsSetDoc('blog_stats', key, { views: cur.views }); } catch(e) {} }
+    } else {
+        cur.views = Number(cur.views) || 0;
+    }
     window.blogStats[key] = cur;
-    if (window.fsSetDoc) { try { window.fsSetDoc('blog_stats', key, { views: cur.views }); } catch(e) {} }
+
 
     // Inject views badge into meta row
     const dateEl = document.getElementById('bdDate');
