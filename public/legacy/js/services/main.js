@@ -1944,12 +1944,45 @@ function updateAuthUI(user) {
     }
 }
 
+// Sync signed-in user into Firestore `users` collection so admin can manage them
+async function syncUserToFirestore(user) {
+    if (!user || !window.fsSetDoc || !window.fsLoadMap) return;
+    try {
+        const all = await window.fsLoadMap('users');
+        const existing = (all && all[user.uid]) || {};
+        // If banned, sign out immediately
+        if (existing.status === 'banned') {
+            alert('Your account has been blocked by admin. Contact support.');
+            try { await window.auth.signOut(); } catch(e) {}
+            return;
+        }
+        const provider = (user.providerData && user.providerData[0] && user.providerData[0].providerId) || 'password';
+        const nowIso = new Date().toISOString();
+        const payload = {
+            uid: user.uid,
+            email: user.email || existing.email || '',
+            displayName: user.displayName || existing.displayName || (user.email ? user.email.split('@')[0] : 'User'),
+            photoURL: user.photoURL || existing.photoURL || '',
+            provider: existing.provider || provider,
+            emailVerified: !!user.emailVerified,
+            role: existing.role || 'user',
+            status: existing.status || 'active',
+            createdAt: existing.createdAt || nowIso,
+            lastLoginAt: nowIso
+        };
+        await window.fsSetDoc('users', user.uid, payload);
+    } catch(e) { console.warn('user sync failed', e.message); }
+}
+window.syncUserToFirestore = syncUserToFirestore;
+
 // Setup real-time listeners for standard Firebase session state
 if (typeof window.auth !== 'undefined') {
     window.auth.onAuthStateChanged(user => {
         updateAuthUI(user);
+        if (user) syncUserToFirestore(user);
     });
 }
+
 
 // Switch nested dashboard views
 function switchDashView(view) {

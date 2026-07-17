@@ -1047,28 +1047,173 @@ async function renderAdminOrdersNew(container) {
 }
 
 async function renderAdminUsersNew(container) {
+  container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
   try {
-    const users = []; // Load users from window if implemented
-    container.innerHTML = `
-      <div class="admin-panel-card">
-        ${users.length === 0 ? '<div class="admin-empty"><i class="fa-solid fa-users"></i><p>No users</p></div>' : `
-        <table class="admin-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th></tr></thead>
-          <tbody>${users.map(u => `
-            <tr>
-              <td style="font-weight:600;">${u.displayName || '-'}</td>
-              <td>${u.email || '-'}</td>
-              <td>${u.phone || '-'}</td>
-              <td><span class="admin-badge ${u.role === 'admin' ? 'admin-badge-green' : 'admin-badge-blue'}">${u.role}</span></td>
-              <td style="font-size:0.8rem;color:#94a3b8;">${u.createdAt}</td>
-            </tr>`).join('')}</tbody>
-        </table>`}
-      </div>
-    `;
+    // Load users + comments (for activity count)
+    let usersMap = {};
+    let commentsMap = {};
+    if (window.fsLoadMap) {
+      try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
+      try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
+    }
+    // Count comments per email
+    const commentsByEmail = {};
+    Object.values(commentsMap || {}).forEach(entry => {
+      const items = Array.isArray(entry.items) ? entry.items : [];
+      items.forEach(c => {
+        const em = (c.email || '').toLowerCase().trim();
+        if (em) commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
+      });
+    });
+
+    window.__adminUsersCache = usersMap;
+    window.__adminUsersCommentsByEmail = commentsByEmail;
+    renderAdminUsersTable(container, '');
   } catch(e) {
-    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error</p></div>`;
+    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading users</p></div>`;
   }
 }
+
+function renderAdminUsersTable(container, filter) {
+  const usersMap = window.__adminUsersCache || {};
+  const commentsByEmail = window.__adminUsersCommentsByEmail || {};
+  const f = (filter || '').toLowerCase().trim();
+  let users = Object.values(usersMap);
+  if (f) users = users.filter(u =>
+    (u.email || '').toLowerCase().includes(f) ||
+    (u.displayName || '').toLowerCase().includes(f)
+  );
+  // newest first
+  users.sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+  const stats = {
+    total: Object.keys(usersMap).length,
+    admins: Object.values(usersMap).filter(u => u.role === 'admin').length,
+    banned: Object.values(usersMap).filter(u => u.status === 'banned').length,
+    active: Object.values(usersMap).filter(u => (u.status || 'active') === 'active').length
+  };
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">
+      ${[
+        {label:'Total Users', val:stats.total, c:'#3b82f6', i:'fa-users'},
+        {label:'Active', val:stats.active, c:'#10b981', i:'fa-user-check'},
+        {label:'Admins', val:stats.admins, c:'#f59e0b', i:'fa-user-shield'},
+        {label:'Banned', val:stats.banned, c:'#ef4444', i:'fa-user-slash'}
+      ].map(s => `
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:38px;height:38px;border-radius:10px;background:${s.c}18;color:${s.c};display:flex;align-items:center;justify-content:center;"><i class="fa-solid ${s.i}"></i></div>
+          <div><div style="font-size:0.78rem;color:#94a3b8;font-weight:600;">${s.label}</div><div style="font-size:1.35rem;font-weight:800;color:#0f172a;">${s.val}</div></div>
+        </div>`).join('')}
+    </div>
+    <div class="admin-panel-card">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-bottom:1px solid #e2e8f0;">
+        <div style="flex:1;min-width:200px;position:relative;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+          <input id="adminUserSearch" type="text" placeholder="Search by name or email…" value="${f.replace(/"/g,'&quot;')}"
+            style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
+        </div>
+        <div style="font-size:0.82rem;color:#64748b;">${users.length} shown</div>
+      </div>
+      ${users.length === 0 ? `
+        <div class="admin-empty" style="padding:40px 20px;">
+          <i class="fa-solid fa-users"></i>
+          <p style="font-weight:600;">${f ? 'No matching users' : 'No users yet'}</p>
+          ${!f ? '<p style="font-size:0.82rem;color:#94a3b8;">Users appear here after they sign in for the first time.</p>' : ''}
+        </div>` : `
+      <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
+        <tbody>${users.map(u => {
+          const email = (u.email || '').toLowerCase();
+          const commentsN = commentsByEmail[email] || 0;
+          const initial = (u.displayName || u.email || '?').trim().charAt(0).toUpperCase();
+          const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
+          const last = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
+          const status = u.status || 'active';
+          const role = u.role || 'user';
+          const provIcon = u.provider && u.provider.includes('google') ? 'fa-brands fa-google' : 'fa-solid fa-envelope';
+          const provLabel = u.provider && u.provider.includes('google') ? 'Google' : 'Email';
+          return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                ${u.photoURL ? `<img src="${u.photoURL}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` :
+                  `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;">${initial}</div>`}
+                <div style="min-width:0;">
+                  <div style="font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${(u.displayName||'User').replace(/</g,'&lt;')}</div>
+                  <div style="font-size:0.78rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${(u.email||'').replace(/</g,'&lt;')}</div>
+                </div>
+              </div>
+            </td>
+            <td><span style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;color:#334155;"><i class="${provIcon}"></i> ${provLabel}</span></td>
+            <td>
+              <select onchange="adminChangeUserRole('${u.uid}',this.value)" style="padding:5px 8px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:6px;font-size:0.78rem;color:#0f172a;">
+                <option value="user" ${role==='user'?'selected':''}>👤 User</option>
+                <option value="admin" ${role==='admin'?'selected':''}>🛡️ Admin</option>
+              </select>
+            </td>
+            <td>
+              ${status === 'banned'
+                ? '<span class="admin-badge" style="background:rgba(239,68,68,0.1);color:#ef4444;">Banned</span>'
+                : '<span class="admin-badge admin-badge-green">Active</span>'}
+            </td>
+            <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,0.08);color:#ff6b35;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-regular fa-comment"></i> ${commentsN}</span></td>
+            <td style="font-size:0.78rem;color:#94a3b8;">${joined}</td>
+            <td style="font-size:0.78rem;color:#94a3b8;">${last}</td>
+            <td style="text-align:right;">
+              <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                ${status === 'banned'
+                  ? `<button onclick="adminSetUserStatus('${u.uid}','active')" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-user-check"></i> Unban</button>`
+                  : `<button onclick="adminSetUserStatus('${u.uid}','banned')" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-ban"></i> Ban</button>`}
+                <button onclick="adminDeleteUser('${u.uid}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+      </div>`}
+    </div>
+  `;
+
+  const search = document.getElementById('adminUserSearch');
+  if (search) {
+    search.addEventListener('input', (e) => {
+      renderAdminUsersTable(container, e.target.value);
+      // restore focus + cursor
+      const s = document.getElementById('adminUserSearch');
+      if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+    });
+  }
+}
+
+window.adminChangeUserRole = async function(uid, role) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  u.role = role;
+  window.__adminUsersCache[uid] = u;
+  if (window.fsSetDoc) { try { await window.fsSetDoc('users', uid, u); } catch(e) {} }
+};
+
+window.adminSetUserStatus = async function(uid, status) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  if (status === 'banned' && !confirm(`Ban ${u.email || 'this user'}? They will be signed out on next visit.`)) return;
+  u.status = status;
+  window.__adminUsersCache[uid] = u;
+  if (window.fsSetDoc) { try { await window.fsSetDoc('users', uid, u); } catch(e) {} }
+  showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+};
+
+window.adminDeleteUser = async function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  if (!confirm(`Delete user record for ${u.email || uid}?\n\nNote: This only removes them from the admin list. The Firebase Auth account itself must be deleted from the Firebase Console.`)) return;
+  delete window.__adminUsersCache[uid];
+  if (window.fsDeleteDoc) { try { await window.fsDeleteDoc('users', uid); } catch(e) {} }
+  showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+};
+
 
 async function renderAdminContactsNew(container) {
   try {
