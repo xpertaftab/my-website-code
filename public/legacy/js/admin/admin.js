@@ -851,7 +851,14 @@ window.adminAddBlogNew = function() {
       window.allBlogs.unshift(newBlog);
       // Sync top-level allBlogs used by the public site so it appears on refresh & now
       try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs.unshift(newBlog); } } catch(e) {}
-      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      const okSave = window.adminSafeSave ? window.adminSafeSave('blogs', window.allBlogs) : (window.vextroSave && window.vextroSave('blogs', window.allBlogs), true);
+      if (!okSave) {
+        // Roll back so the visible state matches what actually persisted
+        window.allBlogs = window.allBlogs.filter(x => x.id !== newBlog.id);
+        try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) allBlogs = allBlogs.filter(x => x.id !== newBlog.id); } catch(e) {}
+        btn.innerText = 'Save Blog'; btn.disabled = false;
+        return;
+      }
       if (window.fsSetDoc) window.fsSetDoc('blogs', newBlog.id, newBlog);
       if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs);
       window._adminChangesMade = true;
