@@ -905,21 +905,48 @@ window.adminChangeBlogStatusNew = async function(id, status) {
 
 window.adminDeleteBlogNew = async function(id) {
   if (!confirm('Delete this blog permanently?')) return;
-  try { await fetch(`/api/blogs/${id}`, { method:'DELETE' }); } catch(e) {}
   window._adminChangesMade = true;
   // Sync the two blog lists (admin uses window.allBlogs, public site uses top-level allBlogs)
   if (window.allBlogs) window.allBlogs = window.allBlogs.filter(b => String(b.id) !== String(id));
   try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs = allBlogs.filter(b => String(b.id) !== String(id)); window.allBlogs = allBlogs; } } catch(e) {}
-  // Track deletion so seed data (blogs.json / hardcoded) can't restore it
+  // Track deletion so seed data / stale Firestore reads can't restore it
   if (window.vextroLoad && window.vextroSave) {
     const deleted = window.vextroLoad('blogs_deleted') || [];
     if (!deleted.map(String).includes(String(id))) deleted.push(id);
     window.vextroSave('blogs_deleted', deleted);
   }
-  if (window.fsDeleteDoc) window.fsDeleteDoc('blogs', id);
   if (window.vextroSave) window.vextroSave('blogs', window.allBlogs || []);
+  try { await fetch(`/api/blogs/${id}`, { method:'DELETE' }); } catch(e) {}
+  if (window.fsDeleteDoc) { try { await window.fsDeleteDoc('blogs', id); } catch(e) {} }
   if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs || []);
   showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+};
+
+window.adminDeleteAllBlogsNew = async function() {
+  const list = Array.isArray(window.allBlogs) ? window.allBlogs.slice() : [];
+  if (list.length === 0) return;
+  if (!confirm(`Delete ALL ${list.length} blog${list.length!==1?'s':''} permanently? This cannot be undone.`)) return;
+  window._adminChangesMade = true;
+  const ids = list.map(b => b.id).filter(Boolean);
+  // Clear local state first for instant UI feedback
+  window.allBlogs = [];
+  try { if (typeof allBlogs !== 'undefined') allBlogs = []; } catch(e) {}
+  if (window.vextroLoad && window.vextroSave) {
+    const deleted = window.vextroLoad('blogs_deleted') || [];
+    ids.forEach(id => { if (!deleted.map(String).includes(String(id))) deleted.push(id); });
+    window.vextroSave('blogs_deleted', deleted);
+  }
+  if (window.vextroSave) window.vextroSave('blogs', []);
+  // Re-render immediately so user sees empty state without waiting on network
+  showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+  // Fire off deletes in parallel (do not block UI)
+  const tasks = ids.map(id => {
+    const p1 = fetch(`/api/blogs/${id}`, { method:'DELETE' }).catch(()=>{});
+    const p2 = window.fsDeleteDoc ? window.fsDeleteDoc('blogs', id).catch(()=>{}) : Promise.resolve();
+    return Promise.all([p1, p2]);
+  });
+  try { await Promise.all(tasks); } catch(e) {}
+  if (typeof window.renderBlogs === 'function') window.renderBlogs([]);
 };
 
 
