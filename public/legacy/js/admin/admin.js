@@ -4,6 +4,50 @@
 const ADMIN_EMAIL = 'vextrolyntra@gmail.com';
 const ADMIN_PASSWORD = 'aftab2525';
 
+// Compress uploaded images so they fit inside localStorage (~5MB quota).
+// Downscales to max 1600px on the longest side and re-encodes as JPEG 0.85.
+window.adminCompressImage = function(file, maxSide, quality) {
+  maxSide = maxSide || 1600;
+  quality = quality || 0.85;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > maxSide || h > maxSide) {
+          if (w >= h) { h = Math.round(h * (maxSide / w)); w = maxSide; }
+          else { w = Math.round(w * (maxSide / h)); h = maxSide; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+        catch(e) { reject(e); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+// Safe save: warns if localStorage quota is exceeded so a blog never silently vanishes.
+window.adminSafeSave = function(key, data) {
+  try {
+    localStorage.setItem('vextro_' + key, JSON.stringify(data));
+    if (window.fsSaveMap) window.fsSaveMap(key, data);
+    return true;
+  } catch(e) {
+    console.error('adminSafeSave failed for', key, e);
+    alert('Save failed: browser storage is full. Please use smaller images or remove old items, then try again.');
+    return false;
+  }
+};
+
+
 // Admin signup - skip email verification, go straight to phone setup
 const origHandleAuthSubmit = window.handleAuthSubmit;
 window.handleAuthSubmit = async function (event) {
@@ -728,12 +772,14 @@ function adminBindBlogForm() {
   const $ = id => document.getElementById(id);
   const coverFile = $('bfCoverFile'), coverPrev = $('bfCoverPreview'), coverHidden = $('bfImg'), coverClear = $('bfCoverClear');
   $('bfCoverPick').onclick = () => coverFile.click();
-  coverFile.onchange = () => {
+  coverFile.onchange = async () => {
     const f = coverFile.files && coverFile.files[0]; if (!f) return;
     if (f.size > 20*1024*1024) return alert('Image too large (max 20MB)');
-    const r = new FileReader();
-    r.onload = e => { coverHidden.value = e.target.result; coverPrev.src = e.target.result; coverPrev.style.display='block'; coverClear.style.display='inline-block'; };
-    r.readAsDataURL(f);
+    try {
+      const dataUrl = await window.adminCompressImage(f, 1600, 0.85);
+      coverHidden.value = dataUrl; coverPrev.src = dataUrl;
+      coverPrev.style.display='block'; coverClear.style.display='inline-block';
+    } catch(e) { alert('Could not process image. Try a different file.'); }
   };
   coverClear.onclick = () => { coverHidden.value=''; coverPrev.src=''; coverPrev.style.display='none'; coverClear.style.display='none'; coverFile.value=''; };
 
@@ -765,25 +811,30 @@ function adminBindBlogForm() {
   $('bfBtnUnlink').onclick = () => { restoreSel(); document.execCommand('unlink'); saveSel(); };
   const imgFile = $('bfEditorImgFile');
   $('bfBtnImage').onclick = () => { saveSel(); imgFile.click(); };
-  imgFile.onchange = () => {
+  imgFile.onchange = async () => {
     const f = imgFile.files && imgFile.files[0]; if (!f) return;
     if (f.size > 20*1024*1024) { alert('Image too large (max 20MB)'); imgFile.value=''; return; }
-    const r = new FileReader();
-    r.onload = e => { restoreSel(); document.execCommand('insertHTML', false, `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`); saveSel(); imgFile.value=''; };
-    r.readAsDataURL(f);
+    try {
+      const dataUrl = await window.adminCompressImage(f, 1400, 0.82);
+      restoreSel();
+      document.execCommand('insertHTML', false, `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`);
+      saveSel();
+    } catch(e) { alert('Could not process image.'); }
+    imgFile.value='';
   };
   editor.addEventListener('paste', e => {
     const items = e.clipboardData && e.clipboardData.items;
     if (items) for (const it of items) if (it.type && it.type.startsWith('image/')) {
       e.preventDefault();
       const file = it.getAsFile(); if (!file) return;
-      const r = new FileReader();
-      r.onload = ev => document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt="">`);
-      r.readAsDataURL(file);
+      window.adminCompressImage(file, 1400, 0.82).then(dataUrl => {
+        document.execCommand('insertHTML', false, `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt="">`);
+      }).catch(()=>{});
       return;
     }
   });
 }
+
 
 window.adminAddBlogNew = function() {
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-newspaper" style="color:#ff6b35;"></i> Add New Blog Post</h3>${adminBlogFormHtml({})}`, (ov)=>{
@@ -800,7 +851,14 @@ window.adminAddBlogNew = function() {
       window.allBlogs.unshift(newBlog);
       // Sync top-level allBlogs used by the public site so it appears on refresh & now
       try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) { allBlogs.unshift(newBlog); } } catch(e) {}
-      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      const okSave = window.adminSafeSave ? window.adminSafeSave('blogs', window.allBlogs) : (window.vextroSave && window.vextroSave('blogs', window.allBlogs), true);
+      if (!okSave) {
+        // Roll back so the visible state matches what actually persisted
+        window.allBlogs = window.allBlogs.filter(x => x.id !== newBlog.id);
+        try { if (typeof allBlogs !== 'undefined' && Array.isArray(allBlogs)) allBlogs = allBlogs.filter(x => x.id !== newBlog.id); } catch(e) {}
+        btn.innerText = 'Save Blog'; btn.disabled = false;
+        return;
+      }
       if (window.fsSetDoc) window.fsSetDoc('blogs', newBlog.id, newBlog);
       if (typeof window.renderBlogs === 'function') window.renderBlogs(window.allBlogs);
       window._adminChangesMade = true;
@@ -823,7 +881,8 @@ window.adminEditBlogNew = function(id) {
       btn.innerText = 'Saving...'; btn.disabled = true;
       Object.assign(b, data, { updatedAt: new Date().toISOString() });
       try { await fetch(`/api/blogs/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }); } catch(e) {}
-      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      const okSave = window.adminSafeSave ? window.adminSafeSave('blogs', window.allBlogs) : (window.vextroSave && window.vextroSave('blogs', window.allBlogs), true);
+      if (!okSave) { btn.innerText = 'Save Blog'; btn.disabled = false; return; }
       if (window.fsSetDoc) window.fsSetDoc('blogs', b.id, b);
       window._adminChangesMade = true;
       ov.remove();
