@@ -408,21 +408,10 @@ window.updateMobileNavHighlight = function(pageStr) {
 // Priority: localStorage (admin changes) > Firestore > API > static json (seed only).
 // Deleted blog IDs are tracked in `blogs_deleted` so they never come back.
 async function fetchBlogs() {
-    const BLOG_RESET_KEY = 'blogs_reset_v4';
     const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
     const hasLocalBlogState = Array.isArray(savedLocal);
 
-    // One-time hard reset: the public blog list starts empty until admin adds new blogs.
-    // Empty localStorage array is intentional and must not fall back to old remote seed data.
-    if (window.vextroLoad && window.vextroSave && !window.vextroLoad(BLOG_RESET_KEY)) {
-        allBlogs = [];
-        window.allBlogs = allBlogs;
-        window.vextroSave('blogs', []);
-        window.vextroSave('blogs_deleted', []);
-        window.vextroSave(BLOG_RESET_KEY, true);
-        renderBlogs(allBlogs);
-        return;
-    }
+
 
     const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
     const isDeleted = id => deletedIds.map(String).includes(String(id));
