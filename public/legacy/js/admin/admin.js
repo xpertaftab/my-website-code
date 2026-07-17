@@ -636,6 +636,10 @@ async function renderAdminAllBlogsNew(container) {
         } catch(e) { try { const r2 = await fetch('/api/blogs/all'); if (r2.ok) { const d2 = await r2.json(); if (d2 && d2.length > 0) window.allBlogs = d2; } } catch(e2) {} }
       }
     }
+    // Load stats + comments so the admin table can show counts
+    if (typeof window.loadBlogStatsAndComments === 'function') {
+      try { await window.loadBlogStatsAndComments(); } catch(e) {}
+    }
     const blogs = window.allBlogs || [];
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
