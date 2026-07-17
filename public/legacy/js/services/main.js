@@ -507,7 +507,7 @@ function renderBlogs(blogsList) {
             </div>
             <div class="blog-card-body">
                 <p class="blog-card-excerpt">${blog.excerpt}</p>
-                <a href="#" class="blog-card-link" onclick="viewBlogPost(${blog.id}); return false;">Read More <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="#" class="blog-card-link" onclick="viewBlogPost('${blog.id}'); return false;">Read More <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         `;
         grid.appendChild(card);
