@@ -314,14 +314,7 @@ window.fetchBlogs = async function() {
   };
 
 
-  // 1. localStorage first — admin panel writes go here (adds/edits/deletes)
-  const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
-  if (Array.isArray(savedLocal)) {
-    applyList(savedLocal, 'Local storage');
-    return;
-  }
-
-  // 2. Firestore
+  // 1. Firestore FIRST — shared across every visitor/browser
   if (window.fsLoadMap) {
     try {
       const fsData = await window.fsLoadMap('blogs');
@@ -335,6 +328,14 @@ window.fetchBlogs = async function() {
       console.warn('Firestore: Could not load blogs', e.message);
     }
   }
+
+  // 2. localStorage cache (offline fallback only)
+  const savedLocal = window.vextroLoad ? window.vextroLoad('blogs') : null;
+  if (Array.isArray(savedLocal) && savedLocal.length > 0) {
+    applyList(savedLocal, 'Local storage');
+    return;
+  }
+
   // 3. API
   try {
     const blogs = await API.get('blogs');
