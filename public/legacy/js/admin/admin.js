@@ -640,7 +640,10 @@ async function renderAdminAllBlogsNew(container) {
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">All Blog Posts</div><div style="color:#94a3b8;font-size:0.85rem;">${blogs.length} post${blogs.length!==1?'s':''} total</div></div>
-        <button onclick="adminAddBlogNew()" style="background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> Add New Blog</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${blogs.length>0?`<button onclick="adminDeleteAllBlogsNew()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete All</button>`:''}
+          <button onclick="adminAddBlogNew()" style="background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> Add New Blog</button>
+        </div>
       </div>
       <div class="admin-panel-card">
         ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><button onclick="adminAddBlogNew()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Blog</button></div>`:`
