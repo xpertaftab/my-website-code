@@ -772,12 +772,14 @@ function adminBindBlogForm() {
   const $ = id => document.getElementById(id);
   const coverFile = $('bfCoverFile'), coverPrev = $('bfCoverPreview'), coverHidden = $('bfImg'), coverClear = $('bfCoverClear');
   $('bfCoverPick').onclick = () => coverFile.click();
-  coverFile.onchange = () => {
+  coverFile.onchange = async () => {
     const f = coverFile.files && coverFile.files[0]; if (!f) return;
     if (f.size > 20*1024*1024) return alert('Image too large (max 20MB)');
-    const r = new FileReader();
-    r.onload = e => { coverHidden.value = e.target.result; coverPrev.src = e.target.result; coverPrev.style.display='block'; coverClear.style.display='inline-block'; };
-    r.readAsDataURL(f);
+    try {
+      const dataUrl = await window.adminCompressImage(f, 1600, 0.85);
+      coverHidden.value = dataUrl; coverPrev.src = dataUrl;
+      coverPrev.style.display='block'; coverClear.style.display='inline-block';
+    } catch(e) { alert('Could not process image. Try a different file.'); }
   };
   coverClear.onclick = () => { coverHidden.value=''; coverPrev.src=''; coverPrev.style.display='none'; coverClear.style.display='none'; coverFile.value=''; };
 
@@ -809,25 +811,30 @@ function adminBindBlogForm() {
   $('bfBtnUnlink').onclick = () => { restoreSel(); document.execCommand('unlink'); saveSel(); };
   const imgFile = $('bfEditorImgFile');
   $('bfBtnImage').onclick = () => { saveSel(); imgFile.click(); };
-  imgFile.onchange = () => {
+  imgFile.onchange = async () => {
     const f = imgFile.files && imgFile.files[0]; if (!f) return;
     if (f.size > 20*1024*1024) { alert('Image too large (max 20MB)'); imgFile.value=''; return; }
-    const r = new FileReader();
-    r.onload = e => { restoreSel(); document.execCommand('insertHTML', false, `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`); saveSel(); imgFile.value=''; };
-    r.readAsDataURL(f);
+    try {
+      const dataUrl = await window.adminCompressImage(f, 1400, 0.82);
+      restoreSel();
+      document.execCommand('insertHTML', false, `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt=""><p><br></p>`);
+      saveSel();
+    } catch(e) { alert('Could not process image.'); }
+    imgFile.value='';
   };
   editor.addEventListener('paste', e => {
     const items = e.clipboardData && e.clipboardData.items;
     if (items) for (const it of items) if (it.type && it.type.startsWith('image/')) {
       e.preventDefault();
       const file = it.getAsFile(); if (!file) return;
-      const r = new FileReader();
-      r.onload = ev => document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt="">`);
-      r.readAsDataURL(file);
+      window.adminCompressImage(file, 1400, 0.82).then(dataUrl => {
+        document.execCommand('insertHTML', false, `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;display:block;" alt="">`);
+      }).catch(()=>{});
       return;
     }
   });
 }
+
 
 window.adminAddBlogNew = function() {
   adminModal(`<h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;"><i class="fa-solid fa-newspaper" style="color:#ff6b35;"></i> Add New Blog Post</h3>${adminBlogFormHtml({})}`, (ov)=>{
