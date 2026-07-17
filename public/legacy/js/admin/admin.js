@@ -636,6 +636,10 @@ async function renderAdminAllBlogsNew(container) {
         } catch(e) { try { const r2 = await fetch('/api/blogs/all'); if (r2.ok) { const d2 = await r2.json(); if (d2 && d2.length > 0) window.allBlogs = d2; } } catch(e2) {} }
       }
     }
+    // Load stats + comments so the admin table can show counts
+    if (typeof window.loadBlogStatsAndComments === 'function') {
+      try { await window.loadBlogStatsAndComments(); } catch(e) {}
+    }
     const blogs = window.allBlogs || [];
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
@@ -648,8 +652,13 @@ async function renderAdminAllBlogsNew(container) {
       <div class="admin-panel-card">
         ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><button onclick="adminAddBlogNew()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Blog</button></div>`:`
         <table class="admin-table">
-          <thead><tr><th>Blog</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
-          <tbody>${blogs.map(b=>`
+          <thead><tr><th>Blog</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th>Views</th><th>Comments</th><th style="text-align:right;">Actions</th></tr></thead>
+          <tbody>${blogs.map(b=>{
+            const st = (window.blogStats && window.blogStats[String(b.id)]) || {};
+            const views = Number(st.views) || 0;
+            const cList = (window.blogComments && window.blogComments[String(b.id)]) || [];
+            const cCount = cList.length;
+            return `
             <tr>
               <td><div style="display:flex;align-items:center;gap:12px;">
                 <img src="${b.image||b.cover||'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'">
@@ -663,13 +672,15 @@ async function renderAdminAllBlogsNew(container) {
                 <option value="Pending" ${b.status==='Pending'?'selected':''}>⏳ Pending</option>
               </select></td>
               <td style="font-size:0.78rem;color:#94a3b8;">${b.date||b.createdAt||'N/A'}</td>
+              <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.08);color:#3b82f6;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-regular fa-eye"></i> ${views.toLocaleString()}</span></td>
+              <td><button onclick="adminViewBlogComments('${b.id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,0.08);color:#ff6b35;border:1px solid rgba(255,107,53,0.25);padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-regular fa-comment"></i> ${cCount}</button></td>
               <td style="text-align:right;">
                 <div style="display:flex;gap:8px;justify-content:flex-end;">
                   <button onclick="adminEditBlogNew('${b.id}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
                   <button onclick="adminDeleteBlogNew('${b.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
               </td>
-            </tr>`).join('')}
+            </tr>`;}).join('')}
           </tbody>
         </table>`}
       </div>`;
@@ -948,6 +959,66 @@ window.adminDeleteAllBlogsNew = async function() {
   try { await Promise.all(tasks); } catch(e) {}
   if (typeof window.renderBlogs === 'function') window.renderBlogs([]);
 };
+
+// View & manage comments for a specific blog
+window.adminViewBlogComments = async function(blogId) {
+  const key = String(blogId);
+  if ((!window.blogComments || !window.blogComments[key]) && typeof window.loadBlogStatsAndComments === 'function') {
+    try { await window.loadBlogStatsAndComments(); } catch(e) {}
+  }
+  const blog = (window.allBlogs || []).find(b => String(b.id) === key) || {};
+  const items = (window.blogComments && window.blogComments[key]) || [];
+  const esc = s => (s||'').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'adminCommentsOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.3);">
+      <div style="padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-weight:800;color:#0f172a;font-size:1.05rem;">Comments · ${items.length}</div>
+          <div style="color:#94a3b8;font-size:0.82rem;margin-top:2px;">${esc(blog.title||'Blog')}</div>
+        </div>
+        <button onclick="document.getElementById('adminCommentsOverlay').remove()" style="background:#f1f5f9;border:none;width:36px;height:36px;border-radius:10px;cursor:pointer;color:#0f172a;font-size:1rem;">✕</button>
+      </div>
+      <div style="padding:18px 22px;overflow:auto;flex:1;background:#f8fafc;">
+        ${items.length===0 ? `<div style="text-align:center;color:#94a3b8;padding:40px 10px;">No comments yet on this blog.</div>` :
+          items.slice().reverse().map((c,i)=>{
+            const idx = items.length - 1 - i;
+            const dt = c.date ? new Date(c.date).toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+            return `
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">
+                <div style="font-weight:700;color:#0f172a;">${esc(c.name||'Anonymous')}${c.email?` <span style="color:#94a3b8;font-weight:500;font-size:0.82rem;">· ${esc(c.email)}</span>`:''}</div>
+                <button onclick="adminDeleteBlogComment('${key}',${idx})" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:5px 10px;border-radius:8px;font-weight:600;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+              <div style="color:#94a3b8;font-size:0.78rem;margin-bottom:8px;">${dt}</div>
+              <div style="color:#334155;line-height:1.6;">${esc(c.text||'').replace(/\n/g,'<br>')}</div>
+            </div>`;
+          }).join('')
+        }
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+};
+
+window.adminDeleteBlogComment = async function(blogId, idx) {
+  if (!confirm('Delete this comment?')) return;
+  const key = String(blogId);
+  const arr = (window.blogComments && window.blogComments[key]) || [];
+  arr.splice(idx, 1);
+  window.blogComments[key] = arr;
+  if (window.fsSetDoc) { try { await window.fsSetDoc('blog_comments', key, { items: arr }); } catch(e) {} }
+  // Refresh modal + admin table
+  document.getElementById('adminCommentsOverlay')?.remove();
+  window.adminViewBlogComments(blogId);
+  showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+};
+
+
 
 
 async function renderAdminOrdersNew(container) {

@@ -565,59 +565,205 @@ function applyBlogFilters() {
 }
 
 // Stub view full blog post function
-function viewBlogPost(id) {
-    const clickedBlog = allBlogs.find(b => b.id === id);
-    if (clickedBlog) {
-        document.getElementById('bdCategory').innerText = clickedBlog.category;
-        document.getElementById('bdTitle').innerText = clickedBlog.title;
-        document.getElementById('bdDate').innerText = clickedBlog.date;
-        document.getElementById('bdReadTime').innerText = clickedBlog.readTime || '5 min read';
-        document.getElementById('bdImage').src = clickedBlog.image;
-        document.getElementById('bdExcerpt').innerText = clickedBlog.excerpt;
-        
-        // Use actual blog content from admin if available, else fallback filler
-        let bodyHtml = '';
-        if (clickedBlog.content && String(clickedBlog.content).trim().length > 0) {
-            bodyHtml = clickedBlog.content;
-        } else {
-            bodyHtml = `
-                <p>${clickedBlog.excerpt || ''}</p>
-                <p>Thank you for reading. Stay tuned for more insights and updates in our upcoming posts.</p>
+async function viewBlogPost(id) {
+    const clickedBlog = allBlogs.find(b => String(b.id) === String(id));
+    if (!clickedBlog) return;
+
+    document.getElementById('bdCategory').innerText = clickedBlog.category;
+    document.getElementById('bdTitle').innerText = clickedBlog.title;
+    document.getElementById('bdDate').innerText = clickedBlog.date;
+    document.getElementById('bdReadTime').innerText = clickedBlog.readTime || '5 min read';
+    document.getElementById('bdImage').src = clickedBlog.image;
+    document.getElementById('bdExcerpt').innerText = clickedBlog.excerpt;
+
+    let bodyHtml = '';
+    if (clickedBlog.content && String(clickedBlog.content).trim().length > 0) {
+        bodyHtml = clickedBlog.content;
+    } else {
+        bodyHtml = `
+            <p>${clickedBlog.excerpt || ''}</p>
+            <p>Thank you for reading. Stay tuned for more insights and updates in our upcoming posts.</p>
+        `;
+    }
+    document.getElementById('bdBodyText').innerHTML = bodyHtml;
+
+    const popGrid = document.getElementById('bdPopularGrid');
+    if (popGrid) {
+        popGrid.innerHTML = '';
+        const otherBlogs = allBlogs.filter(b => b.id !== id).slice(0, 3);
+        otherBlogs.forEach(blog => {
+            const card = document.createElement('div');
+            card.className = 'blog-card';
+            card.style.margin = '0';
+            card.innerHTML = `
+                <div class="blog-card-image-wrap">
+                    <span class="blog-card-badge">${blog.category}</span>
+                    <img src="${blog.image}" alt="${blog.title}" loading="lazy">
+                    <div class="blog-card-img-overlay">
+                        <h3 class="blog-card-title">${blog.title}</h3>
+                    </div>
+                </div>
+                <div class="blog-card-body">
+                    <p class="blog-card-excerpt">${blog.excerpt}</p>
+                    <a href="#" class="blog-card-link" onclick="viewBlogPost('${blog.id}'); return false;">Read More <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
             `;
+            popGrid.appendChild(card);
+        });
+    }
+
+    showPage('blogDetail');
+    window.scrollTo(0, 0);
+
+    mountBlogViewsAndComments(id);
+}
+
+// ==========================================
+// BLOG VIEWS + COMMENTS
+// ==========================================
+window.blogStats = window.blogStats || {};
+window.blogComments = window.blogComments || {};
+
+window.loadBlogStatsAndComments = async function() {
+    if (!window.fsLoadMap) return;
+    try {
+        const s = await window.fsLoadMap('blog_stats');
+        if (s) Object.keys(s).forEach(k => { window.blogStats[k] = { views: Number(s[k].views) || 0 }; });
+    } catch(e) {}
+    try {
+        const c = await window.fsLoadMap('blog_comments');
+        if (c) Object.keys(c).forEach(k => {
+            const items = Array.isArray(c[k].items) ? c[k].items : [];
+            window.blogComments[k] = items;
+        });
+    } catch(e) {}
+};
+
+async function mountBlogViewsAndComments(id) {
+    const container = document.getElementById('bdBodyText');
+    if (!container) return;
+
+    if (!window.__blogStatsLoaded) {
+        window.__blogStatsLoaded = true;
+        await window.loadBlogStatsAndComments();
+    }
+
+    const key = String(id);
+    const cur = window.blogStats[key] || { views: Math.floor(20 + Math.random() * 60) };
+    cur.views = (Number(cur.views) || 0) + 1;
+    window.blogStats[key] = cur;
+    if (window.fsSetDoc) { try { window.fsSetDoc('blog_stats', key, { views: cur.views }); } catch(e) {} }
+
+    // Inject views badge into meta row
+    const dateEl = document.getElementById('bdDate');
+    if (dateEl && dateEl.parentElement && dateEl.parentElement.parentElement) {
+        const meta = dateEl.parentElement.parentElement;
+        let viewsSpan = meta.querySelector('.bd-views');
+        if (!viewsSpan) {
+            viewsSpan = document.createElement('span');
+            viewsSpan.className = 'bd-views';
+            viewsSpan.innerHTML = `<i class="fa-regular fa-eye" style="color:#94a3b8; margin-right:5px;"></i> <span class="bd-views-n"></span> views`;
+            meta.appendChild(viewsSpan);
         }
-        document.getElementById('bdBodyText').innerHTML = bodyHtml;
-        
-        // Populate Most Popular Blogs (exclude current one)
-        const popGrid = document.getElementById('bdPopularGrid');
-        if (popGrid) {
-            popGrid.innerHTML = '';
-            // Get up to 3 other blogs
-            const otherBlogs = allBlogs.filter(b => b.id !== id).slice(0, 3);
-            otherBlogs.forEach(blog => {
-                const card = document.createElement('div');
-                card.className = 'blog-card';
-                card.style.margin = '0'; // reset any global margins for this grid
-                card.innerHTML = `
-                    <div class="blog-card-image-wrap">
-                        <span class="blog-card-badge">${blog.category}</span>
-                        <img src="${blog.image}" alt="${blog.title}" loading="lazy">
-                        <div class="blog-card-img-overlay">
-                            <h3 class="blog-card-title">${blog.title}</h3>
-                        </div>
-                    </div>
-                    <div class="blog-card-body">
-                        <p class="blog-card-excerpt">${blog.excerpt}</p>
-                        <a href="#" class="blog-card-link" onclick="viewBlogPost('${blog.id}'); return false;">Read More <i class="fa-solid fa-arrow-right"></i></a>
-                    </div>
-                `;
-                popGrid.appendChild(card);
-            });
-        }
-        
-        showPage('blogDetail');
-        window.scrollTo(0, 0);
+        const n = viewsSpan.querySelector('.bd-views-n');
+        if (n) n.textContent = cur.views.toLocaleString();
+    }
+
+    let section = document.getElementById('bdCommentsSection');
+    if (!section) {
+        section = document.createElement('div');
+        section.id = 'bdCommentsSection';
+        section.style.cssText = 'margin-top:60px;padding-top:40px;border-top:1px solid #e2e8f0;';
+        section.innerHTML = `
+            <h2 style="font-size:1.8rem;font-weight:800;color:#0f172a;margin-bottom:20px;">
+                Comments <span id="bdCommentCount" style="color:#94a3b8;font-weight:600;font-size:1rem;"></span>
+            </h2>
+            <form id="bdCommentForm" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:28px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <input id="bdcName" required maxlength="60" placeholder="Your name" style="padding:11px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.95rem;background:#fff;color:#0f172a;">
+                    <input id="bdcEmail" type="email" maxlength="120" placeholder="Email (optional)" style="padding:11px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.95rem;background:#fff;color:#0f172a;">
+                </div>
+                <textarea id="bdcText" required maxlength="1000" rows="3" placeholder="Write your comment..." style="width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.95rem;background:#fff;color:#0f172a;resize:vertical;font-family:inherit;"></textarea>
+                <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+                    <button type="submit" style="background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;border:none;padding:11px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);">
+                        <i class="fa-regular fa-paper-plane"></i> Post Comment
+                    </button>
+                </div>
+            </form>
+            <div id="bdCommentList" style="display:flex;flex-direction:column;gap:14px;"></div>
+        `;
+        const parent = container.parentElement;
+        const headers = parent ? parent.querySelectorAll('h2') : [];
+        let popularBlock = null;
+        headers.forEach(h => { if (h.textContent && h.textContent.includes('Popular')) popularBlock = h.parentElement; });
+        if (popularBlock) popularBlock.parentElement.insertBefore(section, popularBlock);
+        else if (parent) parent.appendChild(section);
+
+        section.querySelector('#bdCommentForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            submitBlogComment(id);
+        });
+    }
+    renderBlogComments(id);
+}
+
+function renderBlogComments(id) {
+    const list = document.getElementById('bdCommentList');
+    const countEl = document.getElementById('bdCommentCount');
+    if (!list) return;
+    const items = (window.blogComments[String(id)] || []).slice().reverse();
+    if (countEl) countEl.textContent = `(${items.length})`;
+    if (items.length === 0) {
+        list.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;background:#f8fafc;border-radius:12px;">Be the first to comment on this post.</div>`;
+        return;
+    }
+    list.innerHTML = items.map(c => {
+        const initial = (c.name || '?').trim().charAt(0).toUpperCase();
+        const safeName = (c.name || 'Anonymous').replace(/</g,'&lt;');
+        const safeText = (c.text || '').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+        const dt = c.date ? new Date(c.date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '';
+        return `
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;display:flex;gap:14px;">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${initial}</div>
+            <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                    <div style="font-weight:700;color:#0f172a;">${safeName}</div>
+                    <div style="color:#94a3b8;font-size:0.8rem;">${dt}</div>
+                </div>
+                <div style="color:#334155;line-height:1.6;">${safeText}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function submitBlogComment(id) {
+    const name = (document.getElementById('bdcName').value || '').trim();
+    const email = (document.getElementById('bdcEmail').value || '').trim();
+    const text = (document.getElementById('bdcText').value || '').trim();
+    if (!name || !text) { alert('Please enter your name and a comment.'); return; }
+    if (text.length > 1000) { alert('Comment is too long (max 1000 chars).'); return; }
+
+    const key = String(id);
+    const comment = { name: name.slice(0,60), email: email.slice(0,120), text: text.slice(0,1000), date: new Date().toISOString() };
+    const arr = window.blogComments[key] || [];
+    arr.push(comment);
+    window.blogComments[key] = arr;
+
+    document.getElementById('bdcName').value = '';
+    document.getElementById('bdcEmail').value = '';
+    document.getElementById('bdcText').value = '';
+
+    renderBlogComments(id);
+
+    if (window.fsSetDoc) {
+        try { await window.fsSetDoc('blog_comments', key, { items: arr }); } catch(e) {}
     }
 }
+
+window.viewBlogPost = viewBlogPost;
+window.mountBlogViewsAndComments = mountBlogViewsAndComments;
+window.renderBlogComments = renderBlogComments;
+window.submitBlogComment = submitBlogComment;
 
 // Example function to fetch JSON data securely (Ready for backend integration)
 async function fetchMarketplaceListings() {
