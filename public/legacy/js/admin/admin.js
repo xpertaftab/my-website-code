@@ -881,7 +881,8 @@ window.adminEditBlogNew = function(id) {
       btn.innerText = 'Saving...'; btn.disabled = true;
       Object.assign(b, data, { updatedAt: new Date().toISOString() });
       try { await fetch(`/api/blogs/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) }); } catch(e) {}
-      if (window.vextroSave) window.vextroSave('blogs', window.allBlogs);
+      const okSave = window.adminSafeSave ? window.adminSafeSave('blogs', window.allBlogs) : (window.vextroSave && window.vextroSave('blogs', window.allBlogs), true);
+      if (!okSave) { btn.innerText = 'Save Blog'; btn.disabled = false; return; }
       if (window.fsSetDoc) window.fsSetDoc('blogs', b.id, b);
       window._adminChangesMade = true;
       ov.remove();
