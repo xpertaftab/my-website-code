@@ -4,6 +4,50 @@
 const ADMIN_EMAIL = 'vextrolyntra@gmail.com';
 const ADMIN_PASSWORD = 'aftab2525';
 
+// Compress uploaded images so they fit inside localStorage (~5MB quota).
+// Downscales to max 1600px on the longest side and re-encodes as JPEG 0.85.
+window.adminCompressImage = function(file, maxSide, quality) {
+  maxSide = maxSide || 1600;
+  quality = quality || 0.85;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > maxSide || h > maxSide) {
+          if (w >= h) { h = Math.round(h * (maxSide / w)); w = maxSide; }
+          else { w = Math.round(w * (maxSide / h)); h = maxSide; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+        catch(e) { reject(e); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+// Safe save: warns if localStorage quota is exceeded so a blog never silently vanishes.
+window.adminSafeSave = function(key, data) {
+  try {
+    localStorage.setItem('vextro_' + key, JSON.stringify(data));
+    if (window.fsSaveMap) window.fsSaveMap(key, data);
+    return true;
+  } catch(e) {
+    console.error('adminSafeSave failed for', key, e);
+    alert('Save failed: browser storage is full. Please use smaller images or remove old items, then try again.');
+    return false;
+  }
+};
+
+
 // Admin signup - skip email verification, go straight to phone setup
 const origHandleAuthSubmit = window.handleAuthSubmit;
 window.handleAuthSubmit = async function (event) {
