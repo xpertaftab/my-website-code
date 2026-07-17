@@ -648,8 +648,13 @@ async function renderAdminAllBlogsNew(container) {
       <div class="admin-panel-card">
         ${blogs.length===0?`<div class="admin-empty"><i class="fa-solid fa-newspaper"></i><p style="font-weight:600;">No blogs yet</p><button onclick="adminAddBlogNew()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Blog</button></div>`:`
         <table class="admin-table">
-          <thead><tr><th>Blog</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
-          <tbody>${blogs.map(b=>`
+          <thead><tr><th>Blog</th><th>Author</th><th>Category</th><th>Status</th><th>Date</th><th>Views</th><th>Comments</th><th style="text-align:right;">Actions</th></tr></thead>
+          <tbody>${blogs.map(b=>{
+            const st = (window.blogStats && window.blogStats[String(b.id)]) || {};
+            const views = Number(st.views) || 0;
+            const cList = (window.blogComments && window.blogComments[String(b.id)]) || [];
+            const cCount = cList.length;
+            return `
             <tr>
               <td><div style="display:flex;align-items:center;gap:12px;">
                 <img src="${b.image||b.cover||'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=80&q=80'">
@@ -663,13 +668,15 @@ async function renderAdminAllBlogsNew(container) {
                 <option value="Pending" ${b.status==='Pending'?'selected':''}>⏳ Pending</option>
               </select></td>
               <td style="font-size:0.78rem;color:#94a3b8;">${b.date||b.createdAt||'N/A'}</td>
+              <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.08);color:#3b82f6;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-regular fa-eye"></i> ${views.toLocaleString()}</span></td>
+              <td><button onclick="adminViewBlogComments('${b.id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,0.08);color:#ff6b35;border:1px solid rgba(255,107,53,0.25);padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-regular fa-comment"></i> ${cCount}</button></td>
               <td style="text-align:right;">
                 <div style="display:flex;gap:8px;justify-content:flex-end;">
                   <button onclick="adminEditBlogNew('${b.id}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
                   <button onclick="adminDeleteBlogNew('${b.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
               </td>
-            </tr>`).join('')}
+            </tr>`;}).join('')}
           </tbody>
         </table>`}
       </div>`;
