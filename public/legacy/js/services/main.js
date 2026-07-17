@@ -649,8 +649,8 @@ async function mountBlogViewsAndComments(id) {
     }
 
     const key = String(id);
-    const cur = window.blogStats[key] || { views: Math.floor(20 + Math.random() * 60) };
-    // Only count 1 view per browser per blog per 12 hours (prevents inflated counts on refresh/re-open)
+    const cur = window.blogStats[key] || { views: 0 };
+    // Only count 1 REAL view per browser per blog per 12 hours
     let shouldCount = false;
     try {
         const lsKey = 'blog_viewed_' + key;
@@ -669,8 +669,13 @@ async function mountBlogViewsAndComments(id) {
     }
     window.blogStats[key] = cur;
 
+    // Deterministic fake baseline per blog id (different for each blog, stable across visits)
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) { hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0; }
+    const fakeBase = 340 + (Math.abs(hash) % 2860); // 340..3200 range, unique per blog
+    const displayViews = fakeBase + (cur.views || 0);
 
-    // Inject views badge into meta row
+    // Inject views badge into meta row (shows fake+real to visitor)
     const dateEl = document.getElementById('bdDate');
     if (dateEl && dateEl.parentElement && dateEl.parentElement.parentElement) {
         const meta = dateEl.parentElement.parentElement;
@@ -682,8 +687,9 @@ async function mountBlogViewsAndComments(id) {
             meta.appendChild(viewsSpan);
         }
         const n = viewsSpan.querySelector('.bd-views-n');
-        if (n) n.textContent = cur.views.toLocaleString();
+        if (n) n.textContent = displayViews.toLocaleString();
     }
+
 
     let section = document.getElementById('bdCommentsSection');
     if (!section) {
