@@ -91,6 +91,19 @@ window.fsLoadMap = async function(collectionName) {
 // Save entire data map to Firestore via REST API
 window.fsSaveMap = async function(collectionName, dataMap) {
   if (!dataMap) return;
+  // If an array is passed, key it by each item's id. Without this,
+  // Object.entries(array) yields numeric keys ("0","1",...) and creates
+  // duplicate Firestore docs alongside the real id-keyed docs — which
+  // caused blogs to appear multiple times on next load.
+  if (Array.isArray(dataMap)) {
+    const map = {};
+    dataMap.forEach((item, idx) => {
+      if (!item) return;
+      const id = item.id || item._id || `${collectionName}_${idx}`;
+      map[id] = item;
+    });
+    dataMap = map;
+  }
   const entries = Object.entries(dataMap);
   if (entries.length === 0) return;
   try {
