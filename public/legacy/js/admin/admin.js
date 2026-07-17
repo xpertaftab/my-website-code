@@ -960,6 +960,66 @@ window.adminDeleteAllBlogsNew = async function() {
   if (typeof window.renderBlogs === 'function') window.renderBlogs([]);
 };
 
+// View & manage comments for a specific blog
+window.adminViewBlogComments = async function(blogId) {
+  const key = String(blogId);
+  if ((!window.blogComments || !window.blogComments[key]) && typeof window.loadBlogStatsAndComments === 'function') {
+    try { await window.loadBlogStatsAndComments(); } catch(e) {}
+  }
+  const blog = (window.allBlogs || []).find(b => String(b.id) === key) || {};
+  const items = (window.blogComments && window.blogComments[key]) || [];
+  const esc = s => (s||'').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'adminCommentsOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.3);">
+      <div style="padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-weight:800;color:#0f172a;font-size:1.05rem;">Comments · ${items.length}</div>
+          <div style="color:#94a3b8;font-size:0.82rem;margin-top:2px;">${esc(blog.title||'Blog')}</div>
+        </div>
+        <button onclick="document.getElementById('adminCommentsOverlay').remove()" style="background:#f1f5f9;border:none;width:36px;height:36px;border-radius:10px;cursor:pointer;color:#0f172a;font-size:1rem;">✕</button>
+      </div>
+      <div style="padding:18px 22px;overflow:auto;flex:1;background:#f8fafc;">
+        ${items.length===0 ? `<div style="text-align:center;color:#94a3b8;padding:40px 10px;">No comments yet on this blog.</div>` :
+          items.slice().reverse().map((c,i)=>{
+            const idx = items.length - 1 - i;
+            const dt = c.date ? new Date(c.date).toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+            return `
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">
+                <div style="font-weight:700;color:#0f172a;">${esc(c.name||'Anonymous')}${c.email?` <span style="color:#94a3b8;font-weight:500;font-size:0.82rem;">· ${esc(c.email)}</span>`:''}</div>
+                <button onclick="adminDeleteBlogComment('${key}',${idx})" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:5px 10px;border-radius:8px;font-weight:600;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+              <div style="color:#94a3b8;font-size:0.78rem;margin-bottom:8px;">${dt}</div>
+              <div style="color:#334155;line-height:1.6;">${esc(c.text||'').replace(/\n/g,'<br>')}</div>
+            </div>`;
+          }).join('')
+        }
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+};
+
+window.adminDeleteBlogComment = async function(blogId, idx) {
+  if (!confirm('Delete this comment?')) return;
+  const key = String(blogId);
+  const arr = (window.blogComments && window.blogComments[key]) || [];
+  arr.splice(idx, 1);
+  window.blogComments[key] = arr;
+  if (window.fsSetDoc) { try { await window.fsSetDoc('blog_comments', key, { items: arr }); } catch(e) {} }
+  // Refresh modal + admin table
+  document.getElementById('adminCommentsOverlay')?.remove();
+  window.adminViewBlogComments(blogId);
+  showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view="adminBlogs"]'));
+};
+
+
+
 
 async function renderAdminOrdersNew(container) {
   try {
