@@ -298,9 +298,17 @@ window.fetchBlogs = async function() {
   const deletedIds = (window.vextroLoad && window.vextroLoad('blogs_deleted')) || [];
   const isDeleted = id => deletedIds.map(String).includes(String(id));
   const applyList = (list, label) => {
-    const filtered = list.filter(b => !isDeleted(b.id));
+    // Filter deleted, then dedupe by id (fixes prior double-insert bug)
+    const seen = new Set();
+    const filtered = list
+      .filter(b => b && !isDeleted(b.id))
+      .filter(b => { const k = String(b.id); if (seen.has(k)) return false; seen.add(k); return true; });
     window.allBlogs = filtered;
     try { if (typeof allBlogs !== 'undefined') allBlogs = filtered; } catch(e) {}
+    // Persist the cleaned list so the dedupe survives future reads
+    if (label === 'Local storage' && filtered.length !== list.length && window.vextroSave) {
+      try { window.vextroSave('blogs', filtered); } catch(e) {}
+    }
     if (typeof window.renderBlogs === 'function') window.renderBlogs(filtered);
     console.log(`${label}: Loaded ${filtered.length} blogs`);
   };
