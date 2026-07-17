@@ -575,17 +575,17 @@ function viewBlogPost(id) {
         document.getElementById('bdImage').src = clickedBlog.image;
         document.getElementById('bdExcerpt').innerText = clickedBlog.excerpt;
         
-        // Add some dummy filler text for the body
-        const dummyText = `
-            <p>Welcome to this comprehensive guide. ${clickedBlog.excerpt} In today's rapidly evolving digital landscape, staying ahead of the curve is more important than ever. Industry leaders are constantly exploring new methodologies to improve efficiency and drive growth.</p>
-            <h2 style="font-size: 1.8rem; font-weight: 700; color: #0f172a; margin: 30px 0 15px 0;">Understanding the Core Concepts</h2>
-            <p>One of the primary challenges we face is adapting to continuous changes without compromising stability. By leveraging modern tools and frameworks, developers and businesses alike can create scalable solutions. The integration of advanced analytics further empowers decision-makers to identify trends and optimize performance in real-time.</p>
-            <p>Moreover, the emphasis on user experience has shifted the focus from mere functionality to holistic design. It's no longer just about what an application does, but how it feels. Intuitive interfaces and seamless interactions are the cornerstones of successful digital products.</p>
-            <h2 style="font-size: 1.8rem; font-weight: 700; color: #0f172a; margin: 30px 0 15px 0;">Looking Ahead</h2>
-            <p>As we look to the future, the integration of automation and artificial intelligence will continue to redefine boundaries. Embracing these innovations will not only streamline operations but also unlock new avenues for creativity and problem-solving.</p>
-            <p>Thank you for reading. Stay tuned for more insights and updates in our upcoming posts.</p>
-        `;
-                document.getElementById('bdBodyText').innerHTML = dummyText;
+        // Use actual blog content from admin if available, else fallback filler
+        let bodyHtml = '';
+        if (clickedBlog.content && String(clickedBlog.content).trim().length > 0) {
+            bodyHtml = clickedBlog.content;
+        } else {
+            bodyHtml = `
+                <p>${clickedBlog.excerpt || ''}</p>
+                <p>Thank you for reading. Stay tuned for more insights and updates in our upcoming posts.</p>
+            `;
+        }
+        document.getElementById('bdBodyText').innerHTML = bodyHtml;
         
         // Populate Most Popular Blogs (exclude current one)
         const popGrid = document.getElementById('bdPopularGrid');
