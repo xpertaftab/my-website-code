@@ -77,9 +77,29 @@ window.fsLoadMap = async function(collectionName) {
     const data = await res.json();
     if (!data.documents || data.documents.length === 0) return null;
     const map = {};
+    // First pass: prefer real id-keyed docs (non purely-numeric keys).
+    // A prior bug called fsSaveMap with an array, which created stray
+    // numeric-keyed duplicates ("0","1",...) alongside the real docs.
+    // Drop and delete those legacy numeric-keyed docs on load.
+    const idKeyed = [];
+    const numericKeyed = [];
     data.documents.forEach(doc => {
+      const docKey = (doc.name || '').split('/').pop();
+      (/^\d+$/.test(docKey) ? numericKeyed : idKeyed).push({ doc, docKey });
+    });
+    const hasIdKeyed = idKeyed.length > 0;
+    idKeyed.forEach(({ doc, docKey }) => {
       const obj = docToObj(doc);
-      map[obj.id] = obj;
+      obj.id = docKey;
+      map[docKey] = obj;
+    });
+    numericKeyed.forEach(({ doc, docKey }) => {
+      if (hasIdKeyed) {
+        if (window.fsDeleteDoc) { try { window.fsDeleteDoc(collectionName, docKey); } catch(e) {} }
+        return;
+      }
+      const obj = docToObj(doc);
+      map[docKey] = obj;
     });
     return map;
   } catch(e) {
@@ -91,6 +111,19 @@ window.fsLoadMap = async function(collectionName) {
 // Save entire data map to Firestore via REST API
 window.fsSaveMap = async function(collectionName, dataMap) {
   if (!dataMap) return;
+  // If an array is passed, key it by each item's id. Without this,
+  // Object.entries(array) yields numeric keys ("0","1",...) and creates
+  // duplicate Firestore docs alongside the real id-keyed docs — which
+  // caused blogs to appear multiple times on next load.
+  if (Array.isArray(dataMap)) {
+    const map = {};
+    dataMap.forEach((item, idx) => {
+      if (!item) return;
+      const id = item.id || item._id || `${collectionName}_${idx}`;
+      map[id] = item;
+    });
+    dataMap = map;
+  }
   const entries = Object.entries(dataMap);
   if (entries.length === 0) return;
   try {
