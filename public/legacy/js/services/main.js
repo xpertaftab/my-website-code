@@ -39,6 +39,29 @@ if (typeof emailjs !== 'undefined') {
     emailjs.init(EMAILJS_PUBLIC_KEY);
 }
 
+// ============================================================
+// Admin Email Notifications — sends alerts to admin inbox
+// via existing EmailJS template. Fire-and-forget, non-blocking.
+// ============================================================
+window.notifyAdmin = function(subject, bodyText, fromName) {
+    try {
+        if (typeof emailjs === 'undefined') return;
+        // Throttle: avoid duplicate emails within 5s for same subject
+        const key = 'vl_notify_' + subject;
+        const last = parseInt(sessionStorage.getItem(key) || '0', 10);
+        if (Date.now() - last < 5000) return;
+        sessionStorage.setItem(key, String(Date.now()));
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            title: '[Vextro Lyntra] ' + subject,
+            name: fromName || 'Vextro Lyntra System',
+            email: 'noreply@vextrolyntra.online',
+            message: bodyText + '\n\n---\nSent automatically from Vextro Lyntra.\nTime: ' + new Date().toLocaleString()
+        }).catch(err => console.warn('notifyAdmin failed:', err && err.message));
+    } catch(e) { console.warn('notifyAdmin error', e); }
+};
+
+
 // Global Blog States
 let allBlogs = [];
 let currentCategory = 'All';
