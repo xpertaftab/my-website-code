@@ -1422,6 +1422,48 @@ window.adminViewUserDetails = function(uid) {
   document.body.appendChild(wrapper.firstElementChild);
 };
 
+// Save admin-configured dashboard stat overrides for a specific user
+window.adminSaveUserStats = async function(uid) {
+  const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
+  const payload = { uid };
+  keys.forEach(k => {
+    const el = document.getElementById('ust_' + k);
+    if (!el) return;
+    const v = el.value.trim();
+    payload[k] = v === '' ? '' : v;
+  });
+  payload.updatedAt = new Date().toISOString();
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('user_stats', uid, payload);
+    try { localStorage.setItem('user_stats_' + uid, JSON.stringify(payload)); } catch(e) {}
+    if (!window.__adminUsersData) window.__adminUsersData = {};
+    if (!window.__adminUsersData.statsMap) window.__adminUsersData.statsMap = {};
+    window.__adminUsersData.statsMap[uid] = payload;
+    const msg = document.getElementById('ust_saveMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Saved'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+    // If the admin is editing their own account, refresh their dashboard live
+    if (window.auth && window.auth.currentUser && window.auth.currentUser.uid === uid && window.applyUserFakeStats) {
+      window.applyUserFakeStats(uid);
+    }
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  }
+};
+
+// Clear all overrides for a user
+window.adminClearUserStats = async function(uid) {
+  if (!confirm('Clear all dashboard stat overrides for this user?')) return;
+  const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
+  keys.forEach(k => { const el = document.getElementById('ust_' + k); if (el) el.value = ''; });
+  try {
+    if (window.fsDeleteDoc) await window.fsDeleteDoc('user_stats', uid);
+    try { localStorage.removeItem('user_stats_' + uid); } catch(e) {}
+    if (window.__adminUsersData && window.__adminUsersData.statsMap) delete window.__adminUsersData.statsMap[uid];
+    const msg = document.getElementById('ust_saveMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Cleared'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+  } catch(e) { alert('Clear failed: ' + e.message); }
+};
+
 
 
 window.adminImportUsersJson = async function(input) {
