@@ -1857,29 +1857,226 @@ window.adminImportUsersJson = async function(input) {
 
 
 
+// ==================== MESSAGES / CONTACTS INBOX ====================
+function adminLoadContacts() {
+  try { return JSON.parse(localStorage.getItem('vl_contacts') || '[]'); }
+  catch(e) { return []; }
+}
+function adminSaveContacts(list) {
+  localStorage.setItem('vl_contacts', JSON.stringify(list));
+  adminUpdateMsgBadge();
+}
+function adminUpdateMsgBadge() {
+  const badge = document.getElementById('adminMsgUnreadBadge');
+  if (!badge) return;
+  const unread = adminLoadContacts().filter(c => c.status === 'new').length;
+  if (unread > 0) { badge.style.display = 'inline-block'; badge.textContent = unread > 99 ? '99+' : unread; }
+  else { badge.style.display = 'none'; }
+}
+window.adminMsgFilter = { q: '', priority: 'ALL', status: 'ALL' };
+
+function adminMsgEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function adminMsgFmtDate(iso) {
+  try { const d = new Date(iso); return d.toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+  catch(e) { return iso || '-'; }
+}
+
 async function renderAdminContactsNew(container) {
   try {
-    const contacts = []; // Load contacts from window if implemented
+    const all = adminLoadContacts();
+    const f = window.adminMsgFilter;
+    let list = all.filter(c => {
+      if (f.priority !== 'ALL' && c.priority !== f.priority) return false;
+      if (f.status !== 'ALL' && c.status !== f.status) return false;
+      if (f.q) {
+        const q = f.q.toLowerCase();
+        const hay = ((c.name||'')+' '+(c.email||'')+' '+(c.subject||'')+' '+(c.message||'')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    list.sort((a,b) => (b.starred?1:0)-(a.starred?1:0) || new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+    const stats = {
+      total: all.length,
+      unread: all.filter(c => c.status === 'new').length,
+      replied: all.filter(c => c.status === 'replied').length,
+      critical: all.filter(c => c.priority === 'CRITICAL').length
+    };
+
     container.innerHTML = `
-      <div class="admin-panel-card">
-        ${contacts.length === 0 ? '<div class="admin-empty"><i class="fa-solid fa-envelope"></i><p>No messages</p></div>' : `
-        <table class="admin-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Priority</th><th>Date</th></tr></thead>
-          <tbody>${contacts.map(c => `
-            <tr>
-              <td style="font-weight:600;">${c.name}</td>
-              <td style="font-size:0.85rem;">${c.email}</td>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.subject || '-'}</td>
-              <td><span class="admin-badge ${c.priority === 'CRITICAL' ? 'admin-badge-red' : c.priority === 'HIGH' ? 'admin-badge-yellow' : 'admin-badge-blue'}">${c.priority}</span></td>
-              <td style="font-size:0.8rem;color:#94a3b8;">${c.createdAt}</td>
-            </tr>`).join('')}</tbody>
-        </table>`}
+      <!-- Stats row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;">
+        ${[
+          {l:'Total',v:stats.total,c:'#3b82f6',i:'fa-inbox'},
+          {l:'Unread',v:stats.unread,c:'#ef4444',i:'fa-envelope'},
+          {l:'Replied',v:stats.replied,c:'#22c55e',i:'fa-reply'},
+          {l:'Critical',v:stats.critical,c:'#f59e0b',i:'fa-triangle-exclamation'}
+        ].map(s => `
+          <div style="background:#fff;border:1px solid rgba(15,23,42,0.08);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:${s.c}20;color:${s.c};display:flex;align-items:center;justify-content:center;font-size:1.05rem;"><i class="fa-solid ${s.i}"></i></div>
+            <div><div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.5px;">${s.l.toUpperCase()}</div><div style="font-size:1.5rem;font-weight:900;color:#0f172a;line-height:1;">${s.v}</div></div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Toolbar -->
+      <div class="admin-panel-card" style="padding:14px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div style="position:relative;flex:1;min-width:200px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;"></i>
+          <input id="adminMsgSearch" type="text" placeholder="Search name, email, subject, message…" value="${adminMsgEsc(f.q)}" oninput="window.adminMsgFilter.q=this.value;renderAdminContactsNew(document.getElementById('adminContent'))" style="width:100%;padding:10px 12px 10px 36px;border:1px solid rgba(15,23,42,0.12);border-radius:10px;font-size:0.88rem;background:#f8fafc;">
+        </div>
+        <select onchange="window.adminMsgFilter.priority=this.value;renderAdminContactsNew(document.getElementById('adminContent'))" style="padding:10px 12px;border:1px solid rgba(15,23,42,0.12);border-radius:10px;font-size:0.85rem;background:#fff;font-weight:600;color:#0f172a;">
+          <option value="ALL" ${f.priority==='ALL'?'selected':''}>All Priority</option>
+          <option value="CRITICAL" ${f.priority==='CRITICAL'?'selected':''}>Critical</option>
+          <option value="HIGH" ${f.priority==='HIGH'?'selected':''}>High</option>
+          <option value="NORMAL" ${f.priority==='NORMAL'?'selected':''}>Normal</option>
+        </select>
+        <select onchange="window.adminMsgFilter.status=this.value;renderAdminContactsNew(document.getElementById('adminContent'))" style="padding:10px 12px;border:1px solid rgba(15,23,42,0.12);border-radius:10px;font-size:0.85rem;background:#fff;font-weight:600;color:#0f172a;">
+          <option value="ALL" ${f.status==='ALL'?'selected':''}>All Status</option>
+          <option value="new" ${f.status==='new'?'selected':''}>Unread</option>
+          <option value="read" ${f.status==='read'?'selected':''}>Read</option>
+          <option value="replied" ${f.status==='replied'?'selected':''}>Replied</option>
+        </select>
+        <button onclick="adminMsgExportCSV()" style="padding:10px 14px;background:#0f172a;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-download"></i> Export CSV</button>
+        <button onclick="adminMsgMarkAllRead()" style="padding:10px 14px;background:#22c55e;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
+        <button onclick="adminMsgClearAll()" style="padding:10px 14px;background:#fee2e2;color:#b91c1c;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-trash"></i> Clear All</button>
+      </div>
+
+      <!-- Inbox -->
+      <div class="admin-panel-card" style="padding:0;overflow:hidden;">
+        ${list.length === 0 ? `
+          <div class="admin-empty" style="padding:60px 20px;"><i class="fa-solid fa-inbox"></i><p>${all.length === 0 ? 'No messages yet. When someone submits the footer contact form, it will appear here.' : 'No messages match your filters.'}</p></div>
+        ` : `
+          <div style="max-height:calc(100vh - 400px);overflow:auto;">
+            ${list.map(c => {
+              const pColor = c.priority==='CRITICAL'?'#ef4444':c.priority==='HIGH'?'#f59e0b':'#3b82f6';
+              const isNew = c.status === 'new';
+              return `
+              <div onclick="adminMsgOpen('${c.id}')" style="padding:16px 20px;border-bottom:1px solid rgba(15,23,42,0.06);cursor:pointer;display:flex;gap:14px;align-items:flex-start;background:${isNew?'rgba(59,130,246,0.04)':'#fff'};transition:background 0.15s;" onmouseover="this.style.background='rgba(255,107,53,0.05)'" onmouseout="this.style.background='${isNew?'rgba(59,130,246,0.04)':'#fff'}'">
+                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,${pColor},${pColor}cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;flex-shrink:0;">${adminMsgEsc((c.name||'?')[0].toUpperCase())}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                    <span style="font-weight:${isNew?'800':'600'};color:#0f172a;font-size:0.92rem;">${adminMsgEsc(c.name)}</span>
+                    ${c.starred ? '<i class="fa-solid fa-star" style="color:#f59e0b;font-size:0.75rem;"></i>' : ''}
+                    <span style="background:${pColor}22;color:${pColor};padding:2px 8px;border-radius:6px;font-size:0.65rem;font-weight:800;letter-spacing:0.5px;">${c.priority}</span>
+                    ${isNew ? '<span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:6px;font-size:0.65rem;font-weight:800;">NEW</span>' : ''}
+                    ${c.status==='replied' ? '<span style="background:#22c55e22;color:#22c55e;padding:2px 8px;border-radius:6px;font-size:0.65rem;font-weight:800;">REPLIED</span>' : ''}
+                    <span style="margin-left:auto;font-size:0.72rem;color:#94a3b8;">${adminMsgFmtDate(c.createdAt)}</span>
+                  </div>
+                  <div style="font-size:0.85rem;color:#334155;font-weight:${isNew?'700':'500'};margin-bottom:3px;">${adminMsgEsc(c.subject||'(no subject)')}</div>
+                  <div style="font-size:0.8rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${adminMsgEsc((c.message||'').slice(0,140))}</div>
+                  <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;"><i class="fa-solid fa-envelope"></i> ${adminMsgEsc(c.email)}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`}
       </div>
     `;
+    adminUpdateMsgBadge();
   } catch(e) {
-    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error</p></div>`;
+    console.error('renderAdminContactsNew error:', e);
+    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error: ${e.message}</p></div>`;
   }
 }
+
+function adminMsgOpen(id) {
+  const list = adminLoadContacts();
+  const c = list.find(x => x.id === id);
+  if (!c) return;
+  if (c.status === 'new') { c.status = 'read'; adminSaveContacts(list); }
+  const pColor = c.priority==='CRITICAL'?'#ef4444':c.priority==='HIGH'?'#f59e0b':'#3b82f6';
+  const waPhone = (c.email||'').match(/\d{7,}/) ? (c.email.match(/\d{7,}/)[0]) : '';
+  const modal = document.createElement('div');
+  modal.id = 'adminMsgModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:18px;max-width:640px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,0.4);">
+      <div style="padding:22px 26px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;gap:14px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,${pColor},${pColor}cc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.2rem;">${adminMsgEsc((c.name||'?')[0].toUpperCase())}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;color:#0f172a;font-size:1.05rem;">${adminMsgEsc(c.name)}</div>
+          <div style="font-size:0.82rem;color:#64748b;">${adminMsgEsc(c.email)}</div>
+        </div>
+        <span style="background:${pColor}22;color:${pColor};padding:4px 10px;border-radius:8px;font-size:0.72rem;font-weight:800;">${c.priority}</span>
+        <button onclick="document.getElementById('adminMsgModal').remove()" style="width:36px;height:36px;border-radius:10px;border:none;background:#f1f5f9;color:#64748b;cursor:pointer;font-size:1rem;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="padding:22px 26px;">
+        <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.5px;margin-bottom:4px;">SUBJECT</div>
+        <div style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:16px;">${adminMsgEsc(c.subject||'(no subject)')}</div>
+        <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.5px;margin-bottom:4px;">MESSAGE</div>
+        <div style="background:#f8fafc;border:1px solid rgba(15,23,42,0.06);border-radius:12px;padding:16px;font-size:0.9rem;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:16px;">${adminMsgEsc(c.message)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.78rem;color:#64748b;margin-bottom:20px;">
+          <div><i class="fa-solid fa-clock" style="color:#94a3b8;"></i> ${adminMsgFmtDate(c.createdAt)}</div>
+          <div><i class="fa-solid fa-tag" style="color:#94a3b8;"></i> Status: <b style="color:#0f172a;">${c.status}</b></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <a href="mailto:${adminMsgEsc(c.email)}?subject=${encodeURIComponent('Re: '+(c.subject||''))}&body=${encodeURIComponent('Hi '+(c.name||'')+',\n\nThank you for reaching out to Vextro Lyntra.\n\n')}" onclick="adminMsgMarkReplied('${c.id}')" style="flex:1;min-width:120px;text-align:center;padding:11px 14px;background:#ff6b35;color:#fff;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;"><i class="fa-solid fa-reply"></i> Reply Email</a>
+          ${waPhone ? `<a href="https://wa.me/${waPhone}?text=${encodeURIComponent('Hi '+(c.name||'')+', regarding your message about "'+(c.subject||'')+'"...')}" target="_blank" style="flex:1;min-width:120px;text-align:center;padding:11px 14px;background:#22c55e;color:#fff;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
+          <button onclick="adminMsgToggleStar('${c.id}')" style="padding:11px 14px;background:${c.starred?'#f59e0b':'#f1f5f9'};color:${c.starred?'#fff':'#64748b'};border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-${c.starred?'solid':'regular'} fa-star"></i> ${c.starred?'Starred':'Star'}</button>
+          <button onclick="adminMsgMarkReplied('${c.id}',true)" style="padding:11px 14px;background:#22c55e;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-check"></i> Mark Replied</button>
+          <button onclick="adminMsgDelete('${c.id}')" style="padding:11px 14px;background:#fee2e2;color:#b91c1c;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function adminMsgToggleStar(id) {
+  const list = adminLoadContacts();
+  const c = list.find(x => x.id === id);
+  if (!c) return;
+  c.starred = !c.starred;
+  adminSaveContacts(list);
+  const m = document.getElementById('adminMsgModal'); if (m) m.remove();
+  renderAdminContactsNew(document.getElementById('adminContent'));
+}
+function adminMsgMarkReplied(id, closeModal) {
+  const list = adminLoadContacts();
+  const c = list.find(x => x.id === id);
+  if (!c) return;
+  c.status = 'replied';
+  adminSaveContacts(list);
+  if (closeModal) { const m = document.getElementById('adminMsgModal'); if (m) m.remove(); }
+  renderAdminContactsNew(document.getElementById('adminContent'));
+}
+function adminMsgDelete(id) {
+  if (!confirm('Delete this message permanently?')) return;
+  let list = adminLoadContacts();
+  list = list.filter(x => x.id !== id);
+  adminSaveContacts(list);
+  try { if (typeof firebase !== 'undefined' && firebase.firestore) firebase.firestore().collection('contacts').doc(id).delete().catch(()=>{}); } catch(e){}
+  const m = document.getElementById('adminMsgModal'); if (m) m.remove();
+  renderAdminContactsNew(document.getElementById('adminContent'));
+}
+function adminMsgMarkAllRead() {
+  const list = adminLoadContacts();
+  list.forEach(c => { if (c.status === 'new') c.status = 'read'; });
+  adminSaveContacts(list);
+  renderAdminContactsNew(document.getElementById('adminContent'));
+}
+function adminMsgClearAll() {
+  if (!confirm('Delete ALL messages permanently? This cannot be undone.')) return;
+  adminSaveContacts([]);
+  renderAdminContactsNew(document.getElementById('adminContent'));
+}
+function adminMsgExportCSV() {
+  const list = adminLoadContacts();
+  if (!list.length) { alert('No messages to export.'); return; }
+  const esc = v => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const rows = [['Date','Name','Email','Subject','Priority','Status','Message']];
+  list.forEach(c => rows.push([c.createdAt,c.name,c.email,c.subject,c.priority,c.status,c.message]));
+  const csv = rows.map(r => r.map(esc).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'vextro-messages-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// Update badge on admin load
+setTimeout(() => { try { adminUpdateMsgBadge(); } catch(e){} }, 800);
+
 
 async function renderAdminStatsNew(container) {
   try {
