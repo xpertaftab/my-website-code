@@ -1113,6 +1113,8 @@ async function renderAdminUsersNew(container) {
 
 
 function renderAdminUsersTable(container, filter) {
+  container = container || document.getElementById('adminContent');
+  if (!container) return;
   const usersMap = window.__adminUsersCache || {};
   const commentsByEmail = window.__adminUsersCommentsByEmail || {};
   const f = (filter || '').toLowerCase().trim();
@@ -1182,17 +1184,17 @@ function renderAdminUsersTable(container, filter) {
           <input id="adminUserSearch" type="text" placeholder="Search by name or email…" value="${f.replace(/"/g,'&quot;')}"
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
-        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Roles</option>
           <option value="user" ${fRole==='user'?'selected':''}>👤 User</option>
           <option value="admin" ${fRole==='admin'?'selected':''}>🛡️ Admin</option>
         </select>
-        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Status</option>
           <option value="active" ${fStatus==='active'?'selected':''}>Active</option>
           <option value="banned" ${fStatus==='banned'?'selected':''}>Banned</option>
         </select>
-        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Providers</option>
           <option value="google" ${fProvider==='google'?'selected':''}>Google</option>
           <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
