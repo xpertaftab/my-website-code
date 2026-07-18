@@ -1961,6 +1961,9 @@ async function syncUserToFirestore(user) {
         }
         const provider = (user.providerData && user.providerData[0] && user.providerData[0].providerId) || 'password';
         const nowIso = new Date().toISOString();
+        const prevHistory = Array.isArray(existing.loginHistory) ? existing.loginHistory : [];
+        const ua = (navigator.userAgent || '').slice(0, 200);
+        const newHistory = [{ ts: nowIso, provider, userAgent: ua }, ...prevHistory].slice(0, 20);
         const payload = {
             uid: user.uid,
             email: user.email || existing.email || '',
@@ -1971,7 +1974,10 @@ async function syncUserToFirestore(user) {
             role: existing.role || 'user',
             status: existing.status || 'active',
             createdAt: existing.createdAt || nowIso,
-            lastLoginAt: nowIso
+            lastLoginAt: nowIso,
+            loginHistory: newHistory,
+            notes: existing.notes || '',
+            notifications: Array.isArray(existing.notifications) ? existing.notifications : []
         };
         await window.fsSetDoc('users', user.uid, payload);
     } catch(e) { console.warn('user sync failed', e.message); }
