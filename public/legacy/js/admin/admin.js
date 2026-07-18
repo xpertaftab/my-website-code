@@ -402,6 +402,19 @@ function adminModal(html, onMounted) {
   return ov;
 }
 
+// Aliases used by Orders + other modules
+window.showAdminOverlay = function(html) {
+  closeAdminOverlay();
+  const ov = document.createElement('div');
+  ov.id = 'adminModalOverlay';
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;';
+  ov.innerHTML = `<div style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:16px;width:100%;max-width:780px;padding:28px;box-shadow:0 24px 60px rgba(15,23,42,0.18);color:#0f172a;font-family:'Inter',sans-serif;">${html}</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  return ov;
+};
+window.closeAdminOverlay = function() { const ex = document.getElementById('adminModalOverlay'); if (ex) ex.remove(); };
+
 function adminInputStyle() {
   return "width:100%;padding:11px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:8px;color:#0f172a;outline:none;font-size:0.9rem;box-sizing:border-box;font-family:'Inter',sans-serif;";
 }
