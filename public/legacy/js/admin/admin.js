@@ -1102,7 +1102,7 @@ async function renderAdminUsersNew(container) {
     window.__adminUsersCommentsByEmail = commentsByEmail;
     window.__adminUsersData = {
       commentsListByEmail, purchasesByEmail, purchasesListByEmail,
-      listingsByEmail, contactsByEmail
+      listingsByEmail, contactsByEmail, statsMap
     };
     renderAdminUsersTable(container, '');
   } catch(e) {
