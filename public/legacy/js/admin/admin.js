@@ -1137,8 +1137,9 @@ function renderAdminUsersTable(container, filter) {
   const allUsersArr = Object.values(usersMap);
   const new7d = allUsersArr.filter(u => u.createdAt && (now - new Date(u.createdAt).getTime()) < 7*DAY).length;
   const active7d = allUsersArr.filter(u => u.lastLoginAt && (now - new Date(u.lastLoginAt).getTime()) < 7*DAY).length;
-  const withPurchases = Object.keys(purchasesByEmail || {}).length;
-  const totalPurchases = Object.values(purchasesByEmail || {}).reduce((a,b)=>a+b,0);
+  const purchasesByEmail = (window.__adminUsersData && window.__adminUsersData.purchasesByEmail) || {};
+  const withPurchases = Object.keys(purchasesByEmail).length;
+  const totalPurchases = Object.values(purchasesByEmail).reduce((a,b)=>a+b,0);
 
   // Current filter state
   const fRole = window.__adminUserFilterRole || '';
