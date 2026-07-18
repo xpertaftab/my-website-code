@@ -501,11 +501,15 @@ async function saveProductCatalogMeta() {
 }
 
 async function saveProductEverywhere(id, data) {
+  // Firestore first — if it fails (e.g. doc too large) we do NOT poison localStorage
+  if (window.fsSetDoc) {
+    await window.fsSetDoc('products', id, data);
+  } else if (window.vextroSave) {
+    await window.vextroSave('products', { ...(window.PRODUCTS_DATA||{}), [id]: data });
+  }
   window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
   window.PRODUCTS_DATA[id] = data;
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
-  if (window.fsSetDoc) await window.fsSetDoc('products', id, data);
-  else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA);
   await saveProductCatalogMeta();
 }
 
