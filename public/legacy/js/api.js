@@ -59,14 +59,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Check if main.js already populated PRODUCTS_DATA (from localStorage)
   const hasLocalData = window.PRODUCTS_DATA && Object.keys(window.PRODUCTS_DATA).length > 0;
 
-  // 1. Try Firestore first (cross-browser sync) only if no local data
-  if (!hasLocalData && window.fsLoadMap) {
+  // 1. Try Firestore first (cross-browser/device sync). Remote data wins over stale localStorage.
+  if (window.fsLoadMap) {
     try {
       const fsData = await window.fsLoadMap('products');
       if (fsData && Object.keys(fsData).length > 0) {
         window.PRODUCTS_DATA = fsData;
+        try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
         productsLoaded = true;
         console.log('Firestore: Loaded', Object.keys(fsData).length, 'products');
+      } else {
+        const meta = await window.fsLoadMap('site_meta');
+        if (meta && meta.products) {
+          window.PRODUCTS_DATA = {};
+          try { localStorage.removeItem('vextro_products'); } catch(e) {}
+          productsLoaded = true;
+          console.log('Firestore: Product catalog is empty');
+        }
       }
     } catch(e) {
       console.warn('Firestore: Could not load products', e.message);
@@ -218,16 +227,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Reload frontend data after admin changes
 window.reloadFrontendData = async function() {
-  // Don't overwrite existing data - admin changes are saved to localStorage
-  if (window.PRODUCTS_DATA && Object.keys(window.PRODUCTS_DATA).length > 0) {
-    console.log('reloadFrontendData: Using existing PRODUCTS_DATA, count:', Object.keys(window.PRODUCTS_DATA).length);
-    return;
-  }
   let loaded = false;
   if (window.fsLoadMap) {
     try {
       const fsData = await window.fsLoadMap('products');
-      if (fsData && Object.keys(fsData).length > 0) { window.PRODUCTS_DATA = fsData; loaded = true; }
+      if (fsData && Object.keys(fsData).length > 0) {
+        window.PRODUCTS_DATA = fsData;
+        try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
+        loaded = true;
+      } else {
+        const meta = await window.fsLoadMap('site_meta');
+        if (meta && meta.products) {
+          window.PRODUCTS_DATA = {};
+          try { localStorage.removeItem('vextro_products'); } catch(e) {}
+          loaded = true;
+        }
+      }
     } catch(e) {}
   }
   if (!loaded) {
