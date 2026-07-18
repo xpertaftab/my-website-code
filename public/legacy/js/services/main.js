@@ -1034,7 +1034,38 @@ function submitContactForm(event, form) {
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
-    
+
+    // --- Save to Admin Inbox (localStorage + Firestore best-effort) ---
+    try {
+        const subjLower = (subject || '').toLowerCase();
+        const msgLower = (message || '').toLowerCase();
+        let priority = 'NORMAL';
+        if (/urgent|critical|dispute|scam|fraud|refund|hack|emergency/.test(subjLower + ' ' + msgLower)) priority = 'CRITICAL';
+        else if (/partnership|business|bulk|enterprise|advertis|invest/.test(subjLower + ' ' + msgLower)) priority = 'HIGH';
+
+        const entry = {
+            id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+            name: name,
+            email: email,
+            subject: subject || 'General Inquiry',
+            message: message,
+            priority: priority,
+            status: 'new',
+            starred: false,
+            createdAt: new Date().toISOString(),
+            userAgent: navigator.userAgent.slice(0, 120),
+            uid: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : null
+        };
+        const existing = JSON.parse(localStorage.getItem('vl_contacts') || '[]');
+        existing.unshift(entry);
+        localStorage.setItem('vl_contacts', JSON.stringify(existing.slice(0, 500)));
+
+        // Firestore best-effort
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            firebase.firestore().collection('contacts').doc(entry.id).set(entry).catch(e => console.warn('Firestore contact save:', e.message));
+        }
+    } catch(e) { console.warn('Save contact locally failed:', e.message); }
+
     // Send via EmailJS directly (no mail app popup)
     const templateParams = {
         title: subject,
@@ -1042,6 +1073,8 @@ function submitContactForm(event, form) {
         email: email,
         message: `Contact Form Submission\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}\n\nSubmitted via Vextro Lyntra Contact Form.`
     };
+
+
 
     emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
         .then(() => {
