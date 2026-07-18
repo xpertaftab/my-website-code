@@ -2491,128 +2491,237 @@ setTimeout(() => { try { adminUpdateMsgBadge(); } catch(e){} }, 800);
 
 
 async function renderAdminStatsNew(container) {
+  container.innerHTML = `<div class="admin-empty" style="padding:60px 20px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:#ff6b35;"></i><p style="margin-top:12px;color:#64748b;">Loading analytics…</p></div>`;
   try {
+    // ---- Load all data in parallel ----
+    const [ordersMap, usersMap, contactsMap, commentsMap, blogsList] = await Promise.all([
+      (window.fsLoadMap ? window.fsLoadMap('orders').catch(()=>({})) : Promise.resolve({})),
+      (window.fsLoadMap ? window.fsLoadMap('users').catch(()=>({})) : Promise.resolve({})),
+      (window.fsLoadMap ? window.fsLoadMap('contacts').catch(()=>({})) : Promise.resolve({})),
+      (window.fsLoadMap ? window.fsLoadMap('blog_comments').catch(()=>({})) : Promise.resolve({})),
+      Promise.resolve(window.allBlogs || []),
+    ]);
+    // Fallback to localStorage for orders
+    let ordersObj = ordersMap || {};
+    if (!ordersObj || Object.keys(ordersObj).length === 0) {
+      try { ordersObj = JSON.parse(localStorage.getItem('admin_orders') || '{}'); } catch(e) { ordersObj = {}; }
+    }
+
+    const orders = Object.values(ordersObj || {});
+    const users = Object.values(usersMap || {});
+    const contacts = Object.values(contactsMap || {});
     const productCount = Object.keys(window.PRODUCTS_DATA || {}).length;
     const listingCount = Object.keys(window.MARKETPLACE_DATA || {}).length;
-    const blogCount = (window.allBlogs || []).length;
-    const recentProducts = Object.values(window.PRODUCTS_DATA || {}).slice(0, 5);
-    const recentListings = Object.values(window.MARKETPLACE_DATA || {}).slice(0, 5);
+    const blogCount = blogsList.length;
+
+    // ---- Metrics ----
+    const totalRevenue   = orders.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
+    const pendingRevenue = orders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+    const paidOrders     = orders.filter(o => o.paymentStatus === 'paid').length;
+    const pendingOrders  = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+    const avgOrderValue  = paidOrders ? (totalRevenue / paidOrders) : 0;
+
+    const newContacts    = contacts.filter(c => !c.status || c.status === 'new' || c.status === 'unread').length;
+    const bannedUsers    = users.filter(u => u.banned || u.blocked).length;
+    const adminUsers     = users.filter(u => u.role === 'admin').length;
+
+    // Total blog views (sum of real views + comments)
+    let totalBlogViews = 0, totalBlogComments = 0;
+    (blogsList || []).forEach(b => { totalBlogViews += Number(b.views||0); });
+    Object.values(commentsMap || {}).forEach(entry => {
+      if (entry && Array.isArray(entry.items)) totalBlogComments += entry.items.length;
+    });
+
+    // Signups & orders last 7 / 30 days
+    const now = Date.now(), day = 86400000;
+    const in7d = (t) => t && (now - t) < 7*day;
+    const in30d = (t) => t && (now - t) < 30*day;
+    const newUsers7d  = users.filter(u => in7d(u.createdAt || u.joinedAt)).length;
+    const newUsers30d = users.filter(u => in30d(u.createdAt || u.joinedAt)).length;
+    const orders7d    = orders.filter(o => in7d(o.createdAt)).length;
+    const orders30d   = orders.filter(o => in30d(o.createdAt)).length;
+    const revenue30d  = orders.filter(o => in30d(o.createdAt) && o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
+
+    // Revenue by service (top breakdown)
+    const revByService = {};
+    orders.forEach(o => {
+      if (o.paymentStatus !== 'paid') return;
+      const k = o.service || 'Other';
+      revByService[k] = (revByService[k] || 0) + Number(o.amount||0);
+    });
+    const topServices = Object.entries(revByService).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const maxSvc = topServices.length ? topServices[0][1] : 1;
+
+    // 14-day revenue sparkline
+    const days = 14;
+    const buckets = new Array(days).fill(0);
+    orders.forEach(o => {
+      if (o.paymentStatus !== 'paid' || !o.createdAt) return;
+      const diff = Math.floor((now - o.createdAt) / day);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += Number(o.amount||0);
+    });
+    const maxBucket = Math.max(1, ...buckets);
+
+    // Recent activity feed
+    const activity = [];
+    orders.forEach(o => activity.push({ ts: o.createdAt||0, icon: 'fa-receipt', color: '#ff6b35', text: `New order <b>#${(o.id||'').slice(0,6).toUpperCase()}</b> from ${escapeHtml(o.buyerName||'-')} — ${fmtMoney(o.amount)}` }));
+    users.forEach(u => { if (u.createdAt || u.joinedAt) activity.push({ ts: u.createdAt||u.joinedAt, icon: 'fa-user-plus', color: '#3b82f6', text: `New user signup: <b>${escapeHtml(u.displayName||u.name||u.email||'User')}</b>` }); });
+    contacts.forEach(c => activity.push({ ts: c.createdAt||c.timestamp||0, icon: 'fa-envelope', color: '#8b5cf6', text: `Message from <b>${escapeHtml(c.name||c.email||'Visitor')}</b>` }));
+    const recent = activity.filter(a => a.ts).sort((a,b) => b.ts - a.ts).slice(0, 8);
+
+    const statCard = (label, val, sub, icon, grad, onClick) => `
+      <div class="admin-stat-card" ${onClick?`onclick="${onClick}" style="background:${grad};cursor:pointer;"`:`style="background:${grad};"`}>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:0.75rem;opacity:0.85;margin-bottom:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${label}</div>
+            <div style="font-size:2rem;font-weight:900;line-height:1;">${val}</div>
+          </div>
+          <div style="width:44px;height:44px;background:rgba(255,255,255,0.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;"><i class="${icon}"></i></div>
+        </div>
+        <div style="margin-top:14px;font-size:0.78rem;opacity:0.85;">${sub}</div>
+      </div>`;
 
     container.innerHTML = `
       <!-- Welcome Banner -->
-      <div style="background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(59,130,246,0.1));border:1px solid rgba(255,107,53,0.2);border-radius:20px;padding:30px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+      <div style="background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(59,130,246,0.1));border:1px solid rgba(255,107,53,0.2);border-radius:20px;padding:26px 34px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;">
         <div>
-          <div style="font-size:0.85rem;color:#ff6b35;font-weight:700;letter-spacing:1px;margin-bottom:6px;">WELCOME BACK</div>
-          <h2 style="margin:0;font-size:2rem;font-weight:900;color:#0f172a;letter-spacing:-0.5px;">Vextro Lyntra Admin</h2>
-          <p style="margin:8px 0 0;color:#94a3b8;font-size:0.95rem;">Here's an overview of your platform activity.</p>
+          <div style="font-size:0.78rem;color:#ff6b35;font-weight:700;letter-spacing:1px;margin-bottom:6px;">WELCOME BACK</div>
+          <h2 style="margin:0;font-size:1.7rem;font-weight:900;color:#0f172a;letter-spacing:-0.5px;">Vextro Lyntra Admin</h2>
+          <p style="margin:6px 0 0;color:#64748b;font-size:0.9rem;">Yeh raha aapke platform ka full overview.</p>
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))" style="padding:12px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='#f7931e'" onmouseout="this.style.background='#ff6b35'"><i class="fa-solid fa-box"></i> Manage Products</button>
-          <button onclick="adminAddProductNew()" style="padding:12px 22px;background:rgba(255,255,255,0.08);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:700;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-solid fa-plus"></i> Add Product</button>
-        </div>
-      </div>
-
-      <!-- Stat Cards -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;">
-        <div class="admin-stat-card" style="background:linear-gradient(135deg,#065f46,#ff6b35);cursor:pointer;" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">PRODUCTS</div>
-              <div style="font-size:2.8rem;font-weight:900;line-height:1;">${productCount}</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;"><i class="fa-solid fa-box"></i></div>
-          </div>
-          <div style="margin-top:16px;font-size:0.8rem;opacity:0.7;">Total active products</div>
-        </div>
-
-        <div class="admin-stat-card" style="background:linear-gradient(135deg,#9a3412,#f97316);cursor:pointer;" onclick="showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view=\\'adminListings\\']'))">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">LISTINGS</div>
-              <div style="font-size:2.8rem;font-weight:900;line-height:1;">${listingCount}</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;"><i class="fa-solid fa-store"></i></div>
-          </div>
-          <div style="margin-top:16px;font-size:0.8rem;opacity:0.7;">Marketplace listings</div>
-        </div>
-
-        <div class="admin-stat-card" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);cursor:pointer;" onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">BLOG POSTS</div>
-              <div style="font-size:2.8rem;font-weight:900;line-height:1;">${blogCount}</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;"><i class="fa-solid fa-newspaper"></i></div>
-          </div>
-          <div style="margin-top:16px;font-size:0.8rem;opacity:0.7;">Published blog posts</div>
-        </div>
-
-        <div class="admin-stat-card" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div style="font-size:0.8rem;opacity:0.8;margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">TOTAL REVENUE</div>
-              <div style="font-size:2.8rem;font-weight:900;line-height:1;">$0</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;"><i class="fa-solid fa-dollar-sign"></i></div>
-          </div>
-          <div style="margin-top:16px;font-size:0.8rem;opacity:0.7;">From completed orders</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button onclick="adminNewOrder()" style="padding:11px 20px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.85rem;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> New Order</button>
+          <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:11px 20px;background:rgba(15,23,42,0.05);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:700;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-newspaper"></i> New Blog</button>
         </div>
       </div>
 
-      <!-- Two Column Tables -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex-wrap:wrap;">
-        <!-- Recent Products -->
-        <div class="admin-panel-card" style="min-width:280px;">
-          <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-weight:700;color:#0f172a;font-size:1rem;">Recent Products</div>
-            <a href="#" onclick="showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'));return false;" style="font-size:0.8rem;color:#ff6b35;text-decoration:none;font-weight:600;">View all →</a>
+      <!-- Primary Revenue Stats -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:20px;">
+        ${statCard('Total Revenue', fmtMoney(totalRevenue), `${paidOrders} paid orders`, 'fa-solid fa-sack-dollar', 'linear-gradient(135deg,#059669,#10b981)', "showAdminView('adminOrders', document.querySelector('.admin-sidebar-item[data-view=\\'adminOrders\\']'))")}
+        ${statCard('Pending Revenue', fmtMoney(pendingRevenue), `${pendingOrders} orders in queue`, 'fa-solid fa-hourglass-half', 'linear-gradient(135deg,#d97706,#f59e0b)', "showAdminView('adminOrders', document.querySelector('.admin-sidebar-item[data-view=\\'adminOrders\\']'))")}
+        ${statCard('Avg Order Value', fmtMoney(avgOrderValue), `Last 30d: ${fmtMoney(revenue30d)}`, 'fa-solid fa-chart-line', 'linear-gradient(135deg,#7c3aed,#8b5cf6)')}
+        ${statCard('Orders (30d)', orders30d, `${orders7d} this week`, 'fa-solid fa-receipt', 'linear-gradient(135deg,#ff6b35,#f7931e)', "showAdminView('adminOrders', document.querySelector('.admin-sidebar-item[data-view=\\'adminOrders\\']'))")}
+      </div>
+
+      <!-- Secondary Stats -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px;">
+        ${statCard('Users', users.length, `+${newUsers7d} this week`, 'fa-solid fa-users', 'linear-gradient(135deg,#1d4ed8,#3b82f6)', "showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view=\\'adminUsers\\']'))")}
+        ${statCard('New Messages', newContacts, `${contacts.length} total`, 'fa-solid fa-envelope', 'linear-gradient(135deg,#be185d,#ec4899)', "showAdminView('adminContacts', document.querySelector('.admin-sidebar-item[data-view=\\'adminContacts\\']'))")}
+        ${statCard('Blog Views', totalBlogViews.toLocaleString(), `${totalBlogComments} comments`, 'fa-solid fa-eye', 'linear-gradient(135deg,#0891b2,#06b6d4)', "showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))")}
+        ${statCard('Products', productCount, `${listingCount} listings`, 'fa-solid fa-box', 'linear-gradient(135deg,#065f46,#10b981)', "showAdminView('products', document.querySelector('.admin-sidebar-item[data-view=\\'products\\']'))")}
+      </div>
+
+      <!-- Charts Row -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;" class="admin-chart-grid">
+        <!-- Revenue Sparkline -->
+        <div class="admin-panel-card" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+            <div>
+              <div style="font-weight:700;color:#0f172a;font-size:1rem;">Revenue — Last 14 Days</div>
+              <div style="color:#94a3b8;font-size:0.8rem;margin-top:2px;">Paid orders only</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.4rem;font-weight:800;color:#059669;">${fmtMoney(buckets.reduce((a,b)=>a+b,0))}</div>
+              <div style="font-size:0.75rem;color:#94a3b8;">14-day total</div>
+            </div>
           </div>
-          ${recentProducts.length === 0 ? '<div class="admin-empty" style="padding:40px;"><i class="fa-solid fa-box"></i><p>No products yet</p></div>' : `
-          <table class="admin-table">
-            <thead><tr><th>Product</th><th>Price</th></tr></thead>
-            <tbody>${recentProducts.map(p => `
-              <tr>
-                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${p.title || 'Untitled'}</td>
-                <td><span class="admin-badge admin-badge-green">$${p.price || 0}</span></td>
-              </tr>`).join('')}
-            </tbody>
-          </table>`}
+          <div style="display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px;">
+            ${buckets.map((v,i) => {
+              const h = Math.max(4, (v / maxBucket) * 150);
+              const date = new Date(now - (days-1-i)*day);
+              const label = date.getDate() + '/' + (date.getMonth()+1);
+              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;" title="${label}: ${fmtMoney(v)}">
+                <div style="width:100%;height:${h}px;background:linear-gradient(180deg,#ff6b35,#f7931e);border-radius:6px 6px 0 0;transition:all 0.3s;position:relative;" onmouseover="this.style.transform='scaleY(1.03)'" onmouseout="this.style.transform='scaleY(1)'"></div>
+                <div style="font-size:0.65rem;color:#94a3b8;font-weight:600;">${label}</div>
+              </div>`;
+            }).join('')}
+          </div>
         </div>
 
-        <!-- Recent Listings -->
-        <div class="admin-panel-card" style="min-width:280px;">
-          <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-weight:700;color:#0f172a;font-size:1rem;">Recent Listings</div>
-            <a href="#" onclick="showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view=\\'adminListings\\']'));return false;" style="font-size:0.8rem;color:#ff6b35;text-decoration:none;font-weight:600;">View all →</a>
+        <!-- Top Services -->
+        <div class="admin-panel-card" style="padding:24px;">
+          <div style="font-weight:700;color:#0f172a;font-size:1rem;margin-bottom:18px;">Top Services by Revenue</div>
+          ${topServices.length === 0 ? `<div style="text-align:center;color:#94a3b8;padding:40px 0;font-size:0.85rem;"><i class="fa-solid fa-chart-pie" style="font-size:2rem;opacity:0.4;"></i><p style="margin-top:10px;">No paid orders yet</p></div>` : topServices.map(([svc, amt]) => `
+            <div style="margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:6px;">
+                <span style="color:#0f172a;font-weight:600;">${escapeHtml(svc)}</span>
+                <span style="color:#ff6b35;font-weight:700;">${fmtMoney(amt)}</span>
+              </div>
+              <div style="height:8px;background:#f1f5f9;border-radius:20px;overflow:hidden;">
+                <div style="height:100%;width:${(amt/maxSvc)*100}%;background:linear-gradient(90deg,#ff6b35,#f7931e);border-radius:20px;"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Activity Feed & Health -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;" class="admin-chart-grid">
+        <div class="admin-panel-card">
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.08);font-weight:700;color:#0f172a;">Recent Activity</div>
+          <div style="padding:8px 0;">
+            ${recent.length === 0 ? `<div class="admin-empty" style="padding:40px 20px;"><i class="fa-solid fa-clock-rotate-left"></i><p style="color:#94a3b8;">No activity yet</p></div>` : recent.map(a => `
+              <div style="display:flex;gap:14px;padding:14px 24px;border-bottom:1px solid rgba(15,23,42,0.04);align-items:center;">
+                <div style="width:36px;height:36px;border-radius:10px;background:${a.color}22;color:${a.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid ${a.icon}"></i></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="color:#0f172a;font-size:0.88rem;">${a.text}</div>
+                  <div style="color:#94a3b8;font-size:0.75rem;margin-top:2px;">${fmtRelative(a.ts)}</div>
+                </div>
+              </div>
+            `).join('')}
           </div>
-          ${recentListings.length === 0 ? '<div class="admin-empty" style="padding:40px;"><i class="fa-solid fa-store"></i><p>No listings yet</p></div>' : `
-          <table class="admin-table">
-            <thead><tr><th>Listing</th><th>Status</th></tr></thead>
-            <tbody>${recentListings.map(l => `
-              <tr>
-                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${l.title || 'Untitled'}</td>
-                <td><span class="admin-badge ${l.status === 'Active' ? 'admin-badge-green' : 'admin-badge-yellow'}">${l.status || 'Active'}</span></td>
-              </tr>`).join('')}
-            </tbody>
-          </table>`}
+        </div>
+
+        <div class="admin-panel-card" style="padding:22px;">
+          <div style="font-weight:700;color:#0f172a;font-size:1rem;margin-bottom:16px;">Platform Health</div>
+          ${[
+            ['Total Users', users.length, '#3b82f6', 'fa-users'],
+            ['Admins', adminUsers, '#ff6b35', 'fa-user-shield'],
+            ['Banned', bannedUsers, '#ef4444', 'fa-ban'],
+            ['Blog Posts', blogCount, '#8b5cf6', 'fa-newspaper'],
+            ['Total Comments', totalBlogComments, '#06b6d4', 'fa-comments'],
+            ['Contact Msgs', contacts.length, '#ec4899', 'fa-envelope'],
+          ].map(([lbl, val, color, icon]) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(15,23,42,0.05);">
+              <div style="display:flex;align-items:center;gap:10px;"><i class="fa-solid ${icon}" style="color:${color};width:16px;"></i><span style="color:#475569;font-size:0.85rem;">${lbl}</span></div>
+              <span style="color:#0f172a;font-weight:700;font-size:0.95rem;">${val}</span>
+            </div>
+          `).join('')}
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="admin-panel-card" style="padding:24px;">
-        <div style="font-weight:700;color:#0f172a;font-size:1rem;margin-bottom:20px;">⚡ Quick Actions</div>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;">
-          <button onclick="adminAddProductNew()" style="padding:10px 20px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:10px;color:#ff6b35;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,107,53,0.2)'" onmouseout="this.style.background='rgba(255,107,53,0.1)'"><i class="fa-solid fa-plus"></i> Add Product</button>
-          <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:10px 20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#3b82f6;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'"><i class="fa-solid fa-newspaper"></i> Manage Blogs</button>
-          <button onclick="showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view=\\'adminUsers\\']'))" style="padding:10px 20px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;color:#f59e0b;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.2)'" onmouseout="this.style.background='rgba(245,158,11,0.1)'"><i class="fa-solid fa-users"></i> View Users</button>
-          <button onclick="adminGoToSite()" style="padding:10px 20px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#8b5cf6;font-weight:600;cursor:pointer;font-size:0.88rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(139,92,246,0.2)'" onmouseout="this.style.background='rgba(139,92,246,0.1)'"><i class="fa-solid fa-globe"></i> View Live Site</button>
+      <div class="admin-panel-card" style="padding:22px;">
+        <div style="font-weight:700;color:#0f172a;font-size:1rem;margin-bottom:16px;">⚡ Quick Actions</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <button onclick="adminNewOrder()" style="padding:10px 18px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:10px;color:#ff6b35;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-receipt"></i> New Order</button>
+          <button onclick="adminAddProductNew()" style="padding:10px 18px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#10b981;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-plus"></i> Add Product</button>
+          <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:10px 18px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#3b82f6;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-newspaper"></i> Manage Blogs</button>
+          <button onclick="showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view=\\'adminUsers\\']'))" style="padding:10px 18px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;color:#f59e0b;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-users"></i> View Users</button>
+          <button onclick="showAdminView('adminContacts', document.querySelector('.admin-sidebar-item[data-view=\\'adminContacts\\']'))" style="padding:10px 18px;background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.3);border-radius:10px;color:#ec4899;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-envelope"></i> Messages ${newContacts?`<span style="background:#ef4444;color:#fff;padding:1px 8px;border-radius:20px;font-size:0.7rem;margin-left:4px;">${newContacts}</span>`:''}</button>
+          <button onclick="adminGoToSite()" style="padding:10px 18px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#8b5cf6;font-weight:600;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-globe"></i> View Live Site</button>
         </div>
       </div>
+
+      <style>
+        @media(max-width:900px){ .admin-chart-grid{ grid-template-columns: 1fr !important; } }
+      </style>
     `;
   } catch(e) {
     container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading analytics</p></div>`;
     console.error('Admin stats error:', e);
   }
+}
+
+function fmtRelative(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), d = Math.floor(diff/86400000);
+  if (diff < 60000) return 'just now';
+  if (m < 60) return m + 'm ago';
+  if (h < 24) return h + 'h ago';
+  if (d < 30) return d + 'd ago';
+  try { return new Date(ts).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }); } catch(e) { return ''; }
 }
 
 // Override updateAuthUI: auto-show admin dashboard on login
