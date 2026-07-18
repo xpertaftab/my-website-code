@@ -1049,30 +1049,67 @@ async function renderAdminOrdersNew(container) {
 async function renderAdminUsersNew(container) {
   container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
   try {
-    // Load users + comments (for activity count)
-    let usersMap = {};
-    let commentsMap = {};
+    // Load users + comments + purchases + listings + contacts (for activity)
+    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {};
     if (window.fsLoadMap) {
       try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
       try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
+      try { purchasesMap = (await window.fsLoadMap('purchases')) || {}; } catch(e) {}
+      try { listingsMap = (await window.fsLoadMap('listings')) || {}; } catch(e) {}
+      try { contactsMap = (await window.fsLoadMap('contacts')) || {}; } catch(e) {}
     }
-    // Count comments per email
-    const commentsByEmail = {};
+    // Comments by email
+    const commentsByEmail = {}, commentsListByEmail = {};
     Object.values(commentsMap || {}).forEach(entry => {
       const items = Array.isArray(entry.items) ? entry.items : [];
       items.forEach(c => {
         const em = (c.email || '').toLowerCase().trim();
-        if (em) commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
+        if (em) {
+          commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
+          if (!commentsListByEmail[em]) commentsListByEmail[em] = [];
+          commentsListByEmail[em].push({ ...c, blogId: entry.id || entry.blogId });
+        }
       });
+    });
+    // Purchases by email
+    const purchasesByEmail = {}, purchasesListByEmail = {};
+    Object.values(purchasesMap || {}).forEach(p => {
+      const em = (p.userEmail || '').toLowerCase().trim();
+      if (!em) return;
+      purchasesByEmail[em] = (purchasesByEmail[em] || 0) + 1;
+      if (!purchasesListByEmail[em]) purchasesListByEmail[em] = [];
+      purchasesListByEmail[em].push(p);
+    });
+    // Listings by userEmail (if tracked)
+    const listingsByEmail = {};
+    Object.values(listingsMap || {}).forEach(l => {
+      const em = (l.userEmail || l.ownerEmail || '').toLowerCase().trim();
+      if (!em) return;
+      if (!listingsByEmail[em]) listingsByEmail[em] = [];
+      listingsByEmail[em].push(l);
+    });
+    // Contacts by email
+    const contactsByEmail = {};
+    Object.values(contactsMap || {}).forEach(c => {
+      const em = (c.email || '').toLowerCase().trim();
+      if (!em) return;
+      if (!contactsByEmail[em]) contactsByEmail[em] = [];
+      contactsByEmail[em].push(c);
     });
 
     window.__adminUsersCache = usersMap;
     window.__adminUsersCommentsByEmail = commentsByEmail;
+    window.__adminUsersData = {
+      commentsListByEmail, purchasesByEmail, purchasesListByEmail,
+      listingsByEmail, contactsByEmail
+    };
     renderAdminUsersTable(container, '');
   } catch(e) {
+    console.error(e);
     container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading users</p></div>`;
   }
 }
+
 
 function renderAdminUsersTable(container, filter) {
   const usersMap = window.__adminUsersCache || {};
