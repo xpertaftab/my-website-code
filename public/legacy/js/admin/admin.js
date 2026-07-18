@@ -426,12 +426,27 @@ function adminLabelStyle() {
 async function renderAdminProductsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
+    // One-time purge of old seeded products from Firestore
+    try {
+      if (!localStorage.getItem('vextro_products_fs_purged_v2') && window.fsLoadMap && window.fsDeleteDoc) {
+        const fsData = await window.fsLoadMap('products');
+        if (fsData) {
+          const ids = Object.keys(fsData);
+          for (const id of ids) { try { await window.fsDeleteDoc('products', id); } catch(e) {} }
+          console.log('Purged', ids.length, 'old products from Firestore');
+        }
+        localStorage.setItem('vextro_products_fs_purged_v2', '1');
+        window.PRODUCTS_DATA = {};
+        try { localStorage.removeItem('vextro_products'); } catch(e) {}
+      }
+    } catch(e) {}
     try {
       const r = await fetch('/api/products');
       if (r.ok) { const d = await r.json(); if (d && d.length > 0) { window.PRODUCTS_DATA = window.PRODUCTS_DATA || {}; d.forEach(p => { window.PRODUCTS_DATA[p.id] = Object.assign(window.PRODUCTS_DATA[p.id] || {}, p); }); } }
     } catch(e) {}
     const products = Object.values(window.PRODUCTS_DATA || {});
     console.log('Rendering admin products, count:', products.length);
+
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">All Products</div><div style="color:#94a3b8;font-size:0.85rem;">${products.length} product${products.length!==1?'s':''} total</div></div>
