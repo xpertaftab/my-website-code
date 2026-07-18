@@ -1931,6 +1931,8 @@ function updateAuthUI(user) {
         
         const mobileHeaderUserMenu = document.getElementById('mobileHeaderUserMenu');
         if (mobileHeaderUserMenu) mobileHeaderUserMenu.style.display = 'none';
+        if (window.hideUserNotificationBell) window.hideUserNotificationBell();
+
 
         const guestNav = document.getElementById('guestMobileNav');
         const userNav = document.getElementById('userMobileNav');
