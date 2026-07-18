@@ -2543,27 +2543,18 @@ function normalizeProductAssets(product) {
   return product;
 }
 
-const PRODUCTS_FALLBACK = [
-  { id:"p1", title:"Perfex CRM - Powerful Open Source CRM", category:"PHP Scripts", price:59, oldPrice:120, discount:"-51%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.5, reviews:342, sold:1523, shortDesc:"Complete Customer Relationship Management software for any company.", image:"assets/products/prod_0_main.jpg", features:["Project Management","Invoicing","Support Tickets","Leads Tracking","Finance Management"], included:["Full Source Code","6 Months Support","Future Updates"] },
-  { id:"p2", title:"MagicAI - OpenAI Content, Text & Image Generator", category:"SaaS Software", price:39, oldPrice:79, discount:"-51%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.7, reviews:512, sold:2341, shortDesc:"Advanced AI platform to generate text, images and code.", image:"assets/products/prod_1_main.jpg", features:["AI Text Generator","AI Image Generator","AI Code Generator","SaaS Ready","Subscription Billing"], included:["SaaS Platform Code","Admin Panel","Payment Gateways"] },
-  { id:"p3", title:"Acelle - Email Marketing Web Application", category:"Marketing", price:49, oldPrice:99, discount:"-51%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.3, reviews:278, sold:1120, shortDesc:"Self-hosted email marketing web app written in PHP.", image:"assets/products/prod_2_main.jpg", features:["Campaign Management","List Segmentation","Autoresponders","Bounce Handling","SMTP Integration"], included:["Acelle Source Code","API Documentation","Email Templates"] },
-  { id:"p4", title:"Stackposts - Social Media Marketing Tool", category:"Marketing", price:45, oldPrice:89, discount:"-49%", rating:4.6, reviews:198, sold:876, shortDesc:"Auto post & schedule on Instagram, Facebook & Twitter.", image:"assets/products/prod_3_main.jpg", features:["Auto Posting","Analytics","Multi-Account Support","Watermark Support","Proxy Manager"], included:["Web App","Documentation","Free Installation"] },
-  { id:"p5", title:"FileBird - WordPress Media Library Folders", category:"WordPress Plugins", price:39, oldPrice:0, discount:"Limited", rating:4.8, reviews:156, sold:654, shortDesc:"Organize WordPress media files into folders.", image:"assets/products/prod_4_main.jpg", features:["Drag and Drop Interface","Unlimited Folders","Smart Search","Gutenberg Ready","Multilingual"], included:["Plugin ZIP","License Key","6 Months Support"] },
-  { id:"p21", title:"Node.js REST API Boilerplate", category:"Code Scripts", price:42, oldPrice:89, discount:"-53%", rating:4.4, reviews:145, sold:623, shortDesc:"Production-ready Node.js API with auth & Docker.", image:"assets/products/wp_pexels_mowgli2.jpg", features:["JWT Auth","Database ORM","File Upload","Email Service","Docker Setup"], included:["Complete Source","Postman Collection","Deployment Guide"] },
-  { id:"p22", title:"AI Content Writer & Blog Generator", category:"SaaS Software", price:59, oldPrice:129, discount:"-54%", badge:"Best Seller", badgeColor:"#ef4444", rating:4.8, reviews:456, sold:1987, shortDesc:"AI writing platform with GPT & WordPress auto-posting.", image:"assets/products/wp_01_preview_magic9.9.jpg", features:["AI Writing","Batch Generation","SEO Analysis","WordPress Auto-Post","Template Library"], included:["SaaS Platform","Admin Dashboard","API Access"] },
-  { id:"p23", title:"Facebook Pixel & Retargeting Tool", category:"SEO", price:25, oldPrice:55, discount:"-55%", rating:4.0, reviews:78, sold:345, shortDesc:"Facebook Pixel manager with retargeting automation.", image:"assets/products/prod_6_main.jpg", features:["Pixel Manager","Event Tracking","Custom Audiences","Retargeting","Conversion Analytics"], included:["Plugin Files","Integration Guide","Email Support"] },
-  { id:"p24", title:"Telegram Bot & Notification System", category:"Automation", price:32, oldPrice:69, discount:"-54%", rating:4.3, reviews:112, sold:478, shortDesc:"Multi-purpose Telegram bot with payments & group manager.", image:"assets/products/prod_8_main.jpg", features:["Bot Builder","Notifications","Command System","Payment Integration","Group Manager"], included:["Source Code","Bot Setup Guide","Hosting Config"] },
-  { id:"p25", title:"Professional Logo & Branding Kit", category:"Tools & Software", price:19, oldPrice:49, discount:"-61%", rating:4.6, reviews:89, sold:567, shortDesc:"Complete branding package with logo templates.", image:"assets/products/prod_6_gallery_4.jpg", features:["Logo Templates","Business Cards","Social Media Kit","Brand Guidelines","Vector Files"], included:["Editable Files","Font Pack","Usage License"] },
-  { id:"p26", title:"Affiliate Marketing Platform", category:"eCommerce", price:74, oldPrice:159, discount:"-53%", badge:"Trending", badgeColor:"#f97316", rating:4.4, reviews:234, sold:1023, shortDesc:"Full affiliate platform with commission tracking.", image:"assets/products/prod_7_main.jpg", features:["Commission Tracking","Referral Links","Payout System","Performance Dashboard","Coupon Engine"], included:["Complete System","Merchant Panel","Affiliate Panel"] },
-  { id:"p27", title:"Advanced Web Scraper & Data Extractor", category:"Code Scripts", price:38, oldPrice:84, discount:"-55%", rating:4.1, reviews:67, sold:289, shortDesc:"PHP web scraper with proxy support & CSV export.", image:"assets/products/prod_9_main.jpg", features:["CSS Selectors","Proxy Support","Scheduled Scraping","CSV/JSON Export","Multi-threading"], included:["PHP Scripts","Configuration Files","Usage Examples"] },
-  { id:"p28", title:"Social Media Auto Poster - Multi Platform", category:"Automation", price:44, oldPrice:94, discount:"-53%", rating:4.3, reviews:178, sold:765, shortDesc:"Schedule & auto-post across all major platforms.", image:"assets/products/prod_6_gallery_2.jpg", features:["Multi-Platform","Schedule Posts","Media Library","Analytics","Team Collaboration"], included:["Web Application","API Integrations","User Manual"] },
-  { id:"p29", title:"E-commerce Dropshipping Management", category:"eCommerce", price:65, oldPrice:139, discount:"-53%", rating:4.2, reviews:145, sold:623, shortDesc:"Dropshipping system with supplier integration.", image:"assets/products/prod_7_gallery_1.jpg", features:["Supplier Integration","Order Tracking","Inventory Sync","Profit Calculator","Shipping Manager"], included:["Source Code","Database Schema","Integration Guide"] },
-  { id:"p30", title:"PDF Generation & Document Automation", category:"Code Scripts", price:28, oldPrice:59, discount:"-53%", rating:4.0, reviews:56, sold:234, shortDesc:"PHP PDF generation system with templates & batch processing.", image:"assets/products/prod_8_main.jpg", features:["Template System","Dynamic Content","Batch Processing","Cloud Storage","API Support"], included:["PHP Library","Sample Templates","Developer Docs"] }
-];
+const PRODUCTS_FALLBACK = [];
 
 // Populate PRODUCTS_DATA from localStorage first, then fallback to hardcoded
 // (Firestore loading is handled in api.js after all scripts load)
 window.PRODUCTS_DATA = {};
+// One-time reset to clear old seeded products
+try {
+  if (!localStorage.getItem('vextro_products_reset_v2')) {
+    localStorage.removeItem('vextro_products');
+    localStorage.setItem('vextro_products_reset_v2', '1');
+  }
+} catch(e) {}
 try {
   const saved = localStorage.getItem('vextro_products');
   if (saved) {
@@ -2580,17 +2571,7 @@ try {
     }
   }
 } catch(e) {}
-if (Object.keys(window.PRODUCTS_DATA).length === 0) {
-  PRODUCTS_FALLBACK.forEach(p => {
-    window.PRODUCTS_DATA[p.id] = {
-      ...normalizeProductAssets({ ...p }),
-      gallery: p.gallery || [normalizeAssetPath(p.image)],
-      fullDesc: p.fullDesc || p.shortDesc,
-      whatsappMsg: `Hi! I want to buy ${p.title} for USD ${p.price}. Please guide me.`
-    };
-  });
-  localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA));
-}
+
 
 let currentProductId = null;
 
