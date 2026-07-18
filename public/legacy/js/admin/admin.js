@@ -625,24 +625,47 @@ function wireProductForm(ov, state, existing, onSave) {
     document.getElementById('pfImgUrl').value = '';
     renderGallery();
   };
-  document.getElementById('pfImgFiles').onchange = function() {
-    Array.from(this.files||[]).forEach(f => {
-      const r = new FileReader();
-      r.onload = e => { state.gallery.push(e.target.result); renderGallery(); };
-      r.readAsDataURL(f);
-    });
+  document.getElementById('pfImgFiles').onchange = async function() {
+    const files = Array.from(this.files||[]);
     this.value = '';
+    for (const f of files) {
+      try {
+        const dataUrl = await window.adminCompressImage(f, 1100, 0.72);
+        state.gallery.push(dataUrl);
+        renderGallery();
+        updateSizeInfo();
+      } catch(e) { console.warn('compress failed', e); }
+    }
   };
-  document.getElementById('pfLongImg').onchange = function() {
-    const f = this.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = e => {
-      const ta = document.getElementById('pfLong');
-      ta.value = (ta.value ? ta.value + '\n\n' : '') + `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;">`;
-    };
-    r.readAsDataURL(f);
+  document.getElementById('pfLongImg').onchange = async function() {
+    const files = Array.from(this.files||[]);
     this.value = '';
+    const status = document.getElementById('pfLongImgStatus');
+    const ta = document.getElementById('pfLong');
+    for (const f of files) {
+      if (status) status.textContent = 'Compressing ' + f.name + '...';
+      try {
+        // Aggressive compression for description-embedded images so multiple images fit in the 1MB Firestore doc.
+        const dataUrl = await window.adminCompressImage(f, 800, 0.65);
+        ta.value = (ta.value ? ta.value + '\n\n' : '') + `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;" alt="">`;
+        updateSizeInfo();
+      } catch(e) { console.warn('desc image failed', e); }
+    }
+    if (status) status.textContent = 'Images auto-compressed for cloud save';
   };
+
+  // Live size indicator — helps admin see whether they'll blow past the Firestore 1MB doc cap.
+  function updateSizeInfo() {
+    const el = document.getElementById('pfSizeVal'); if (!el) return;
+    const longV = (document.getElementById('pfLong')||{}).value || '';
+    const bytes = new Blob([JSON.stringify(state.gallery) + longV]).size;
+    const kb = Math.round(bytes/1024);
+    el.textContent = kb + ' KB';
+    const parent = document.getElementById('pfSizeInfo');
+    if (parent) parent.style.color = kb > 950 ? '#dc2626' : (kb > 750 ? '#ea580c' : '#64748b');
+  }
+  const longTa = document.getElementById('pfLong'); if (longTa) longTa.addEventListener('input', updateSizeInfo);
+  updateSizeInfo();
 
   function renderReviews() {
     const el = document.getElementById('pfReviews');
