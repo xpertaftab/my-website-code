@@ -1320,7 +1320,43 @@ window.adminViewUserDetails = function(uid) {
             ${u.imported ? kv('Source', '📥 Imported from Firebase') : ''}
           </div>
 
-          <!-- Purchases -->
+          <!-- Dashboard Stats Override (admin-controlled fake numbers) -->
+          ${(function(){
+            const s = (window.__adminUsersData && window.__adminUsersData.statsMap && window.__adminUsersData.statsMap[u.uid]) || {};
+            const val = v => (v === undefined || v === null) ? '' : String(v);
+            const field = (id, label, ph, step) => `
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:0.72rem;color:#64748b;font-weight:700;">${label}</label>
+                <input id="ust_${id}" type="number" step="${step||'1'}" placeholder="${ph}" value="${val(s[id])}"
+                  style="padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;">
+              </div>`;
+            return `
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                <h4 style="margin:0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-sliders" style="color:#f59e0b;"></i> Dashboard Stats Override</h4>
+                <span style="font-size:0.72rem;color:#92400e;background:#fef3c7;padding:3px 8px;border-radius:20px;font-weight:700;">Shown on user's dashboard</span>
+              </div>
+              <p style="margin:4px 0 12px;font-size:0.78rem;color:#78716c;">Leave a field blank to hide it (dashboard falls back to 0). Values sync live to this user's dashboard.</p>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+                ${field('listings','Total Listings','0')}
+                ${field('listingsActive','Active (sub)','0')}
+                ${field('views','Total Views','0')}
+                ${field('bids','Total Bids','0')}
+                ${field('portfolio','Portfolio Value ($)','0')}
+                ${field('active','Active','0')}
+                ${field('pending','Pending','0')}
+                ${field('sold','Sold','0')}
+                ${field('blogs','Blogs','0')}
+                ${field('rating','Rating (0–5)','0.0','0.1')}
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                <button onclick="adminSaveUserStats('${u.uid}')" style="padding:9px 16px;background:#f59e0b;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Stats</button>
+                <button onclick="adminClearUserStats('${u.uid}')" style="padding:9px 16px;background:#fff;color:#b45309;border:1px solid #fcd34d;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-eraser"></i> Clear All</button>
+                <span id="ust_saveMsg_${u.uid}" style="align-self:center;font-size:0.8rem;color:#059669;font-weight:700;"></span>
+              </div>
+            </div>`;
+          })()}
+
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
             <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:#10b981;"></i> Purchase History (${purchases.length})</h4>
             ${purchases.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No purchases tracked yet. Purchases are logged when this user clicks "Buy Now".</p>' :
