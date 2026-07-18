@@ -426,18 +426,17 @@ function adminLabelStyle() {
 async function renderAdminProductsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
-    // One-time purge of old seeded products from Firestore
     try {
-      if (!localStorage.getItem('vextro_products_fs_purged_v2') && window.fsLoadMap && window.fsDeleteDoc) {
+      if (window.fsLoadMap) {
         const fsData = await window.fsLoadMap('products');
-        if (fsData) {
-          const ids = Object.keys(fsData);
-          for (const id of ids) { try { await window.fsDeleteDoc('products', id); } catch(e) {} }
-          console.log('Purged', ids.length, 'old products from Firestore');
+        const meta = await window.fsLoadMap('site_meta');
+        if (fsData && Object.keys(fsData).length > 0) {
+          window.PRODUCTS_DATA = fsData;
+          try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
+        } else if (meta && meta.products) {
+          window.PRODUCTS_DATA = {};
+          try { localStorage.removeItem('vextro_products'); } catch(e) {}
         }
-        localStorage.setItem('vextro_products_fs_purged_v2', '1');
-        window.PRODUCTS_DATA = {};
-        try { localStorage.removeItem('vextro_products'); } catch(e) {}
       }
     } catch(e) {}
     try {
@@ -482,8 +481,7 @@ async function renderAdminProductsNew(container) {
 
 window.adminDeleteProductNew = async function(id) {
   if (!confirm('Delete this product permanently from the website?')) return;
-  if (window.PRODUCTS_DATA && window.PRODUCTS_DATA[id]) delete window.PRODUCTS_DATA[id];
-  if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
+  await deleteProductEverywhere(id);
   window._adminChangesMade = true;
   try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e) { console.error('Delete render error:', e); }
   if (window.filterShopProducts) window.filterShopProducts();
@@ -491,6 +489,33 @@ window.adminDeleteProductNew = async function(id) {
 
 // ── PRODUCT FORM (shared for Add + Edit) ───────────────────────
 const PRODUCT_CATEGORIES = ['Code Scripts','PHP Scripts','WordPress Plugins','SaaS Software','Tools & Software','eCommerce','Marketing','Automation','SEO','AdSense','UI Templates','Graphics','Other'];
+
+async function saveProductCatalogMeta() {
+  if (!window.fsSetDoc) return;
+  try {
+    await window.fsSetDoc('site_meta', 'products', {
+      updatedAt: Date.now(),
+      count: Object.keys(window.PRODUCTS_DATA || {}).length
+    });
+  } catch(e) {}
+}
+
+async function saveProductEverywhere(id, data) {
+  window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
+  window.PRODUCTS_DATA[id] = data;
+  try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
+  if (window.fsSetDoc) await window.fsSetDoc('products', id, data);
+  else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA);
+  await saveProductCatalogMeta();
+}
+
+async function deleteProductEverywhere(id) {
+  if (window.PRODUCTS_DATA && window.PRODUCTS_DATA[id]) delete window.PRODUCTS_DATA[id];
+  try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA || {})); } catch(e) {}
+  if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
+  else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA || {});
+  await saveProductCatalogMeta();
+}
 
 function buildProductForm(p) {
   const IS = adminInputStyle(), LS = adminLabelStyle();
@@ -678,8 +703,8 @@ window.adminEditProductNew = function(id) {
   adminModal(html, (ov) => {
     wireProductForm(ov, state, p, async (data) => {
       data.id = id;
-      window.PRODUCTS_DATA[id] = data;
-      if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
+      data.updatedAt = Date.now();
+      await saveProductEverywhere(id, data);
       window._adminChangesMade = true;
       ov.remove();
       try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e){}
@@ -694,9 +719,9 @@ window.adminAddProductNew = function() {
     wireProductForm(ov, state, null, async (data) => {
       const newId = 'p' + Date.now();
       data.id = newId;
-      window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
-      window.PRODUCTS_DATA[newId] = data;
-      if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
+      data.createdAt = Date.now();
+      data.updatedAt = data.createdAt;
+      await saveProductEverywhere(newId, data);
       window._adminChangesMade = true;
       ov.remove();
       try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e){}

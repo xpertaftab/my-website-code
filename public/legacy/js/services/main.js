@@ -4,9 +4,10 @@
  */
 
 // Persistence helpers for admin changes (Firestore + localStorage fallback)
-window.vextroSave = function(key, data) {
+window.vextroSave = async function(key, data) {
   try { localStorage.setItem('vextro_' + key, JSON.stringify(data)); } catch(e) {}
-  if (window.fsSaveMap) window.fsSaveMap(key, data);
+  if (window.fsSaveMap) return await window.fsSaveMap(key, data);
+  return true;
 };
 window.vextroLoad = function(key) {
   try { const d = localStorage.getItem('vextro_' + key); return d ? JSON.parse(d) : null; } catch(e) { return null; }
