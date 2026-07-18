@@ -402,6 +402,19 @@ function adminModal(html, onMounted) {
   return ov;
 }
 
+// Aliases used by Orders + other modules
+window.showAdminOverlay = function(html) {
+  closeAdminOverlay();
+  const ov = document.createElement('div');
+  ov.id = 'adminModalOverlay';
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;';
+  ov.innerHTML = `<div style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:16px;width:100%;max-width:780px;padding:28px;box-shadow:0 24px 60px rgba(15,23,42,0.18);color:#0f172a;font-family:'Inter',sans-serif;">${html}</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  return ov;
+};
+window.closeAdminOverlay = function() { const ex = document.getElementById('adminModalOverlay'); if (ex) ex.remove(); };
+
 function adminInputStyle() {
   return "width:100%;padding:11px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:8px;color:#0f172a;outline:none;font-size:0.9rem;box-sizing:border-box;font-family:'Inter',sans-serif;";
 }
@@ -1031,30 +1044,419 @@ window.adminDeleteBlogComment = async function(blogId, idx) {
 
 
 
+// ============ ORDERS SYSTEM ============
+// Payment gateway abhi disabled hai (koi bank account nahi). Yeh system manual/WhatsApp orders,
+// invoice generation, aur status tracking ke liye ready hai. Jab bhi bank account milega,
+// bas payment gateway wire karna hoga — baaki sab wired hai.
+window.__adminOrdersCache = window.__adminOrdersCache || {};
+window.__adminOrdersFilter = window.__adminOrdersFilter || { status: 'all', search: '', sort: 'date-desc' };
+
+async function loadOrdersMap() {
+  let map = {};
+  if (window.fsLoadMap) { try { map = (await window.fsLoadMap('orders')) || {}; } catch(e) {} }
+  if (!map || Object.keys(map).length === 0) {
+    try { map = JSON.parse(localStorage.getItem('admin_orders') || '{}'); } catch(e) { map = {}; }
+  }
+  return map;
+}
+async function saveOrder(o) {
+  window.__adminOrdersCache[o.id] = o;
+  try { localStorage.setItem('admin_orders', JSON.stringify(window.__adminOrdersCache)); } catch(e) {}
+  if (window.fsSetDoc) { try { await window.fsSetDoc('orders', o.id, o); } catch(e) {} }
+}
+async function deleteOrder(id) {
+  delete window.__adminOrdersCache[id];
+  try { localStorage.setItem('admin_orders', JSON.stringify(window.__adminOrdersCache)); } catch(e) {}
+  if (window.fsDeleteDoc) { try { await window.fsDeleteDoc('orders', id); } catch(e) {} }
+}
+function orderStatusBadge(s) {
+  const map = {
+    pending:    ['admin-badge-yellow', 'Pending'],
+    processing: ['admin-badge-blue',   'Processing'],
+    completed:  ['admin-badge-green',  'Completed'],
+    delivered:  ['admin-badge-green',  'Delivered'],
+    cancelled:  ['admin-badge-red',    'Cancelled'],
+    refunded:   ['admin-badge-red',    'Refunded'],
+  };
+  const [cls, label] = map[s] || ['admin-badge-yellow', s || 'Pending'];
+  return `<span class="admin-badge ${cls}">${label}</span>`;
+}
+function paymentStatusBadge(s) {
+  const map = {
+    unpaid:   ['admin-badge-red',    'Unpaid'],
+    partial:  ['admin-badge-yellow', 'Partial (50%)'],
+    paid:     ['admin-badge-green',  'Paid'],
+    refunded: ['admin-badge-red',    'Refunded'],
+  };
+  const [cls, label] = map[s] || ['admin-badge-red', s || 'Unpaid'];
+  return `<span class="admin-badge ${cls}">${label}</span>`;
+}
+function fmtMoney(n) { const v = Number(n||0); return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+function fmtDate(ts) { if (!ts) return '-'; try { return new Date(ts).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch(e) { return '-'; } }
+
 async function renderAdminOrdersNew(container) {
+  container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading orders…</p></div></div>`;
   try {
-    const orders = []; // Load orders from window if implemented
-    container.innerHTML = `
-      <div class="admin-panel-card">
-        ${orders.length === 0 ? '<div class="admin-empty"><i class="fa-solid fa-receipt"></i><p>No orders yet</p></div>' : `
-        <table class="admin-table">
-          <thead><tr><th>ID</th><th>Buyer</th><th>Email</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-          <tbody>${orders.map(o => `
-            <tr>
-              <td style="font-weight:700;">#${o.id}</td>
-              <td>${o.buyerName || '-'}</td>
-              <td style="font-size:0.85rem;">${o.buyerEmail || '-'}</td>
-              <td style="font-weight:600;">$${o.amount}</td>
-              <td><span class="admin-badge ${o.status === 'completed' ? 'admin-badge-green' : o.status === 'pending' ? 'admin-badge-yellow' : 'admin-badge-red'}">${o.status}</span></td>
-              <td style="font-size:0.8rem;color:#94a3b8;">${o.createdAt}</td>
-            </tr>`).join('')}</tbody>
-        </table>`}
-      </div>
-    `;
+    const map = await loadOrdersMap();
+    window.__adminOrdersCache = map;
+    renderOrdersUI(container);
   } catch(e) {
-    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error</p></div>`;
+    container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading orders</p></div>`;
   }
 }
+
+function renderOrdersUI(container) {
+  const map = window.__adminOrdersCache || {};
+  const f = window.__adminOrdersFilter;
+  let list = Object.values(map);
+
+  // Stats
+  const totalRevenue = list.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
+  const pendingRevenue = list.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+  const countPending = list.filter(o => o.status === 'pending').length;
+  const countProcessing = list.filter(o => o.status === 'processing').length;
+  const countCompleted = list.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+  const countCancelled = list.filter(o => o.status === 'cancelled' || o.status === 'refunded').length;
+
+  // Filter
+  if (f.status !== 'all') list = list.filter(o => o.status === f.status);
+  if (f.search) {
+    const q = f.search.toLowerCase();
+    list = list.filter(o =>
+      (o.id||'').toLowerCase().includes(q) ||
+      (o.buyerName||'').toLowerCase().includes(q) ||
+      (o.buyerEmail||'').toLowerCase().includes(q) ||
+      (o.service||'').toLowerCase().includes(q)
+    );
+  }
+  // Sort
+  list.sort((a,b) => {
+    if (f.sort === 'date-asc')   return (a.createdAt||0) - (b.createdAt||0);
+    if (f.sort === 'amount-desc') return Number(b.amount||0) - Number(a.amount||0);
+    if (f.sort === 'amount-asc')  return Number(a.amount||0) - Number(b.amount||0);
+    return (b.createdAt||0) - (a.createdAt||0); // date-desc default
+  });
+
+  const statCard = (label, val, icon, grad) => `
+    <div class="admin-stat-card" style="background:${grad};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div style="opacity:0.85;font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;">${label}</div>
+        <i class="${icon}" style="font-size:1.2rem;opacity:0.6;"></i>
+      </div>
+      <div style="font-size:1.6rem;font-weight:800;">${val}</div>
+    </div>`;
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px;">
+      ${statCard('Total Revenue', fmtMoney(totalRevenue), 'fa-solid fa-sack-dollar', 'linear-gradient(135deg,#10b981,#059669)')}
+      ${statCard('Pending Revenue', fmtMoney(pendingRevenue), 'fa-solid fa-hourglass-half', 'linear-gradient(135deg,#f59e0b,#d97706)')}
+      ${statCard('Pending Orders', countPending, 'fa-solid fa-clock', 'linear-gradient(135deg,#3b82f6,#2563eb)')}
+      ${statCard('Processing', countProcessing, 'fa-solid fa-gears', 'linear-gradient(135deg,#8b5cf6,#7c3aed)')}
+      ${statCard('Completed', countCompleted, 'fa-solid fa-circle-check', 'linear-gradient(135deg,#ff6b35,#f7931e)')}
+      ${statCard('Cancelled', countCancelled, 'fa-solid fa-ban', 'linear-gradient(135deg,#ef4444,#dc2626)')}
+    </div>
+
+    <div class="admin-panel-card">
+      <div style="padding:18px 20px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        <input id="ordSearch" type="text" placeholder="Search order ID, buyer, email…" value="${f.search||''}"
+          style="flex:1;min-width:200px;padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;outline:none;font-size:0.88rem;">
+        <select id="ordStatusFilter" style="padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:600;font-size:0.85rem;">
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="completed">Completed</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="refunded">Refunded</option>
+        </select>
+        <select id="ordSort" style="padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:600;font-size:0.85rem;">
+          <option value="date-desc">Newest first</option>
+          <option value="date-asc">Oldest first</option>
+          <option value="amount-desc">Amount: High → Low</option>
+          <option value="amount-asc">Amount: Low → High</option>
+        </select>
+        <button onclick="adminExportOrders()" style="padding:10px 14px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-download"></i> Export CSV</button>
+        <button onclick="adminNewOrder()" style="padding:10px 18px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);font-size:0.85rem;"><i class="fa-solid fa-plus"></i> New Order</button>
+      </div>
+
+      ${list.length === 0 ? `
+        <div class="admin-empty" style="padding:60px 20px;">
+          <i class="fa-solid fa-receipt" style="font-size:3rem;color:#cbd5e1;"></i>
+          <p style="font-weight:600;margin-top:12px;">${Object.keys(map).length === 0 ? 'No orders yet' : 'No orders match your filters'}</p>
+          <p style="color:#94a3b8;font-size:0.85rem;margin-top:6px;">${Object.keys(map).length === 0 ? 'Manually add an order from WhatsApp/offline sales.' : 'Try clearing search or status filter.'}</p>
+          ${Object.keys(map).length === 0 ? `<button onclick="adminNewOrder()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Order</button>` : ''}
+        </div>` : `
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
+          <tbody>${list.map(o => `
+            <tr>
+              <td data-label="Order" style="font-weight:800;color:#ff6b35;">#${(o.id||'').slice(0,8).toUpperCase()}</td>
+              <td data-label="Buyer">
+                <div style="font-weight:600;color:#0f172a;">${escapeHtml(o.buyerName||'-')}</div>
+                <div style="font-size:0.78rem;color:#94a3b8;">${escapeHtml(o.buyerEmail||o.buyerPhone||'')}</div>
+              </td>
+              <td data-label="Service" style="font-size:0.85rem;">${escapeHtml(o.service||'-')}</td>
+              <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(o.amount)}</td>
+              <td data-label="Status">${orderStatusBadge(o.status)}</td>
+              <td data-label="Payment">${paymentStatusBadge(o.paymentStatus)}</td>
+              <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">${fmtDate(o.createdAt)}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                  <button onclick="adminViewOrder('${o.id}')" title="View" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-eye"></i></button>
+                  <button onclick="adminInvoiceOrder('${o.id}')" title="Invoice" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);padding:7px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-file-invoice"></i></button>
+                  <button onclick="adminDeleteOrder('${o.id}')" title="Delete" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+              </td>
+            </tr>`).join('')}</tbody>
+        </table>`}
+    </div>
+
+    <div style="margin-top:16px;padding:14px 18px;background:rgba(59,130,246,0.06);border:1px dashed rgba(59,130,246,0.3);border-radius:12px;color:#1e40af;font-size:0.82rem;">
+      <i class="fa-solid fa-circle-info"></i> <b>Payment Gateway Disabled:</b> Abhi automatic online payment nahi jud raha. Jab bank account setup ho jaye, Stripe/JazzCash/Easypaisa gateway wire karva lena — abhi ke liye WhatsApp/offline orders manually add karo.
+    </div>
+  `;
+
+  // Bind events
+  const search = document.getElementById('ordSearch');
+  if (search) {
+    let tId; search.oninput = (e) => { clearTimeout(tId); tId = setTimeout(() => { window.__adminOrdersFilter.search = e.target.value.trim(); renderOrdersUI(container); }, 250); };
+  }
+  const st = document.getElementById('ordStatusFilter'); if (st) { st.value = f.status; st.onchange = (e) => { window.__adminOrdersFilter.status = e.target.value; renderOrdersUI(container); }; }
+  const sr = document.getElementById('ordSort'); if (sr) { sr.value = f.sort; sr.onchange = (e) => { window.__adminOrdersFilter.sort = e.target.value; renderOrdersUI(container); }; }
+}
+
+function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+// ---- New / Edit Order Modal ----
+window.adminNewOrder = function() { openOrderForm(null); };
+window.adminViewOrder = function(id) { openOrderForm(window.__adminOrdersCache[id]); };
+
+function openOrderForm(existing) {
+  const o = existing || {
+    id: 'ord_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    createdAt: Date.now(),
+    status: 'pending',
+    paymentStatus: 'unpaid',
+    paymentMethod: '',
+    currency: 'USD',
+    notes: '',
+    deliverables: '',
+    amountPaid: 0,
+  };
+  const isNew = !existing;
+  const inp = 'width:100%;padding:11px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:8px;color:#0f172a;outline:none;font-size:0.9rem;box-sizing:border-box;font-family:inherit;';
+  const lbl = 'display:block;font-size:0.78rem;font-weight:700;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
+
+  const html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;">
+      <div>
+        <h3 style="margin:0;font-size:1.3rem;color:#0f172a;">${isNew ? 'New Order' : 'Order #' + (o.id||'').slice(0,8).toUpperCase()}</h3>
+        <div style="font-size:0.78rem;color:#94a3b8;margin-top:4px;">${fmtDate(o.createdAt)}</div>
+      </div>
+      <button onclick="closeAdminOverlay()" style="background:transparent;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">&times;</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div><label style="${lbl}">Buyer Name *</label><input id="of_buyerName" style="${inp}" value="${escapeHtml(o.buyerName||'')}"></div>
+      <div><label style="${lbl}">Buyer Email</label><input id="of_buyerEmail" type="email" style="${inp}" value="${escapeHtml(o.buyerEmail||'')}"></div>
+      <div><label style="${lbl}">Buyer Phone / WhatsApp</label><input id="of_buyerPhone" style="${inp}" value="${escapeHtml(o.buyerPhone||'')}"></div>
+      <div><label style="${lbl}">Service *</label>
+        <select id="of_service" style="${inp}">
+          ${['Web Development','Custom Software / SaaS','AI Automation','SEO','Google Ads','Facebook & Instagram Ads','Social Media Management','Graphic Design & Branding','Other'].map(s => `<option value="${s}" ${o.service===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div><label style="${lbl}">Package / Plan</label><input id="of_package" placeholder="Starter / Professional / Custom" style="${inp}" value="${escapeHtml(o.package||'')}"></div>
+      <div><label style="${lbl}">Amount *</label>
+        <div style="display:flex;gap:8px;">
+          <select id="of_currency" style="${inp};width:90px;flex:0 0 90px;">
+            ${['USD','PKR','EUR','GBP'].map(c => `<option value="${c}" ${o.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+          <input id="of_amount" type="number" min="0" step="0.01" style="${inp}" value="${o.amount||''}">
+        </div>
+      </div>
+      <div><label style="${lbl}">Order Status</label>
+        <select id="of_status" style="${inp}">
+          ${['pending','processing','completed','delivered','cancelled','refunded'].map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div><label style="${lbl}">Payment Status</label>
+        <select id="of_paymentStatus" style="${inp}">
+          ${['unpaid','partial','paid','refunded'].map(s => `<option value="${s}" ${o.paymentStatus===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div><label style="${lbl}">Payment Method</label>
+        <select id="of_paymentMethod" style="${inp}">
+          ${['','Bank Transfer','Easypaisa','JazzCash','PayPal','Stripe','Wise','Cash','Other'].map(s => `<option value="${s}" ${o.paymentMethod===s?'selected':''}>${s||'— select —'}</option>`).join('')}
+        </select>
+      </div>
+      <div><label style="${lbl}">Amount Received</label><input id="of_amountPaid" type="number" min="0" step="0.01" style="${inp}" value="${o.amountPaid||0}"></div>
+      <div><label style="${lbl}">Delivery Deadline</label><input id="of_deadline" type="date" style="${inp}" value="${o.deadline ? new Date(o.deadline).toISOString().slice(0,10) : ''}"></div>
+      <div><label style="${lbl}">Transaction / Reference #</label><input id="of_txn" style="${inp}" value="${escapeHtml(o.txn||'')}"></div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="${lbl}">Deliverables / Scope</label>
+      <textarea id="of_deliverables" rows="3" style="${inp};resize:vertical;">${escapeHtml(o.deliverables||'')}</textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="${lbl}">Internal Notes</label>
+      <textarea id="of_notes" rows="2" style="${inp};resize:vertical;">${escapeHtml(o.notes||'')}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid rgba(15,23,42,0.08);padding-top:16px;">
+      ${!isNew ? `<button onclick="adminInvoiceOrder('${o.id}')" style="padding:11px 18px;background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);border-radius:10px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-file-invoice"></i> Invoice</button>` : ''}
+      ${!isNew && o.buyerPhone ? `<a href="https://wa.me/${(o.buyerPhone||'').replace(/[^0-9]/g,'')}" target="_blank" style="padding:11px 18px;background:rgba(37,211,102,0.1);color:#25D366;border:1px solid rgba(37,211,102,0.3);border-radius:10px;font-weight:700;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
+      <button onclick="closeAdminOverlay()" style="padding:11px 18px;background:#f1f5f9;color:#475569;border:1px solid rgba(15,23,42,0.12);border-radius:10px;font-weight:700;cursor:pointer;">Cancel</button>
+      <button onclick="adminSaveOrder('${o.id}',${isNew})" style="padding:11px 22px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-check"></i> ${isNew ? 'Create Order' : 'Save Changes'}</button>
+    </div>
+  `;
+  window.__editingOrder = o;
+  showAdminOverlay(html);
+}
+
+window.adminSaveOrder = async function(id, isNew) {
+  const g = (x) => document.getElementById(x);
+  const base = window.__editingOrder || { id, createdAt: Date.now() };
+  const buyerName = g('of_buyerName').value.trim();
+  const amount = parseFloat(g('of_amount').value || '0');
+  if (!buyerName) { alert('Buyer name required'); return; }
+  if (!amount || amount < 0) { alert('Valid amount required'); return; }
+  const deadlineStr = g('of_deadline').value;
+  const o = {
+    ...base,
+    id,
+    buyerName,
+    buyerEmail: g('of_buyerEmail').value.trim(),
+    buyerPhone: g('of_buyerPhone').value.trim(),
+    service:    g('of_service').value,
+    package:    g('of_package').value.trim(),
+    currency:   g('of_currency').value,
+    amount,
+    status:         g('of_status').value,
+    paymentStatus:  g('of_paymentStatus').value,
+    paymentMethod:  g('of_paymentMethod').value,
+    amountPaid:     parseFloat(g('of_amountPaid').value || '0'),
+    deadline:       deadlineStr ? new Date(deadlineStr).getTime() : null,
+    txn:            g('of_txn').value.trim(),
+    deliverables:   g('of_deliverables').value.trim(),
+    notes:          g('of_notes').value.trim(),
+    updatedAt:      Date.now(),
+  };
+  if (isNew) o.createdAt = Date.now();
+  await saveOrder(o);
+  closeAdminOverlay();
+  const content = document.getElementById('adminContent');
+  if (content) renderAdminOrdersNew(content);
+};
+
+window.adminDeleteOrder = async function(id) {
+  if (!confirm('Delete this order permanently?')) return;
+  await deleteOrder(id);
+  const content = document.getElementById('adminContent');
+  if (content) renderAdminOrdersNew(content);
+};
+
+window.adminInvoiceOrder = function(id) {
+  const o = window.__adminOrdersCache[id]; if (!o) return;
+  const w = window.open('', '_blank', 'width=820,height=900');
+  if (!w) { alert('Popup blocked — allow popups to print invoice'); return; }
+  const paid = Number(o.amountPaid||0), due = Math.max(0, Number(o.amount||0) - paid);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${o.id}</title>
+    <style>
+      *{box-sizing:border-box;font-family:'Inter','Segoe UI',sans-serif;}
+      body{margin:0;padding:40px;color:#0f172a;background:#f8fafc;}
+      .inv{max-width:760px;margin:0 auto;background:#fff;border-radius:14px;padding:44px;box-shadow:0 20px 50px rgba(15,23,42,0.08);}
+      .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #ff6b35;padding-bottom:22px;margin-bottom:28px;}
+      .brand{font-size:1.8rem;font-weight:800;color:#0f172a;}
+      .brand span{color:#ff6b35;}
+      .tag{color:#64748b;font-size:0.85rem;margin-top:4px;}
+      .inv-title{text-align:right;}
+      .inv-title h1{margin:0;color:#ff6b35;font-size:2rem;letter-spacing:2px;}
+      .inv-title div{color:#64748b;font-size:0.85rem;margin-top:4px;}
+      .row{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:32px;}
+      .lbl{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;margin-bottom:6px;}
+      .val{font-size:0.95rem;color:#0f172a;font-weight:600;}
+      table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+      th{text-align:left;padding:12px 14px;background:#f1f5f9;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:#64748b;}
+      td{padding:14px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;}
+      .totals{margin-left:auto;width:280px;}
+      .totals div{display:flex;justify-content:space-between;padding:8px 0;font-size:0.9rem;}
+      .totals .total{border-top:2px solid #0f172a;margin-top:8px;padding-top:14px;font-size:1.1rem;font-weight:800;color:#ff6b35;}
+      .foot{margin-top:36px;padding-top:20px;border-top:1px dashed #e2e8f0;color:#94a3b8;font-size:0.8rem;text-align:center;}
+      .stat{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;}
+      .paid{background:#dcfce7;color:#166534;}
+      .unpaid{background:#fee2e2;color:#991b1b;}
+      .partial{background:#fef3c7;color:#92400e;}
+      @media print { body{background:#fff;padding:0;} .inv{box-shadow:none;} .noprint{display:none;} }
+      .noprint{position:fixed;top:20px;right:20px;}
+      .noprint button{padding:10px 22px;background:#ff6b35;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,53,0.3);}
+    </style></head><body>
+    <div class="noprint"><button onclick="window.print()">🖨 Print / Save PDF</button></div>
+    <div class="inv">
+      <div class="hdr">
+        <div>
+          <div class="brand">Vextro <span>Lyntra</span></div>
+          <div class="tag">Digital Growth Studio</div>
+          <div class="tag" style="margin-top:8px;">contact@vextrolyntra.com</div>
+        </div>
+        <div class="inv-title">
+          <h1>INVOICE</h1>
+          <div><b>#${(o.id||'').slice(0,10).toUpperCase()}</b></div>
+          <div>${fmtDate(o.createdAt)}</div>
+          <div style="margin-top:8px;"><span class="stat ${o.paymentStatus||'unpaid'}">${(o.paymentStatus||'unpaid').toUpperCase()}</span></div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <div class="lbl">Billed To</div>
+          <div class="val">${escapeHtml(o.buyerName||'-')}</div>
+          <div style="color:#64748b;font-size:0.85rem;margin-top:4px;">${escapeHtml(o.buyerEmail||'')}</div>
+          <div style="color:#64748b;font-size:0.85rem;">${escapeHtml(o.buyerPhone||'')}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="lbl">Payment Method</div>
+          <div class="val">${escapeHtml(o.paymentMethod||'Not specified')}</div>
+          ${o.txn ? `<div style="color:#64748b;font-size:0.85rem;margin-top:4px;">Ref: ${escapeHtml(o.txn)}</div>` : ''}
+          ${o.deadline ? `<div style="color:#64748b;font-size:0.85rem;">Deadline: ${fmtDate(o.deadline)}</div>` : ''}
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Service</th><th>Description</th><th style="text-align:right;">Amount</th></tr></thead>
+        <tbody><tr>
+          <td><b>${escapeHtml(o.service||'-')}</b>${o.package ? '<br><span style="color:#64748b;font-size:0.8rem;">'+escapeHtml(o.package)+'</span>' : ''}</td>
+          <td style="color:#64748b;font-size:0.85rem;">${escapeHtml(o.deliverables||'—')}</td>
+          <td style="text-align:right;font-weight:700;">${o.currency||'USD'} ${Number(o.amount||0).toLocaleString()}</td>
+        </tr></tbody>
+      </table>
+      <div class="totals">
+        <div><span>Subtotal</span><span>${o.currency||'USD'} ${Number(o.amount||0).toLocaleString()}</span></div>
+        <div><span>Paid</span><span style="color:#059669;">${o.currency||'USD'} ${paid.toLocaleString()}</span></div>
+        <div class="total"><span>Balance Due</span><span>${o.currency||'USD'} ${due.toLocaleString()}</span></div>
+      </div>
+      <div class="foot">Thank you for choosing Vextro Lyntra. This is a computer-generated invoice.</div>
+    </div></body></html>`);
+  w.document.close();
+};
+
+window.adminExportOrders = function() {
+  const list = Object.values(window.__adminOrdersCache || {});
+  if (!list.length) { alert('No orders to export'); return; }
+  const headers = ['ID','Buyer','Email','Phone','Service','Package','Currency','Amount','Amount Paid','Status','Payment Status','Payment Method','Txn Ref','Deadline','Created','Notes'];
+  const esc = (v) => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const rows = list.map(o => [
+    o.id, o.buyerName, o.buyerEmail, o.buyerPhone, o.service, o.package,
+    o.currency, o.amount, o.amountPaid, o.status, o.paymentStatus,
+    o.paymentMethod, o.txn, o.deadline ? new Date(o.deadline).toISOString() : '',
+    o.createdAt ? new Date(o.createdAt).toISOString() : '', o.notes
+  ].map(esc).join(','));
+  const csv = [headers.map(esc).join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'orders_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
 
 async function renderAdminUsersNew(container) {
   container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
