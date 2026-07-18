@@ -578,6 +578,13 @@ function buildProductForm(p) {
           <div style="flex:1;min-width:120px;"><label style="${LS}">Sold Count</label><input id="pfSold" type="number" value="${p.sold||0}" style="${IS}" placeholder="0"></div>
           <div style="flex:1;min-width:120px;"><label style="${LS}">Rating (1-5)</label><input id="pfRating" type="number" step="0.1" min="0" max="5" value="${p.rating||5}" style="${IS}"></div>
         </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #fed7aa;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="pfBestSeller" ${p.badge?'checked':''} style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
+            <span style="font-weight:700;color:#065f46;font-size:0.9rem;"><i class="fa-solid fa-award" style="color:#10b981;"></i> Show "Best Seller" badge on product</span>
+          </label>
+          <input id="pfBadgeText" value="${(p.badge||'Best Seller').replace(/"/g,'&quot;')}" style="${IS};flex:1;min-width:160px;max-width:220px;padding:8px 12px;font-size:0.85rem;" placeholder="Badge text (e.g. Best Seller)">
+        </div>
       </div>
 
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
@@ -726,7 +733,8 @@ function wireProductForm(ov, state, existing, onSave) {
         sold: parseInt(document.getElementById('pfSold').value)||0,
         rating: parseFloat(document.getElementById('pfRating').value)||5,
         reviews: cleanReviews.length,
-        fakeReviews: cleanReviews
+        fakeReviews: cleanReviews,
+        badge: (document.getElementById('pfBestSeller')||{}).checked ? ((document.getElementById('pfBadgeText').value||'Best Seller').trim() || 'Best Seller') : ''
       };
       try {
         await onSave(data);
