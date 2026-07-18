@@ -2636,35 +2636,7 @@ window.openProduct = function(id) {
         if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = p.longDesc || (p.fullDesc ? `<p>${p.fullDesc}</p>` : (p.shortDesc ? `<p>${p.shortDesc}</p>` : ''));
         if(document.getElementById('pdFeatures')) document.getElementById('pdFeatures').innerHTML = (p.features||[]).map(f => `<li>${f}</li>`).join('');
 
-        const reviewsEl = document.getElementById('pdReviews');
-        if (reviewsEl) {
-            const fakeReviews = [
-                { name: "Shikha Rajani", avatar: "S", date: "5/9/2026", text: "This is really good script and working fine" },
-                { name: "John Doe", avatar: "J", date: "4/20/2026", text: "Excellent product, exactly what I needed for my project. highly recommended." }
-            ];
-            
-            let revHtml = '';
-            fakeReviews.forEach(r => {
-                revHtml += `
-                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
-                    <div class="pd-rev-header">
-                        <div class="pd-rev-left">
-                            <div class="pd-rev-avatar">${r.avatar}</div>
-                            <div>
-                                <div class="pd-rev-name">${r.name}</div>
-                                <div class="pd-stars" style="font-size:0.8rem; letter-spacing:1px; color:#ffb800;">
-                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pd-rev-date">${r.date}</div>
-                    </div>
-                    <div class="pd-rev-text">${r.text}</div>
-                </div>
-                `;
-            });
-            reviewsEl.innerHTML = revHtml;
-        }
+        // Reviews are rendered by product-extra.js (fake admin reviews + real user comments merged)
 
         const popGrid = document.getElementById('pdPopularGrid');
         const mainGrid = document.querySelector('#shopPage .services-grid');
