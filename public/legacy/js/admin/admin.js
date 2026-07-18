@@ -489,126 +489,219 @@ window.adminDeleteProductNew = async function(id) {
   if (window.filterShopProducts) window.filterShopProducts();
 };
 
+// ── PRODUCT FORM (shared for Add + Edit) ───────────────────────
+const PRODUCT_CATEGORIES = ['Code Scripts','PHP Scripts','WordPress Plugins','SaaS Software','Tools & Software','eCommerce','Marketing','Automation','SEO','AdSense','UI Templates','Graphics','Other'];
+
+function buildProductForm(p) {
+  const IS = adminInputStyle(), LS = adminLabelStyle();
+  p = p || {};
+  const catOpts = PRODUCT_CATEGORIES.map(c => `<option ${p.category===c?'selected':''}>${c}</option>`).join('');
+  const gallery = Array.isArray(p.gallery) ? p.gallery.slice() : (p.image ? [p.image] : []);
+  const fakeReviews = Array.isArray(p.fakeReviews) ? p.fakeReviews.slice() : [];
+  const features = Array.isArray(p.features) ? p.features : (p.features?[p.features]:[]);
+  return {
+    html: `
+    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">${p.id?'Edit Product':'Add New Product'}</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;max-height:75vh;overflow-y:auto;padding-right:8px;">
+
+      <div><label style="${LS}">Product Title *</label><input id="pfTitle" value="${(p.title||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="Enter product name"></div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Price (USD) *</label><input id="pfPrice" type="number" step="0.01" value="${p.price||''}" style="${IS}" placeholder="0.00"></div>
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Old Price</label><input id="pfOldPrice" type="number" step="0.01" value="${p.oldPrice||''}" style="${IS}" placeholder="0.00"></div>
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Discount Label</label><input id="pfDiscount" value="${(p.discount||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="-50%"></div>
+      </div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Category *</label><select id="pfCat" style="${IS}">${catOpts}</select></div>
+        <div style="flex:1;min-width:180px;"><label style="${LS}">Live Demo URL</label><input id="pfDemo" value="${(p.demoUrl&&p.demoUrl!=='#'?p.demoUrl:'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="https://demo.example.com"></div>
+      </div>
+
+      <div><label style="${LS}">WhatsApp Buy Message</label><input id="pfWa" value="${(p.whatsappMsg||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="Hi! I want to buy ..."></div>
+
+      <div><label style="${LS}">Short Description</label><textarea id="pfShort" rows="2" style="${IS}" placeholder="Brief description for product card...">${p.shortDesc||''}</textarea></div>
+
+      <div>
+        <label style="${LS}">Full Description (supports inline images)</label>
+        <textarea id="pfLong" rows="5" style="${IS}" placeholder="Detailed description. Click 'Add Image' to insert product images inline.">${p.longDesc||''}</textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+          <label style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;color:#ff6b35;font-weight:600;"><i class="fa-solid fa-image"></i> Add Image to Description<input type="file" id="pfLongImg" accept="image/*" style="display:none;"></label>
+          <span style="color:#94a3b8;font-size:0.75rem;align-self:center;">Images embed as HTML</span>
+        </div>
+      </div>
+
+      <div><label style="${LS}">Features (comma-separated)</label><textarea id="pfFeatures" rows="3" style="${IS}" placeholder="Responsive Design, Full Source Code, 1 Year Support">${features.join(', ')}</textarea></div>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+        <label style="${LS}">Product Images (unlimited — first = main image)</label>
+        <div id="pfGallery" style="display:flex;flex-wrap:wrap;gap:10px;margin:10px 0;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input id="pfImgUrl" style="${IS};flex:1;min-width:180px;" placeholder="Paste image URL and press Add">
+          <button type="button" id="pfImgUrlAdd" style="padding:10px 16px;background:#0f172a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">+ Add URL</button>
+          <label style="padding:10px 16px;background:#ff6b35;color:#fff;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;"><i class="fa-solid fa-upload"></i> Upload Files<input type="file" id="pfImgFiles" accept="image/*" multiple style="display:none;"></label>
+        </div>
+      </div>
+
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px;">
+        <div style="font-weight:700;color:#9a3412;margin-bottom:10px;font-size:0.9rem;"><i class="fa-solid fa-wand-magic-sparkles"></i> Fake Stats (Display Only)</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:120px;"><label style="${LS}">Fake Views Bonus</label><input id="pfFakeViews" type="number" value="${p.fakeViewsBonus||0}" style="${IS}" placeholder="0"></div>
+          <div style="flex:1;min-width:120px;"><label style="${LS}">Sold Count</label><input id="pfSold" type="number" value="${p.sold||0}" style="${IS}" placeholder="0"></div>
+          <div style="flex:1;min-width:120px;"><label style="${LS}">Rating (1-5)</label><input id="pfRating" type="number" step="0.1" min="0" max="5" value="${p.rating||5}" style="${IS}"></div>
+        </div>
+      </div>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-weight:700;color:#1e40af;font-size:0.9rem;"><i class="fa-solid fa-star"></i> Fake Reviews</div>
+          <button type="button" id="pfAddReview" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add Review</button>
+        </div>
+        <div id="pfReviews" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;position:sticky;bottom:0;background:#fff;padding-top:12px;">
+        <button id="pfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
+        <button id="pfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">${p.id?'Save Changes':'Save Product'}</button>
+      </div>
+    </div>`,
+    state: { gallery, fakeReviews }
+  };
+}
+
+function wireProductForm(ov, state, existing, onSave) {
+  const IS = adminInputStyle();
+  function renderGallery() {
+    const el = document.getElementById('pfGallery');
+    if (!el) return;
+    if (state.gallery.length === 0) { el.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem;padding:8px;">No images yet — add at least one.</div>'; return; }
+    el.innerHTML = state.gallery.map((src, i) => `
+      <div style="position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:2px solid ${i===0?'#ff6b35':'#e2e8f0'};">
+        <img src="${src}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='https://via.placeholder.com/100?text=X'">
+        ${i===0?'<div style="position:absolute;top:2px;left:2px;background:#ff6b35;color:#fff;font-size:0.6rem;padding:2px 5px;border-radius:4px;font-weight:700;">MAIN</div>':''}
+        <button type="button" data-i="${i}" class="pfImgDel" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,0.9);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:0.75rem;">×</button>
+        ${i>0?`<button type="button" data-i="${i}" class="pfImgMain" style="position:absolute;bottom:2px;left:2px;background:rgba(15,23,42,0.75);color:#fff;border:none;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:0.6rem;">Set Main</button>`:''}
+      </div>`).join('');
+    el.querySelectorAll('.pfImgDel').forEach(b => b.onclick = () => { state.gallery.splice(+b.dataset.i,1); renderGallery(); });
+    el.querySelectorAll('.pfImgMain').forEach(b => b.onclick = () => { const i=+b.dataset.i; const [x]=state.gallery.splice(i,1); state.gallery.unshift(x); renderGallery(); });
+  }
+  renderGallery();
+
+  document.getElementById('pfImgUrlAdd').onclick = () => {
+    const v = document.getElementById('pfImgUrl').value.trim();
+    if (!v) return;
+    state.gallery.push(v);
+    document.getElementById('pfImgUrl').value = '';
+    renderGallery();
+  };
+  document.getElementById('pfImgFiles').onchange = function() {
+    Array.from(this.files||[]).forEach(f => {
+      const r = new FileReader();
+      r.onload = e => { state.gallery.push(e.target.result); renderGallery(); };
+      r.readAsDataURL(f);
+    });
+    this.value = '';
+  };
+  document.getElementById('pfLongImg').onchange = function() {
+    const f = this.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      const ta = document.getElementById('pfLong');
+      ta.value = (ta.value ? ta.value + '\n\n' : '') + `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;">`;
+    };
+    r.readAsDataURL(f);
+    this.value = '';
+  };
+
+  function renderReviews() {
+    const el = document.getElementById('pfReviews');
+    if (!el) return;
+    if (state.fakeReviews.length === 0) { el.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem;">No fake reviews. Click + Add Review.</div>'; return; }
+    el.innerHTML = state.fakeReviews.map((r, i) => `
+      <div style="background:#fff;border:1px solid #dbeafe;border-radius:8px;padding:10px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+          <input data-i="${i}" data-k="name" class="pfRv" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Reviewer name" style="${IS};flex:1;min-width:120px;padding:6px 10px;font-size:0.85rem;">
+          <select data-i="${i}" data-k="rating" class="pfRv" style="${IS};padding:6px 10px;width:auto;font-size:0.85rem;">
+            ${[5,4,3,2,1].map(n=>`<option value="${n}" ${(r.rating||5)===n?'selected':''}>${'★'.repeat(n)}${'☆'.repeat(5-n)}</option>`).join('')}
+          </select>
+          <button type="button" data-i="${i}" class="pfRvDel" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:5px 9px;border-radius:6px;cursor:pointer;font-size:0.75rem;">×</button>
+        </div>
+        <textarea data-i="${i}" data-k="text" class="pfRv" rows="2" placeholder="Review text" style="${IS};font-size:0.85rem;padding:6px 10px;">${r.text||''}</textarea>
+      </div>`).join('');
+    el.querySelectorAll('.pfRv').forEach(inp => {
+      inp.oninput = () => { const i=+inp.dataset.i, k=inp.dataset.k; state.fakeReviews[i][k] = k==='rating'?+inp.value:inp.value; };
+    });
+    el.querySelectorAll('.pfRvDel').forEach(b => b.onclick = () => { state.fakeReviews.splice(+b.dataset.i,1); renderReviews(); });
+  }
+  renderReviews();
+  document.getElementById('pfAddReview').onclick = () => {
+    state.fakeReviews.push({ name:'', rating:5, text:'', date:new Date().toISOString() });
+    renderReviews();
+  };
+
+  document.getElementById('pfCancel').onclick = () => ov.remove();
+  document.getElementById('pfSave').onclick = async () => {
+    try {
+      const title = document.getElementById('pfTitle').value.trim();
+      const price = parseFloat(document.getElementById('pfPrice').value);
+      if (!title || isNaN(price)) return alert('Title and price are required');
+      if (state.gallery.length === 0) return alert('Add at least one product image');
+      const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
+      const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
+      const data = {
+        ...(existing||{}),
+        title, price,
+        oldPrice: parseFloat(document.getElementById('pfOldPrice').value)||0,
+        discount: document.getElementById('pfDiscount').value.trim(),
+        category: document.getElementById('pfCat').value,
+        demoUrl: document.getElementById('pfDemo').value.trim() || '#',
+        whatsappMsg: document.getElementById('pfWa').value.trim() || `Hi! I want to buy ${title} for USD ${price}. Please guide me.`,
+        shortDesc: document.getElementById('pfShort').value.trim(),
+        longDesc: document.getElementById('pfLong').value,
+        features: document.getElementById('pfFeatures').value.split(',').map(s=>s.trim()).filter(Boolean),
+        image: state.gallery[0],
+        gallery: state.gallery.slice(),
+        fakeViewsBonus: parseInt(document.getElementById('pfFakeViews').value)||0,
+        sold: parseInt(document.getElementById('pfSold').value)||0,
+        rating: parseFloat(document.getElementById('pfRating').value)||5,
+        reviews: cleanReviews.length,
+        fakeReviews: cleanReviews
+      };
+      await onSave(data);
+    } catch(e) { console.error(e); alert('Error: '+e.message); }
+  };
+}
+
 window.adminEditProductNew = function(id) {
   const p = window.PRODUCTS_DATA ? window.PRODUCTS_DATA[id] : null;
   if (!p) return alert('Product not found');
-  const IS = adminInputStyle(), LS = adminLabelStyle();
-  adminModal(`
-    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">Edit Product</h3>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div><label style="${LS}">Title</label><input id="epTitle" value="${(p.title||'').replace(/"/g,'&quot;')}" style="${IS}"></div>
-      <div style="display:flex;gap:14px;">
-        <div style="flex:1;"><label style="${LS}">Price (USD)</label><input id="epPrice" type="number" value="${p.price||0}" style="${IS}"></div>
-        <div style="flex:1;"><label style="${LS}">Old Price</label><input id="epOldPrice" type="number" value="${p.oldPrice||0}" style="${IS}"></div>
-      </div>
-      <div style="display:flex;gap:14px;">
-        <div style="flex:1;"><label style="${LS}">Category</label><select id="epCat" style="${IS}"><option ${p.category==='Code Scripts'?'selected':''}>Code Scripts</option><option ${p.category==='UI Templates'?'selected':''}>UI Templates</option><option ${p.category==='Graphics'?'selected':''}>Graphics</option><option ${p.category==='Tools'?'selected':''}>Tools</option></select></div>
-        <div style="flex:1;"><label style="${LS}">Discount Label</label><input id="epDiscount" value="${p.discount||''}" style="${IS}" placeholder="-50%"></div>
-      </div>
-      <div><label style="${LS}">Image URL</label><input id="epImg" value="${(p.image||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="https://..."></div>
-      <div><label style="${LS}">WhatsApp Number (for buy button)</label><input id="epWa" value="${(p.whatsappMsg||'').replace(/"/g,'&quot;')}" style="${IS}"></div>
-      <div><label style="${LS}">Short Description</label><textarea id="epShort" rows="2" style="${IS}">${p.shortDesc||''}</textarea></div>
-      <div><label style="${LS}">Features (comma-separated)</label><textarea id="epFeatures" rows="3" style="${IS}">${(Array.isArray(p.features)?p.features:p.features?[p.features]:[]).join(', ')}</textarea></div>
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
-        <button id="epCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
-        <button id="epSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Changes</button>
-      </div>
-    </div>`, (ov) => {
-    document.getElementById('epCancel').onclick = () => ov.remove();
-    document.getElementById('epSave').onclick = async () => {
-      try {
-        const btn = document.getElementById('epSave');
-        btn.innerText = 'Saving...'; btn.disabled = true;
-        const updated = {
-          ...p,
-          title: document.getElementById('epTitle').value.trim(),
-          price: parseFloat(document.getElementById('epPrice').value)||0,
-          oldPrice: parseFloat(document.getElementById('epOldPrice').value)||0,
-          category: document.getElementById('epCat').value,
-          discount: document.getElementById('epDiscount').value.trim(),
-          image: document.getElementById('epImg').value.trim(),
-          whatsappMsg: document.getElementById('epWa').value.trim(),
-          shortDesc: document.getElementById('epShort').value.trim(),
-          features: document.getElementById('epFeatures').value.split(',').map(s=>s.trim()).filter(Boolean)
-        };
-        window.PRODUCTS_DATA[id] = updated;
-        if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
-        window._adminChangesMade = true;
-        ov.remove();
-        try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e) { console.error('Edit render error:', e); }
-        if (window.filterShopProducts) window.filterShopProducts();
-      } catch(e) { console.error('Edit product error:', e); alert('Error: '+e.message); }
-    };
+  const { html, state } = buildProductForm(p);
+  adminModal(html, (ov) => {
+    wireProductForm(ov, state, p, async (data) => {
+      data.id = id;
+      window.PRODUCTS_DATA[id] = data;
+      if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
+      window._adminChangesMade = true;
+      ov.remove();
+      try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e){}
+      if (window.filterShopProducts) window.filterShopProducts();
+    });
   });
 };
 
 window.adminAddProductNew = function() {
-  const IS = adminInputStyle(), LS = adminLabelStyle();
-  adminModal(`
-    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">Add New Product</h3>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div><label style="${LS}">Product Title *</label><input id="apTitle" style="${IS}" placeholder="Enter product name"></div>
-      <div style="display:flex;gap:14px;">
-        <div style="flex:1;"><label style="${LS}">Price (USD) *</label><input id="apPrice" type="number" style="${IS}" placeholder="0.00"></div>
-        <div style="flex:1;"><label style="${LS}">Category</label><select id="apCat" style="${IS}"><option>Code Scripts</option><option>UI Templates</option><option>Graphics</option><option>Tools</option></select></div>
-      </div>
-      <div>
-        <label style="${LS}">Product Image</label>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <input id="apImg" style="${IS};flex:1;min-width:0;" placeholder="Paste image URL (https://...)">
-          <label style="padding:10px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:0.85rem;color:#64748b;white-space:nowrap;"><i class="fa-solid fa-upload"></i> Upload <input type="file" id="apImgFile" accept="image/*" style="display:none;"></label>
-        </div>
-        <div id="apImgPreview" style="margin-top:8px;"></div>
-      </div>
-      <div><label style="${LS}">Short Description</label><textarea id="apShort" rows="2" style="${IS}" placeholder="Brief product description..."></textarea></div>
-      <div><label style="${LS}">Features (comma-separated)</label><textarea id="apFeatures" rows="3" style="${IS}" placeholder="Responsive Design, Full Source Code, 1 Year Support"></textarea></div>
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;">
-        <button id="apCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
-        <button id="apSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">Save Product</button>
-      </div>
-    </div>`, (ov) => {
-    // Image file upload preview
-    document.getElementById('apImgFile').onchange = function() {
-      const file = this.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        document.getElementById('apImg').value = e.target.result;
-        document.getElementById('apImgPreview').innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(15,23,42,0.12);">`;
-      };
-      reader.readAsDataURL(file);
-    };
-    // URL preview
-    document.getElementById('apImg').oninput = function() {
-      if (this.value.startsWith('http')) document.getElementById('apImgPreview').innerHTML = `<img src="${this.value}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid rgba(15,23,42,0.12);" onerror="this.style.display='none'">`;
-    };
-    document.getElementById('apCancel').onclick = () => ov.remove();
-    document.getElementById('apSave').onclick = async () => {
-      try {
-        const pTitle = document.getElementById('apTitle').value.trim();
-        const pPrice = parseFloat(document.getElementById('apPrice').value);
-        if (!pTitle || isNaN(pPrice)) return alert('Title and price are required');
-        const btn = document.getElementById('apSave'); btn.innerText = 'Saving...'; btn.disabled = true;
-        const newProduct = {
-          title: pTitle, price: pPrice, oldPrice: Math.round(pPrice*1.5), category: document.getElementById('apCat').value,
-          image: document.getElementById('apImg').value || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
-          shortDesc: document.getElementById('apShort').value||'Premium digital product',
-          features: document.getElementById('apFeatures').value.split(',').map(s=>s.trim()).filter(Boolean),
-          discount: '-33%', rating: 5.0, sold: 0, reviews: 0,
-          whatsappMsg: `Hi! I want to buy ${pTitle} for USD ${pPrice}. Please guide me.`, demoUrl: '#'
-        };
-        const newId = 'p' + Date.now();
-        newProduct.id = newId;
-        window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
-        window.PRODUCTS_DATA[newId] = newProduct;
-        console.log('Product added:', newId, 'Total:', Object.keys(window.PRODUCTS_DATA).length);
-        if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
-        window._adminChangesMade = true;
-        ov.remove();
-        try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e) { console.error('Add render error:', e); }
-        console.log('Admin view rendered, total in DOM:', Object.keys(window.PRODUCTS_DATA).length);
-        if (window.filterShopProducts) window.filterShopProducts();
-      } catch(e) { console.error('Add product error:', e); alert('Error: '+e.message); }
-    };
+  const { html, state } = buildProductForm({});
+  adminModal(html, (ov) => {
+    wireProductForm(ov, state, null, async (data) => {
+      const newId = 'p' + Date.now();
+      data.id = newId;
+      window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
+      window.PRODUCTS_DATA[newId] = data;
+      if (window.vextroSave) window.vextroSave('products', window.PRODUCTS_DATA);
+      window._adminChangesMade = true;
+      ov.remove();
+      try { await showAdminView('products', document.querySelector('.admin-sidebar-item[data-view="products"]')); } catch(e){}
+      if (window.filterShopProducts) window.filterShopProducts();
+    });
   });
 };
 
