@@ -1162,10 +1162,11 @@ function renderAdminUsersTable(container, filter) {
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
+        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
         <tbody>${users.map(u => {
           const email = (u.email || '').toLowerCase();
           const commentsN = commentsByEmail[email] || 0;
+          const purchasesN = (window.__adminUsersData?.purchasesByEmail || {})[email] || 0;
           const initial = (u.displayName || u.email || '?').trim().charAt(0).toUpperCase();
           const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
           const last = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
@@ -1197,11 +1198,13 @@ function renderAdminUsersTable(container, filter) {
                 ? '<span class="admin-badge" style="background:rgba(239,68,68,0.1);color:#ef4444;">Banned</span>'
                 : '<span class="admin-badge admin-badge-green">Active</span>'}
             </td>
+            <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.08);color:#10b981;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-solid fa-cart-shopping"></i> ${purchasesN}</span></td>
             <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,0.08);color:#ff6b35;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-regular fa-comment"></i> ${commentsN}</span></td>
             <td style="font-size:0.78rem;color:#94a3b8;">${joined}</td>
             <td style="font-size:0.78rem;color:#94a3b8;">${last}</td>
             <td style="text-align:right;">
               <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                <button onclick="adminViewUserDetails('${u.uid}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-eye"></i> Details</button>
                 ${status === 'banned'
                   ? `<button onclick="adminSetUserStatus('${u.uid}','active')" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-user-check"></i> Unban</button>`
                   : `<button onclick="adminSetUserStatus('${u.uid}','banned')" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-ban"></i> Ban</button>`}
@@ -1214,6 +1217,7 @@ function renderAdminUsersTable(container, filter) {
       </div>`}
     </div>
   `;
+
 
   const search = document.getElementById('adminUserSearch');
   if (search) {
