@@ -1598,6 +1598,177 @@ window.adminClearUserStats = async function(uid) {
   } catch(e) { alert('Clear failed: ' + e.message); }
 };
 
+// ============================================================
+// Admin Notes — private notes attached to a user record
+// ============================================================
+window.adminSaveUserNote = async function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  const el = document.getElementById('adminUserNote_' + uid);
+  if (!el) return;
+  u.notes = el.value.trim();
+  window.__adminUsersCache[uid] = u;
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    const msg = document.getElementById('adminUserNoteMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Saved'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+  } catch(e) { alert('Save failed: ' + e.message); }
+};
+
+// ============================================================
+// Send in-app notification (stored on user record → user dashboard bell)
+// ============================================================
+window.adminSendNotification = async function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  const title = (document.getElementById('adminNotifTitle_' + uid)?.value || '').trim();
+  const body = (document.getElementById('adminNotifBody_' + uid)?.value || '').trim();
+  const type = document.getElementById('adminNotifType_' + uid)?.value || 'info';
+  if (!title && !body) { alert('Please enter a title or message.'); return; }
+  const entry = { id: 'n_' + Date.now(), title, body, type, ts: new Date().toISOString(), read: false };
+  u.notifications = Array.isArray(u.notifications) ? u.notifications : [];
+  u.notifications.unshift(entry);
+  if (u.notifications.length > 50) u.notifications = u.notifications.slice(0, 50);
+  window.__adminUsersCache[uid] = u;
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    const msg = document.getElementById('adminNotifMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Sent'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+    const tEl = document.getElementById('adminNotifTitle_' + uid); if (tEl) tEl.value = '';
+    const bEl = document.getElementById('adminNotifBody_' + uid); if (bEl) bEl.value = '';
+  } catch(e) { alert('Send failed: ' + e.message); }
+};
+
+// ============================================================
+// Bulk selection + actions
+// ============================================================
+window.adminBulkToggleAll = function(checked) {
+  document.querySelectorAll('.adminBulkChk').forEach(chk => { chk.checked = checked; });
+  window.adminBulkUpdateBar();
+};
+
+window.adminBulkUpdateBar = function() {
+  const selected = document.querySelectorAll('.adminBulkChk:checked');
+  const bar = document.getElementById('adminBulkBar');
+  const count = document.getElementById('adminBulkCount');
+  if (!bar) return;
+  if (selected.length > 0) {
+    bar.style.display = 'flex';
+    if (count) count.textContent = selected.length;
+  } else {
+    bar.style.display = 'none';
+  }
+};
+
+window.adminBulkClear = function() {
+  document.querySelectorAll('.adminBulkChk').forEach(chk => { chk.checked = false; });
+  const all = document.getElementById('adminBulkSelectAll'); if (all) all.checked = false;
+  window.adminBulkUpdateBar();
+};
+
+window.adminBulkSelected = function() {
+  return Array.from(document.querySelectorAll('.adminBulkChk:checked')).map(c => c.dataset.uid);
+};
+
+window.adminBulkAction = async function(action) {
+  const uids = window.adminBulkSelected();
+  if (uids.length === 0) return;
+  const labels = { ban:'ban', unban:'unban', delete:'DELETE', 'role-admin':'make admin', 'role-user':'make user' };
+  if (!confirm(`Are you sure you want to ${labels[action]} ${uids.length} user(s)?`)) return;
+  for (const uid of uids) {
+    const u = (window.__adminUsersCache || {})[uid];
+    if (!u) continue;
+    try {
+      if (action === 'ban') u.status = 'banned';
+      else if (action === 'unban') u.status = 'active';
+      else if (action === 'role-admin') u.role = 'admin';
+      else if (action === 'role-user') u.role = 'user';
+      else if (action === 'delete') {
+        delete window.__adminUsersCache[uid];
+        if (window.fsDeleteDoc) await window.fsDeleteDoc('users', uid);
+        continue;
+      }
+      window.__adminUsersCache[uid] = u;
+      if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    } catch(e) { console.warn('bulk action failed for', uid, e.message); }
+  }
+  showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+};
+
+window.adminBulkNotify = async function() {
+  const uids = window.adminBulkSelected();
+  if (uids.length === 0) return;
+  const title = prompt('Notification title:');
+  if (title === null) return;
+  const body = prompt('Message body:');
+  if (body === null) return;
+  const entry = base => ({ id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), title: title||'', body: body||'', type: 'info', ts: new Date().toISOString(), read: false, ...base });
+  let sent = 0;
+  for (const uid of uids) {
+    const u = (window.__adminUsersCache || {})[uid];
+    if (!u) continue;
+    u.notifications = Array.isArray(u.notifications) ? u.notifications : [];
+    u.notifications.unshift(entry({}));
+    if (u.notifications.length > 50) u.notifications = u.notifications.slice(0, 50);
+    window.__adminUsersCache[uid] = u;
+    try { if (window.fsSetDoc) await window.fsSetDoc('users', uid, u); sent++; } catch(e) {}
+  }
+  alert(`Notification sent to ${sent} user(s).`);
+};
+
+// ============================================================
+// Export users to CSV or JSON
+// ============================================================
+window.adminExportUsers = function(format) {
+  const users = Object.values(window.__adminUsersCache || {});
+  if (users.length === 0) { alert('No users to export.'); return; }
+  const data = window.__adminUsersData || {};
+  const commentsByEmail = data.commentsByEmail || {};
+  const purchasesByEmail = data.purchasesByEmail || {};
+  const stamp = new Date().toISOString().slice(0,10);
+
+  if (format === 'json') {
+    const enriched = users.map(u => ({
+      ...u,
+      _purchases: purchasesByEmail[(u.email||'').toLowerCase()] || 0,
+      _comments: commentsByEmail[(u.email||'').toLowerCase()] || 0
+    }));
+    const blob = new Blob([JSON.stringify(enriched, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `users-${stamp}.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    return;
+  }
+
+  // CSV
+  const headers = ['UID','Name','Email','Provider','Role','Status','Email Verified','Joined','Last Login','Purchases','Comments','Notes'];
+  const csvEscape = v => {
+    const s = String(v == null ? '' : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const rows = users.map(u => [
+    u.uid || '',
+    u.displayName || '',
+    u.email || '',
+    u.provider || 'password',
+    u.role || 'user',
+    u.status || 'active',
+    u.emailVerified ? 'yes' : 'no',
+    u.createdAt || '',
+    u.lastLoginAt || '',
+    purchasesByEmail[(u.email||'').toLowerCase()] || 0,
+    commentsByEmail[(u.email||'').toLowerCase()] || 0,
+    (u.notes || '').replace(/\s+/g,' ')
+  ].map(csvEscape).join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `users-${stamp}.csv`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+};
+
+
+
 
 
 window.adminImportUsersJson = async function(input) {
