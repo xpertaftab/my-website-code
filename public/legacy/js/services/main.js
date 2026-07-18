@@ -39,6 +39,29 @@ if (typeof emailjs !== 'undefined') {
     emailjs.init(EMAILJS_PUBLIC_KEY);
 }
 
+// ============================================================
+// Admin Email Notifications — sends alerts to admin inbox
+// via existing EmailJS template. Fire-and-forget, non-blocking.
+// ============================================================
+window.notifyAdmin = function(subject, bodyText, fromName) {
+    try {
+        if (typeof emailjs === 'undefined') return;
+        // Throttle: avoid duplicate emails within 5s for same subject
+        const key = 'vl_notify_' + subject;
+        const last = parseInt(sessionStorage.getItem(key) || '0', 10);
+        if (Date.now() - last < 5000) return;
+        sessionStorage.setItem(key, String(Date.now()));
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            title: '[Vextro Lyntra] ' + subject,
+            name: fromName || 'Vextro Lyntra System',
+            email: 'noreply@vextrolyntra.online',
+            message: bodyText + '\n\n---\nSent automatically from Vextro Lyntra.\nTime: ' + new Date().toLocaleString()
+        }).catch(err => console.warn('notifyAdmin failed:', err && err.message));
+    } catch(e) { console.warn('notifyAdmin error', e); }
+};
+
+
 // Global Blog States
 let allBlogs = [];
 let currentCategory = 'All';
@@ -1562,6 +1585,13 @@ async function handleAuthSubmit(event) {
             if (verifyDisplay) verifyDisplay.textContent = user.email;
             
             switchAuthTab('verifyEmail');
+            // Notify admin of new signup
+            try {
+                window.notifyAdmin('New User Signup',
+                    'A new user has registered on Vextro Lyntra.\n\nName: ' + (name || '(not set)') +
+                    '\nEmail: ' + email + '\nUser ID: ' + (user.uid || '')
+                    , name || 'New User');
+            } catch(e) {}
         } else {
             // Log In Flow
             await window.auth.signInWithEmailAndPassword(email, password);
@@ -5561,6 +5591,19 @@ if (document.readyState === 'loading') {
                 list.unshift(record);
                 if (list.length > 500) list.length = 500;
                 localStorage.setItem(key, JSON.stringify(list));
+            } catch(e) {}
+            // Notify admin of buy-now click
+            try {
+                if (window.notifyAdmin) {
+                    window.notifyAdmin('New Buy Now Click — ' + (payload.title || 'Item'),
+                        'A user clicked Buy Now / WhatsApp on your site.\n\n' +
+                        'Type: ' + kind + '\nItem: ' + (payload.title || '') +
+                        '\nPrice: ' + (payload.price || 'N/A') +
+                        '\nUser: ' + (record.userName || 'Guest') +
+                        '\nEmail: ' + (record.userEmail || 'N/A') +
+                        '\nProduct ID: ' + (payload.productId || ''),
+                        record.userName || 'Guest');
+                }
             } catch(e) {}
         } catch(e) { console.warn('trackPurchaseIntent failed', e); }
     }
