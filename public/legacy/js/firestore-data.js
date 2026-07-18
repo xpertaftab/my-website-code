@@ -157,27 +157,37 @@ window.fsSaveMap = async function(collectionName, dataMap) {
 
 // Save one document to Firestore via REST API
 window.fsSetDoc = async function(collectionName, id, data) {
-  if (!collectionName || !id || !data) return false;
-  try {
-    const clean = { ...data };
-    delete clean.id;
-    const res = await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: objToFields(clean) })
-    });
-    if (!res.ok && res.status === 404) {
-      await fetch(`${FB_BASE}/${collectionName}?documentId=${id}&key=${FB_API_KEY}`, {
+  if (!collectionName || !id || !data) throw new Error('fsSetDoc: missing args');
+  const clean = { ...data };
+  delete clean.id;
+  const body = JSON.stringify({ fields: objToFields(clean) });
+  if (body.length > 1000000) {
+    const err = new Error(`Document too large (${(body.length/1024/1024).toFixed(2)} MB). Firestore limit is 1 MB. Remove embedded base64 images from the description — add them to the product Gallery instead.`);
+    err.code = 'DOC_TOO_LARGE';
+    throw err;
+  }
+  const res = await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body
+  });
+  if (!res.ok) {
+    if (res.status === 404) {
+      const res2 = await fetch(`${FB_BASE}/${collectionName}?documentId=${id}&key=${FB_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: objToFields(clean) })
+        body
       });
+      if (!res2.ok) {
+        const txt = await res2.text().catch(()=>'');
+        throw new Error(`Firestore create failed (${res2.status}): ${txt.slice(0,200)}`);
+      }
+      return true;
     }
-    return true;
-  } catch(e) {
-    console.warn('FS: set', collectionName, id, 'failed', e.message);
-    return false;
+    const txt = await res.text().catch(()=>'');
+    throw new Error(`Firestore save failed (${res.status}): ${txt.slice(0,200)}`);
   }
+  return true;
 };
 
 // Delete a document from Firestore via REST API
