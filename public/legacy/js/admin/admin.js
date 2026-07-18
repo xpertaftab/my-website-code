@@ -1049,30 +1049,67 @@ async function renderAdminOrdersNew(container) {
 async function renderAdminUsersNew(container) {
   container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
   try {
-    // Load users + comments (for activity count)
-    let usersMap = {};
-    let commentsMap = {};
+    // Load users + comments + purchases + listings + contacts (for activity)
+    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {};
     if (window.fsLoadMap) {
       try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
       try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
+      try { purchasesMap = (await window.fsLoadMap('purchases')) || {}; } catch(e) {}
+      try { listingsMap = (await window.fsLoadMap('listings')) || {}; } catch(e) {}
+      try { contactsMap = (await window.fsLoadMap('contacts')) || {}; } catch(e) {}
     }
-    // Count comments per email
-    const commentsByEmail = {};
+    // Comments by email
+    const commentsByEmail = {}, commentsListByEmail = {};
     Object.values(commentsMap || {}).forEach(entry => {
       const items = Array.isArray(entry.items) ? entry.items : [];
       items.forEach(c => {
         const em = (c.email || '').toLowerCase().trim();
-        if (em) commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
+        if (em) {
+          commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
+          if (!commentsListByEmail[em]) commentsListByEmail[em] = [];
+          commentsListByEmail[em].push({ ...c, blogId: entry.id || entry.blogId });
+        }
       });
+    });
+    // Purchases by email
+    const purchasesByEmail = {}, purchasesListByEmail = {};
+    Object.values(purchasesMap || {}).forEach(p => {
+      const em = (p.userEmail || '').toLowerCase().trim();
+      if (!em) return;
+      purchasesByEmail[em] = (purchasesByEmail[em] || 0) + 1;
+      if (!purchasesListByEmail[em]) purchasesListByEmail[em] = [];
+      purchasesListByEmail[em].push(p);
+    });
+    // Listings by userEmail (if tracked)
+    const listingsByEmail = {};
+    Object.values(listingsMap || {}).forEach(l => {
+      const em = (l.userEmail || l.ownerEmail || '').toLowerCase().trim();
+      if (!em) return;
+      if (!listingsByEmail[em]) listingsByEmail[em] = [];
+      listingsByEmail[em].push(l);
+    });
+    // Contacts by email
+    const contactsByEmail = {};
+    Object.values(contactsMap || {}).forEach(c => {
+      const em = (c.email || '').toLowerCase().trim();
+      if (!em) return;
+      if (!contactsByEmail[em]) contactsByEmail[em] = [];
+      contactsByEmail[em].push(c);
     });
 
     window.__adminUsersCache = usersMap;
     window.__adminUsersCommentsByEmail = commentsByEmail;
+    window.__adminUsersData = {
+      commentsListByEmail, purchasesByEmail, purchasesListByEmail,
+      listingsByEmail, contactsByEmail
+    };
     renderAdminUsersTable(container, '');
   } catch(e) {
+    console.error(e);
     container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading users</p></div>`;
   }
 }
+
 
 function renderAdminUsersTable(container, filter) {
   const usersMap = window.__adminUsersCache || {};
@@ -1125,10 +1162,11 @@ function renderAdminUsersTable(container, filter) {
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
+        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
         <tbody>${users.map(u => {
           const email = (u.email || '').toLowerCase();
           const commentsN = commentsByEmail[email] || 0;
+          const purchasesN = (window.__adminUsersData?.purchasesByEmail || {})[email] || 0;
           const initial = (u.displayName || u.email || '?').trim().charAt(0).toUpperCase();
           const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
           const last = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
@@ -1160,11 +1198,13 @@ function renderAdminUsersTable(container, filter) {
                 ? '<span class="admin-badge" style="background:rgba(239,68,68,0.1);color:#ef4444;">Banned</span>'
                 : '<span class="admin-badge admin-badge-green">Active</span>'}
             </td>
+            <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.08);color:#10b981;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-solid fa-cart-shopping"></i> ${purchasesN}</span></td>
             <td><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,0.08);color:#ff6b35;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;"><i class="fa-regular fa-comment"></i> ${commentsN}</span></td>
             <td style="font-size:0.78rem;color:#94a3b8;">${joined}</td>
             <td style="font-size:0.78rem;color:#94a3b8;">${last}</td>
             <td style="text-align:right;">
               <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                <button onclick="adminViewUserDetails('${u.uid}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-eye"></i> Details</button>
                 ${status === 'banned'
                   ? `<button onclick="adminSetUserStatus('${u.uid}','active')" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-user-check"></i> Unban</button>`
                   : `<button onclick="adminSetUserStatus('${u.uid}','banned')" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:6px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.76rem;"><i class="fa-solid fa-ban"></i> Ban</button>`}
@@ -1177,6 +1217,7 @@ function renderAdminUsersTable(container, filter) {
       </div>`}
     </div>
   `;
+
 
   const search = document.getElementById('adminUserSearch');
   if (search) {
@@ -1215,6 +1256,136 @@ window.adminDeleteUser = async function(uid) {
   if (window.fsDeleteDoc) { try { await window.fsDeleteDoc('users', uid); } catch(e) {} }
   showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
 };
+
+window.adminViewUserDetails = function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  const email = (u.email || '').toLowerCase();
+  const data = window.__adminUsersData || {};
+  const purchases = (data.purchasesListByEmail || {})[email] || [];
+  const comments = (data.commentsListByEmail || {})[email] || [];
+  const listings = (data.listingsByEmail || {})[email] || [];
+  const contacts = (data.contactsByEmail || {})[email] || [];
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = t => t ? new Date(t).toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  const status = u.status || 'active';
+  const role = u.role || 'user';
+  const initial = (u.displayName || u.email || '?').trim().charAt(0).toUpperCase();
+  const totalSpent = purchases.reduce((sum,p) => sum + (parseFloat(p.price) || 0), 0);
+
+  const kv = (k,v) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;"><span style="color:#64748b;font-weight:600;">${k}</span><span style="color:#0f172a;font-weight:600;text-align:right;word-break:break-all;max-width:60%;">${v}</span></div>`;
+
+  const html = `
+    <div id="adminUserDetailModal" style="position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.remove()">
+      <div style="background:#fff;border-radius:16px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="padding:24px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:2;">
+          ${u.photoURL ? `<img src="${esc(u.photoURL)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.3);">` : `<div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.25);color:#fff;font-weight:800;font-size:1.6rem;display:flex;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,0.3);">${initial}</div>`}
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:1.35rem;font-weight:800;">${esc(u.displayName || 'User')}</div>
+            <div style="font-size:0.88rem;opacity:0.9;word-break:break-all;">${esc(u.email || '')}</div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="background:rgba(255,255,255,0.25);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;">${role.toUpperCase()}</span>
+              <span style="background:${status==='banned'?'rgba(239,68,68,0.9)':'rgba(16,185,129,0.9)'};padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;">${status.toUpperCase()}</span>
+              ${u.emailVerified ? '<span style="background:rgba(59,130,246,0.9);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;"><i class="fa-solid fa-check"></i> VERIFIED</span>' : ''}
+            </div>
+          </div>
+          <button onclick="document.getElementById('adminUserDetailModal').remove()" style="background:rgba(255,255,255,0.25);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding:24px;">
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;">
+            ${[
+              {l:'Purchases',v:purchases.length,c:'#10b981',i:'fa-cart-shopping'},
+              {l:'Total Intent',v:'$'+totalSpent.toFixed(0),c:'#f59e0b',i:'fa-dollar-sign'},
+              {l:'Comments',v:comments.length,c:'#ff6b35',i:'fa-comment'},
+              {l:'Listings',v:listings.length,c:'#8b5cf6',i:'fa-store'},
+              {l:'Messages',v:contacts.length,c:'#3b82f6',i:'fa-envelope'}
+            ].map(s=>`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;text-align:center;"><div style="color:${s.c};font-size:1.2rem;margin-bottom:4px;"><i class="fa-solid ${s.i}"></i></div><div style="font-size:1.3rem;font-weight:800;color:#0f172a;">${s.v}</div><div style="font-size:0.72rem;color:#64748b;font-weight:600;">${s.l}</div></div>`).join('')}
+          </div>
+
+          <!-- Profile -->
+          <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 10px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-id-card" style="color:#ff6b35;"></i> Profile Information</h4>
+            ${kv('UID', esc(u.uid))}
+            ${kv('Full Name', esc(u.displayName || '—'))}
+            ${kv('Email', esc(u.email || '—'))}
+            ${kv('Provider', esc(u.provider || 'password'))}
+            ${kv('Email Verified', u.emailVerified ? '✅ Yes' : '❌ No')}
+            ${kv('Role', role)}
+            ${kv('Status', status)}
+            ${kv('Joined', fmt(u.createdAt))}
+            ${kv('Last Login', fmt(u.lastLoginAt))}
+            ${u.imported ? kv('Source', '📥 Imported from Firebase') : ''}
+          </div>
+
+          <!-- Purchases -->
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:#10b981;"></i> Purchase History (${purchases.length})</h4>
+            ${purchases.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No purchases tracked yet. Purchases are logged when this user clicks "Buy Now".</p>' :
+              '<div style="display:flex;flex-direction:column;gap:8px;">' + purchases.sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(p=>`
+                <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#f8fafc;border-radius:8px;border-left:3px solid #10b981;">
+                  ${p.image ? `<img src="${esc(p.image)}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;">` : `<div style="width:44px;height:44px;border-radius:8px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;"><i class="fa-solid fa-box"></i></div>`}
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:#0f172a;font-size:0.88rem;">${esc(p.title || 'Unknown')}</div>
+                    <div style="font-size:0.75rem;color:#64748b;">${esc(p.kind || 'product')} • ${fmt(p.ts)}</div>
+                  </div>
+                  <div style="font-weight:800;color:#10b981;font-size:0.95rem;">$${esc(p.price || '0')}</div>
+                </div>`).join('') + '</div>'}
+          </div>
+
+          <!-- Comments -->
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-comment" style="color:#ff6b35;"></i> Blog Comments (${comments.length})</h4>
+            ${comments.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No comments yet.</p>' :
+              '<div style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;">' + comments.slice(0,20).map(c=>`
+                <div style="padding:10px;background:#f8fafc;border-radius:8px;border-left:3px solid #ff6b35;">
+                  <div style="font-size:0.85rem;color:#0f172a;">${esc(c.text || c.comment || '')}</div>
+                  <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">${fmt(c.ts || c.createdAt)}${c.blogId?' • Blog #'+esc(c.blogId):''}</div>
+                </div>`).join('') + '</div>'}
+          </div>
+
+          <!-- Listings -->
+          ${listings.length > 0 ? `
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-store" style="color:#8b5cf6;"></i> Listings Created (${listings.length})</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;">${listings.map(l=>`
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#f8fafc;border-radius:8px;border-left:3px solid #8b5cf6;">
+                <div style="flex:1;"><div style="font-weight:700;color:#0f172a;font-size:0.88rem;">${esc(l.title||'')}</div><div style="font-size:0.75rem;color:#64748b;">${esc(l.category||'')} • ${esc(l.status||'')}</div></div>
+                <div style="font-weight:800;color:#8b5cf6;">$${esc(l.price||'0')}</div>
+              </div>`).join('')}</div>
+          </div>` : ''}
+
+          <!-- Contact messages -->
+          ${contacts.length > 0 ? `
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-envelope" style="color:#3b82f6;"></i> Contact Messages (${contacts.length})</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;">${contacts.map(c=>`
+              <div style="padding:10px;background:#f8fafc;border-radius:8px;border-left:3px solid #3b82f6;">
+                <div style="font-weight:700;color:#0f172a;font-size:0.85rem;">${esc(c.subject||'No subject')}</div>
+                <div style="font-size:0.8rem;color:#334155;margin-top:3px;">${esc((c.message||'').slice(0,150))}${(c.message||'').length>150?'…':''}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">${fmt(c.ts || c.createdAt)}</div>
+              </div>`).join('')}</div>
+          </div>` : ''}
+
+          <!-- Actions -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;">
+            <button onclick="navigator.clipboard.writeText('${esc(u.email||'')}');this.innerHTML='<i class=\\'fa-solid fa-check\\'></i> Copied'" style="padding:9px 14px;background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0;border-radius:9px;font-weight:600;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-copy"></i> Copy Email</button>
+            <a href="mailto:${esc(u.email||'')}" style="padding:9px 14px;background:#3b82f6;color:#fff;border-radius:9px;font-weight:600;font-size:0.82rem;text-decoration:none;"><i class="fa-solid fa-paper-plane"></i> Email User</a>
+            ${status==='banned'
+              ? `<button onclick="document.getElementById('adminUserDetailModal').remove();adminSetUserStatus('${u.uid}','active')" style="padding:9px 14px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:600;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-check"></i> Unban</button>`
+              : `<button onclick="document.getElementById('adminUserDetailModal').remove();adminSetUserStatus('${u.uid}','banned')" style="padding:9px 14px;background:#f59e0b;color:#fff;border:none;border-radius:9px;font-weight:600;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-ban"></i> Ban User</button>`}
+            <button onclick="document.getElementById('adminUserDetailModal').remove();adminDeleteUser('${u.uid}')" style="padding:9px 14px;background:#ef4444;color:#fff;border:none;border-radius:9px;font-weight:600;font-size:0.82rem;cursor:pointer;margin-left:auto;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper.firstElementChild);
+};
+
+
 
 window.adminImportUsersJson = async function(input) {
   const file = input.files && input.files[0];

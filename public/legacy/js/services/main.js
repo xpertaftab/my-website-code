@@ -2398,6 +2398,8 @@ window.openProduct = function(id) {
     const p = window.PRODUCTS_DATA ? window.PRODUCTS_DATA[id] : null;
     if (!p) return;
     currentProductId = id;
+    window.currentProductId = id;
+
 
     try {
         if(document.getElementById('pdBreadcrumbTitle')) document.getElementById('pdBreadcrumbTitle').innerText = p.title;
@@ -2724,6 +2726,8 @@ window.filterMpCategory = function(category, el) {
 window.openMarketplaceListing = function(id) {
     const listing = MARKETPLACE_DATA[id];
     if (!listing) return;
+    window.currentListingId = id;
+
 
     // Status badge
     const statusEl = document.getElementById('mpdStatusBadge');
@@ -5371,4 +5375,72 @@ if (document.readyState === 'loading') {
 } else {
     initFloatingCookiePopup();
 }
+
+// ============================================================
+// Purchase intent tracking — logs Buy Now clicks (WhatsApp buy)
+// So admin can see what each user tried to buy.
+// ============================================================
+(function() {
+    function trackPurchaseIntent(kind, payload) {
+        try {
+            const user = window.auth && window.auth.currentUser;
+            const record = {
+                id: 'pi_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                kind: kind, // 'product' | 'listing' | 'service'
+                userId: user ? user.uid : null,
+                userEmail: user ? (user.email || '') : (payload.email || 'guest'),
+                userName: user ? (user.displayName || '') : '',
+                title: payload.title || '',
+                productId: payload.productId || '',
+                price: payload.price || '',
+                image: payload.image || '',
+                ts: new Date().toISOString()
+            };
+            // Save to firestore
+            if (window.fsSetDoc) {
+                window.fsSetDoc('purchases', record.id, record).catch(()=>{});
+            }
+            // Also cache locally as backup
+            try {
+                const key = 'vextro_purchases';
+                const list = JSON.parse(localStorage.getItem(key) || '[]');
+                list.unshift(record);
+                if (list.length > 500) list.length = 500;
+                localStorage.setItem(key, JSON.stringify(list));
+            } catch(e) {}
+        } catch(e) { console.warn('trackPurchaseIntent failed', e); }
+    }
+    window.trackPurchaseIntent = trackPurchaseIntent;
+
+    // Delegated listener: product Buy Now button
+    document.addEventListener('click', function(e) {
+        const el = e.target.closest && e.target.closest('#pdBuyNow');
+        if (!el) return;
+        try {
+            const pid = window.currentProductId || (window.currentProduct && window.currentProduct.id);
+            const p = pid && window.PRODUCTS_DATA ? window.PRODUCTS_DATA[pid] : (window.currentProduct || null);
+            if (p) {
+                trackPurchaseIntent('product', {
+                    productId: p.id, title: p.title, price: p.price, image: p.image
+                });
+            }
+        } catch(err) {}
+    }, true);
+
+    // Marketplace WhatsApp button
+    document.addEventListener('click', function(e) {
+        const el = e.target.closest && e.target.closest('#mpdWhatsApp');
+        if (!el) return;
+        try {
+            const lid = window.currentListingId;
+            const l = lid && window.MARKETPLACE_DATA ? window.MARKETPLACE_DATA[lid] : null;
+            if (l) {
+                trackPurchaseIntent('listing', {
+                    productId: l.id, title: l.title, price: l.price, image: l.image
+                });
+            }
+        } catch(err) {}
+    }, true);
+})();
+
 
