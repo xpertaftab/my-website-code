@@ -1131,17 +1131,47 @@ function renderAdminUsersTable(container, filter) {
     active: Object.values(usersMap).filter(u => (u.status || 'active') === 'active').length
   };
 
+  // Advanced analytics
+  const now = Date.now();
+  const DAY = 86400000;
+  const allUsersArr = Object.values(usersMap);
+  const new7d = allUsersArr.filter(u => u.createdAt && (now - new Date(u.createdAt).getTime()) < 7*DAY).length;
+  const active7d = allUsersArr.filter(u => u.lastLoginAt && (now - new Date(u.lastLoginAt).getTime()) < 7*DAY).length;
+  const withPurchases = Object.keys(purchasesByEmail || {}).length;
+  const totalPurchases = Object.values(purchasesByEmail || {}).reduce((a,b)=>a+b,0);
+
+  // Current filter state
+  const fRole = window.__adminUserFilterRole || '';
+  const fStatus = window.__adminUserFilterStatus || '';
+  const fProvider = window.__adminUserFilterProvider || '';
+
+  // Apply advanced filters on top of search
+  const filteredUsers = users.filter(u => {
+    if (fRole && (u.role || 'user') !== fRole) return false;
+    if (fStatus && (u.status || 'active') !== fStatus) return false;
+    if (fProvider) {
+      const p = (u.provider || 'password').toLowerCase();
+      if (fProvider === 'google' && !p.includes('google')) return false;
+      if (fProvider === 'password' && p.includes('google')) return false;
+    }
+    return true;
+  });
+
   container.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;">
       ${[
         {label:'Total Users', val:stats.total, c:'#3b82f6', i:'fa-users'},
         {label:'Active', val:stats.active, c:'#10b981', i:'fa-user-check'},
-        {label:'Admins', val:stats.admins, c:'#f59e0b', i:'fa-user-shield'},
+        {label:'New (7d)', val:new7d, c:'#06b6d4', i:'fa-user-plus'},
+        {label:'Active (7d)', val:active7d, c:'#8b5cf6', i:'fa-bolt'},
+        {label:'Buyers', val:withPurchases, c:'#f59e0b', i:'fa-cart-shopping'},
+        {label:'Buy Clicks', val:totalPurchases, c:'#ec4899', i:'fa-hand-pointer'},
+        {label:'Admins', val:stats.admins, c:'#f97316', i:'fa-user-shield'},
         {label:'Banned', val:stats.banned, c:'#ef4444', i:'fa-user-slash'}
       ].map(s => `
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;border-radius:10px;background:${s.c}18;color:${s.c};display:flex;align-items:center;justify-content:center;"><i class="fa-solid ${s.i}"></i></div>
-          <div><div style="font-size:0.78rem;color:#94a3b8;font-weight:600;">${s.label}</div><div style="font-size:1.35rem;font-weight:800;color:#0f172a;">${s.val}</div></div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:${s.c}18;color:${s.c};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid ${s.i}"></i></div>
+          <div style="min-width:0;"><div style="font-size:0.72rem;color:#94a3b8;font-weight:600;">${s.label}</div><div style="font-size:1.25rem;font-weight:800;color:#0f172a;">${s.val}</div></div>
         </div>`).join('')}
     </div>
     <div class="admin-panel-card">
@@ -1151,20 +1181,50 @@ function renderAdminUsersTable(container, filter) {
           <input id="adminUserSearch" type="text" placeholder="Search by name or email…" value="${f.replace(/"/g,'&quot;')}"
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
-        <div style="font-size:0.82rem;color:#64748b;">${users.length} shown</div>
-        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import JSON</button>
+        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Roles</option>
+          <option value="user" ${fRole==='user'?'selected':''}>👤 User</option>
+          <option value="admin" ${fRole==='admin'?'selected':''}>🛡️ Admin</option>
+        </select>
+        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Status</option>
+          <option value="active" ${fStatus==='active'?'selected':''}>Active</option>
+          <option value="banned" ${fStatus==='banned'?'selected':''}>Banned</option>
+        </select>
+        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Providers</option>
+          <option value="google" ${fProvider==='google'?'selected':''}>Google</option>
+          <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
+        </select>
+        <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
+        <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+        <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
+        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
       </div>
-      ${users.length === 0 ? `
+
+      <!-- Bulk action bar (shown when selection > 0) -->
+      <div id="adminBulkBar" style="display:none;padding:10px 16px;background:linear-gradient(90deg,#fff7ed,#ffedd5);border-bottom:1px solid #fed7aa;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span style="font-weight:700;color:#9a3412;font-size:0.85rem;"><i class="fa-solid fa-check-double"></i> <span id="adminBulkCount">0</span> selected</span>
+        <button onclick="adminBulkAction('ban')" style="padding:7px 12px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-ban"></i> Ban</button>
+        <button onclick="adminBulkAction('unban')" style="padding:7px 12px;background:#10b981;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user-check"></i> Unban</button>
+        <button onclick="adminBulkAction('role-admin')" style="padding:7px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user-shield"></i> Make Admin</button>
+        <button onclick="adminBulkAction('role-user')" style="padding:7px 12px;background:#64748b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user"></i> Make User</button>
+        <button onclick="adminBulkNotify()" style="padding:7px 12px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-bell"></i> Notify</button>
+        <button onclick="adminBulkAction('delete')" style="padding:7px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        <button onclick="adminBulkClear()" style="padding:7px 12px;background:#fff;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;margin-left:auto;">Clear</button>
+      </div>
+
+      ${filteredUsers.length === 0 ? `
         <div class="admin-empty" style="padding:40px 20px;">
           <i class="fa-solid fa-users"></i>
-          <p style="font-weight:600;">${f ? 'No matching users' : 'No users yet'}</p>
+          <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
           ${!f ? '<p style="font-size:0.82rem;color:#94a3b8;">Users appear here after they sign in for the first time.</p>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
-        <tbody>${users.map(u => {
+        <thead><tr><th style="width:32px;"><input type="checkbox" id="adminBulkSelectAll" onchange="adminBulkToggleAll(this.checked)"></th><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
+        <tbody>${filteredUsers.map(u => {
           const email = (u.email || '').toLowerCase();
           const commentsN = commentsByEmail[email] || 0;
           const purchasesN = (window.__adminUsersData?.purchasesByEmail || {})[email] || 0;
@@ -1175,14 +1235,16 @@ function renderAdminUsersTable(container, filter) {
           const role = u.role || 'user';
           const provIcon = u.provider && u.provider.includes('google') ? 'fa-brands fa-google' : 'fa-solid fa-envelope';
           const provLabel = u.provider && u.provider.includes('google') ? 'Google' : 'Email';
+          const noteBadge = u.notes ? '<span title="Has admin note" style="color:#f59e0b;margin-left:4px;"><i class="fa-solid fa-note-sticky"></i></span>' : '';
           return `
           <tr>
+            <td><input type="checkbox" class="adminBulkChk" data-uid="${u.uid}" onchange="adminBulkUpdateBar()"></td>
             <td>
               <div style="display:flex;align-items:center;gap:10px;">
                 ${u.photoURL ? `<img src="${u.photoURL}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` :
                   `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;">${initial}</div>`}
                 <div style="min-width:0;">
-                  <div style="font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${(u.displayName||'User').replace(/</g,'&lt;')}</div>
+                  <div style="font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${(u.displayName||'User').replace(/</g,'&lt;')}${noteBadge}</div>
                   <div style="font-size:0.78rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${(u.email||'').replace(/</g,'&lt;')}</div>
                 </div>
               </div>
@@ -1357,6 +1419,78 @@ window.adminViewUserDetails = function(uid) {
             </div>`;
           })()}
 
+          <!-- Admin Notes (private) -->
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <h4 style="margin:0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-note-sticky" style="color:#3b82f6;"></i> Admin Notes (Private)</h4>
+              <span style="font-size:0.72rem;color:#1e40af;background:#dbeafe;padding:3px 8px;border-radius:20px;font-weight:700;">Only visible to admins</span>
+            </div>
+            <textarea id="adminUserNote_${u.uid}" rows="3" placeholder="e.g. VIP client, spam risk, follow-up needed…" style="width:100%;padding:10px 12px;border:1px solid #bfdbfe;border-radius:9px;font-size:0.85rem;background:#fff;color:#0f172a;resize:vertical;font-family:inherit;">${esc(u.notes || '')}</textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button onclick="adminSaveUserNote('${u.uid}')" style="padding:8px 14px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Note</button>
+              <span id="adminUserNoteMsg_${u.uid}" style="align-self:center;font-size:0.8rem;color:#059669;font-weight:700;"></span>
+            </div>
+          </div>
+
+          <!-- Send Notification -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 8px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-bell" style="color:#10b981;"></i> Send Notification to User</h4>
+            <p style="margin:0 0 10px;font-size:0.78rem;color:#166534;">Delivered to user's dashboard bell on next visit.</p>
+            <input id="adminNotifTitle_${u.uid}" type="text" placeholder="Notification title" style="width:100%;padding:8px 12px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;margin-bottom:8px;">
+            <textarea id="adminNotifBody_${u.uid}" rows="2" placeholder="Message body…" style="width:100%;padding:8px 12px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;resize:vertical;font-family:inherit;"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+              <select id="adminNotifType_${u.uid}" style="padding:8px 10px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.82rem;background:#fff;color:#0f172a;">
+                <option value="info">ℹ️ Info</option>
+                <option value="success">✅ Success</option>
+                <option value="warning">⚠️ Warning</option>
+                <option value="promo">🎁 Promo</option>
+              </select>
+              <button onclick="adminSendNotification('${u.uid}')" style="padding:8px 14px;background:#10b981;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-paper-plane"></i> Send</button>
+              <span id="adminNotifMsg_${u.uid}" style="font-size:0.8rem;color:#059669;font-weight:700;"></span>
+            </div>
+            ${(u.notifications && u.notifications.length) ? `
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid #bbf7d0;">
+                <div style="font-size:0.78rem;color:#166534;font-weight:700;margin-bottom:6px;">Sent history (${u.notifications.length})</div>
+                <div style="max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+                  ${u.notifications.slice(0,10).map(n=>`
+                    <div style="padding:8px 10px;background:#fff;border-radius:6px;border-left:3px solid #10b981;font-size:0.78rem;">
+                      <div style="font-weight:700;color:#0f172a;">${esc(n.title||'')}</div>
+                      <div style="color:#334155;">${esc(n.body||'')}</div>
+                      <div style="color:#94a3b8;font-size:0.7rem;margin-top:2px;">${fmt(n.ts)} ${n.read?'· read':'· unread'}</div>
+                    </div>`).join('')}
+                </div>
+              </div>` : ''}
+          </div>
+
+          <!-- Login History / Audit Log -->
+          ${(u.loginHistory && u.loginHistory.length) ? `
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 10px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-clock-rotate-left" style="color:#6366f1;"></i> Login History (${u.loginHistory.length})</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;">
+              ${u.loginHistory.slice(0,20).map(h=>{
+                const ua = String(h.userAgent||'');
+                let device = 'Desktop', dIcon='fa-desktop';
+                if (/Mobile|Android|iPhone/i.test(ua)) { device='Mobile'; dIcon='fa-mobile-screen'; }
+                else if (/iPad|Tablet/i.test(ua)) { device='Tablet'; dIcon='fa-tablet-screen-button'; }
+                let browser='Browser';
+                if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser='Chrome';
+                else if (/Firefox/i.test(ua)) browser='Firefox';
+                else if (/Safari/i.test(ua)) browser='Safari';
+                else if (/Edg/i.test(ua)) browser='Edge';
+                return `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid #6366f1;font-size:0.8rem;">
+                  <i class="fa-solid ${dIcon}" style="color:#6366f1;"></i>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:#0f172a;">${device} · ${browser} · ${esc(h.provider||'password')}</div>
+                    <div style="font-size:0.72rem;color:#94a3b8;">${fmt(h.ts)}</div>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>` : ''}
+
+
+
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
             <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:#10b981;"></i> Purchase History (${purchases.length})</h4>
             ${purchases.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No purchases tracked yet. Purchases are logged when this user clicks "Buy Now".</p>' :
@@ -1463,6 +1597,177 @@ window.adminClearUserStats = async function(uid) {
     if (msg) { msg.textContent = '✓ Cleared'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
   } catch(e) { alert('Clear failed: ' + e.message); }
 };
+
+// ============================================================
+// Admin Notes — private notes attached to a user record
+// ============================================================
+window.adminSaveUserNote = async function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  const el = document.getElementById('adminUserNote_' + uid);
+  if (!el) return;
+  u.notes = el.value.trim();
+  window.__adminUsersCache[uid] = u;
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    const msg = document.getElementById('adminUserNoteMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Saved'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+  } catch(e) { alert('Save failed: ' + e.message); }
+};
+
+// ============================================================
+// Send in-app notification (stored on user record → user dashboard bell)
+// ============================================================
+window.adminSendNotification = async function(uid) {
+  const u = (window.__adminUsersCache || {})[uid];
+  if (!u) return;
+  const title = (document.getElementById('adminNotifTitle_' + uid)?.value || '').trim();
+  const body = (document.getElementById('adminNotifBody_' + uid)?.value || '').trim();
+  const type = document.getElementById('adminNotifType_' + uid)?.value || 'info';
+  if (!title && !body) { alert('Please enter a title or message.'); return; }
+  const entry = { id: 'n_' + Date.now(), title, body, type, ts: new Date().toISOString(), read: false };
+  u.notifications = Array.isArray(u.notifications) ? u.notifications : [];
+  u.notifications.unshift(entry);
+  if (u.notifications.length > 50) u.notifications = u.notifications.slice(0, 50);
+  window.__adminUsersCache[uid] = u;
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    const msg = document.getElementById('adminNotifMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Sent'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+    const tEl = document.getElementById('adminNotifTitle_' + uid); if (tEl) tEl.value = '';
+    const bEl = document.getElementById('adminNotifBody_' + uid); if (bEl) bEl.value = '';
+  } catch(e) { alert('Send failed: ' + e.message); }
+};
+
+// ============================================================
+// Bulk selection + actions
+// ============================================================
+window.adminBulkToggleAll = function(checked) {
+  document.querySelectorAll('.adminBulkChk').forEach(chk => { chk.checked = checked; });
+  window.adminBulkUpdateBar();
+};
+
+window.adminBulkUpdateBar = function() {
+  const selected = document.querySelectorAll('.adminBulkChk:checked');
+  const bar = document.getElementById('adminBulkBar');
+  const count = document.getElementById('adminBulkCount');
+  if (!bar) return;
+  if (selected.length > 0) {
+    bar.style.display = 'flex';
+    if (count) count.textContent = selected.length;
+  } else {
+    bar.style.display = 'none';
+  }
+};
+
+window.adminBulkClear = function() {
+  document.querySelectorAll('.adminBulkChk').forEach(chk => { chk.checked = false; });
+  const all = document.getElementById('adminBulkSelectAll'); if (all) all.checked = false;
+  window.adminBulkUpdateBar();
+};
+
+window.adminBulkSelected = function() {
+  return Array.from(document.querySelectorAll('.adminBulkChk:checked')).map(c => c.dataset.uid);
+};
+
+window.adminBulkAction = async function(action) {
+  const uids = window.adminBulkSelected();
+  if (uids.length === 0) return;
+  const labels = { ban:'ban', unban:'unban', delete:'DELETE', 'role-admin':'make admin', 'role-user':'make user' };
+  if (!confirm(`Are you sure you want to ${labels[action]} ${uids.length} user(s)?`)) return;
+  for (const uid of uids) {
+    const u = (window.__adminUsersCache || {})[uid];
+    if (!u) continue;
+    try {
+      if (action === 'ban') u.status = 'banned';
+      else if (action === 'unban') u.status = 'active';
+      else if (action === 'role-admin') u.role = 'admin';
+      else if (action === 'role-user') u.role = 'user';
+      else if (action === 'delete') {
+        delete window.__adminUsersCache[uid];
+        if (window.fsDeleteDoc) await window.fsDeleteDoc('users', uid);
+        continue;
+      }
+      window.__adminUsersCache[uid] = u;
+      if (window.fsSetDoc) await window.fsSetDoc('users', uid, u);
+    } catch(e) { console.warn('bulk action failed for', uid, e.message); }
+  }
+  showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+};
+
+window.adminBulkNotify = async function() {
+  const uids = window.adminBulkSelected();
+  if (uids.length === 0) return;
+  const title = prompt('Notification title:');
+  if (title === null) return;
+  const body = prompt('Message body:');
+  if (body === null) return;
+  const entry = base => ({ id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), title: title||'', body: body||'', type: 'info', ts: new Date().toISOString(), read: false, ...base });
+  let sent = 0;
+  for (const uid of uids) {
+    const u = (window.__adminUsersCache || {})[uid];
+    if (!u) continue;
+    u.notifications = Array.isArray(u.notifications) ? u.notifications : [];
+    u.notifications.unshift(entry({}));
+    if (u.notifications.length > 50) u.notifications = u.notifications.slice(0, 50);
+    window.__adminUsersCache[uid] = u;
+    try { if (window.fsSetDoc) await window.fsSetDoc('users', uid, u); sent++; } catch(e) {}
+  }
+  alert(`Notification sent to ${sent} user(s).`);
+};
+
+// ============================================================
+// Export users to CSV or JSON
+// ============================================================
+window.adminExportUsers = function(format) {
+  const users = Object.values(window.__adminUsersCache || {});
+  if (users.length === 0) { alert('No users to export.'); return; }
+  const data = window.__adminUsersData || {};
+  const commentsByEmail = data.commentsByEmail || {};
+  const purchasesByEmail = data.purchasesByEmail || {};
+  const stamp = new Date().toISOString().slice(0,10);
+
+  if (format === 'json') {
+    const enriched = users.map(u => ({
+      ...u,
+      _purchases: purchasesByEmail[(u.email||'').toLowerCase()] || 0,
+      _comments: commentsByEmail[(u.email||'').toLowerCase()] || 0
+    }));
+    const blob = new Blob([JSON.stringify(enriched, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `users-${stamp}.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    return;
+  }
+
+  // CSV
+  const headers = ['UID','Name','Email','Provider','Role','Status','Email Verified','Joined','Last Login','Purchases','Comments','Notes'];
+  const csvEscape = v => {
+    const s = String(v == null ? '' : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const rows = users.map(u => [
+    u.uid || '',
+    u.displayName || '',
+    u.email || '',
+    u.provider || 'password',
+    u.role || 'user',
+    u.status || 'active',
+    u.emailVerified ? 'yes' : 'no',
+    u.createdAt || '',
+    u.lastLoginAt || '',
+    purchasesByEmail[(u.email||'').toLowerCase()] || 0,
+    commentsByEmail[(u.email||'').toLowerCase()] || 0,
+    (u.notes || '').replace(/\s+/g,' ')
+  ].map(csvEscape).join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `users-${stamp}.csv`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+};
+
+
 
 
 

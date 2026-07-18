@@ -1901,6 +1901,9 @@ function updateAuthUI(user) {
 
         // Apply admin-configured dashboard stats overrides (fake values)
         if (window.applyUserFakeStats) window.applyUserFakeStats(user.uid);
+        // Load admin-sent notifications into the user's bell
+        if (window.loadUserNotifications) window.loadUserNotifications(user.uid);
+        
         
         if (desktopAuth) desktopAuth.style.display = 'none';
         if (desktopUser) desktopUser.style.display = 'flex';
@@ -1928,6 +1931,8 @@ function updateAuthUI(user) {
         
         const mobileHeaderUserMenu = document.getElementById('mobileHeaderUserMenu');
         if (mobileHeaderUserMenu) mobileHeaderUserMenu.style.display = 'none';
+        if (window.hideUserNotificationBell) window.hideUserNotificationBell();
+
 
         const guestNav = document.getElementById('guestMobileNav');
         const userNav = document.getElementById('userMobileNav');
@@ -1961,6 +1966,9 @@ async function syncUserToFirestore(user) {
         }
         const provider = (user.providerData && user.providerData[0] && user.providerData[0].providerId) || 'password';
         const nowIso = new Date().toISOString();
+        const prevHistory = Array.isArray(existing.loginHistory) ? existing.loginHistory : [];
+        const ua = (navigator.userAgent || '').slice(0, 200);
+        const newHistory = [{ ts: nowIso, provider, userAgent: ua }, ...prevHistory].slice(0, 20);
         const payload = {
             uid: user.uid,
             email: user.email || existing.email || '',
@@ -1971,7 +1979,10 @@ async function syncUserToFirestore(user) {
             role: existing.role || 'user',
             status: existing.status || 'active',
             createdAt: existing.createdAt || nowIso,
-            lastLoginAt: nowIso
+            lastLoginAt: nowIso,
+            loginHistory: newHistory,
+            notes: existing.notes || '',
+            notifications: Array.isArray(existing.notifications) ? existing.notifications : []
         };
         await window.fsSetDoc('users', user.uid, payload);
     } catch(e) { console.warn('user sync failed', e.message); }
@@ -2023,6 +2034,113 @@ window.applyUserFakeStats = async function(uid) {
             setText('dashStatRating', Number(num(stats.rating) || 0).toFixed(1));
     } catch(e) { console.warn('applyUserFakeStats failed', e.message); }
 };
+
+// ============================================================
+// Load admin-sent notifications and render a floating bell for the user
+// ============================================================
+window.loadUserNotifications = async function(uid) {
+    try {
+        let userDoc = null;
+        if (window.fsLoadMap) {
+            const all = await window.fsLoadMap('users');
+            userDoc = all && all[uid];
+        }
+        const notifications = (userDoc && Array.isArray(userDoc.notifications)) ? userDoc.notifications : [];
+        window.__userNotifications = notifications;
+        window.__userNotificationsUid = uid;
+        window.renderUserNotificationBell();
+    } catch(e) { console.warn('loadUserNotifications failed', e.message); }
+};
+
+window.renderUserNotificationBell = function() {
+    const notifications = window.__userNotifications || [];
+    const unread = notifications.filter(n => !n.read).length;
+    let bell = document.getElementById('userNotifBell');
+    if (!bell) {
+        bell = document.createElement('div');
+        bell.id = 'userNotifBell';
+        bell.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9998;';
+        document.body.appendChild(bell);
+    }
+    const iconColor = '#ff6b35';
+    bell.innerHTML = `
+        <button onclick="window.toggleUserNotifPanel()" style="position:relative;width:52px;height:52px;border-radius:50%;background:#fff;color:${iconColor};border:1px solid #e2e8f0;box-shadow:0 8px 20px rgba(15,23,42,0.15);cursor:pointer;font-size:1.2rem;">
+            <i class="fa-solid fa-bell"></i>
+            ${unread > 0 ? `<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;min-width:20px;height:20px;border-radius:12px;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : ''}
+        </button>
+        <div id="userNotifPanel" style="display:none;position:absolute;bottom:64px;right:0;width:320px;max-height:420px;overflow-y:auto;background:#fff;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 20px 40px rgba(15,23,42,0.2);">
+            <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-weight:800;color:#0f172a;">Notifications</div>
+                ${notifications.length > 0 ? '<button onclick="window.markAllUserNotifRead()" style="background:none;border:none;color:#3b82f6;font-size:0.78rem;font-weight:700;cursor:pointer;">Mark all read</button>' : ''}
+            </div>
+            ${notifications.length === 0 ? '<div style="padding:30px 20px;text-align:center;color:#94a3b8;font-size:0.85rem;"><i class="fa-solid fa-bell-slash" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>No notifications yet</div>' :
+              notifications.map(n => {
+                const typeColor = { info:'#3b82f6', success:'#10b981', warning:'#f59e0b', promo:'#8b5cf6' }[n.type || 'info'] || '#3b82f6';
+                const typeIcon = { info:'fa-circle-info', success:'fa-circle-check', warning:'fa-triangle-exclamation', promo:'fa-gift' }[n.type || 'info'] || 'fa-circle-info';
+                const t = n.ts ? new Date(n.ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+                const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                return `<div style="padding:12px 14px;border-bottom:1px solid #f1f5f9;background:${n.read?'#fff':'#fff7ed'};">
+                  <div style="display:flex;gap:10px;">
+                    <div style="color:${typeColor};font-size:1rem;flex-shrink:0;"><i class="fa-solid ${typeIcon}"></i></div>
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-weight:700;color:#0f172a;font-size:0.85rem;">${esc(n.title||'')}</div>
+                      <div style="font-size:0.8rem;color:#334155;margin-top:2px;">${esc(n.body||'')}</div>
+                      <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px;">${t}</div>
+                    </div>
+                  </div>
+                </div>`;
+              }).join('')}
+        </div>`;
+};
+
+window.toggleUserNotifPanel = function() {
+    const panel = document.getElementById('userNotifPanel');
+    if (!panel) return;
+    const showing = panel.style.display !== 'none';
+    panel.style.display = showing ? 'none' : 'block';
+    if (!showing) {
+        // Mark all as read on open
+        setTimeout(() => window.markAllUserNotifRead(true), 800);
+    }
+};
+
+window.markAllUserNotifRead = async function(silent) {
+    const uid = window.__userNotificationsUid;
+    if (!uid) return;
+    const notifications = window.__userNotifications || [];
+    let changed = false;
+    notifications.forEach(n => { if (!n.read) { n.read = true; changed = true; } });
+    if (!changed) return;
+    try {
+        if (window.fsLoadMap && window.fsSetDoc) {
+            const all = await window.fsLoadMap('users');
+            const u = all && all[uid];
+            if (u) {
+                u.notifications = notifications;
+                await window.fsSetDoc('users', uid, u);
+            }
+        }
+    } catch(e) {}
+    if (!silent) window.renderUserNotificationBell();
+    else {
+        // Just clear the red badge without closing the panel
+        const bell = document.getElementById('userNotifBell');
+        if (bell) {
+            const badge = bell.querySelector('span');
+            if (badge) badge.style.display = 'none';
+        }
+    }
+};
+
+// Hide the bell when user signs out
+window.hideUserNotificationBell = function() {
+    const bell = document.getElementById('userNotifBell');
+    if (bell) bell.remove();
+    window.__userNotifications = [];
+    window.__userNotificationsUid = null;
+};
+
+
 
 // Setup real-time listeners for standard Firebase session state
 if (typeof window.auth !== 'undefined') {
