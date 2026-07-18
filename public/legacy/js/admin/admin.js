@@ -1419,6 +1419,78 @@ window.adminViewUserDetails = function(uid) {
             </div>`;
           })()}
 
+          <!-- Admin Notes (private) -->
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <h4 style="margin:0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-note-sticky" style="color:#3b82f6;"></i> Admin Notes (Private)</h4>
+              <span style="font-size:0.72rem;color:#1e40af;background:#dbeafe;padding:3px 8px;border-radius:20px;font-weight:700;">Only visible to admins</span>
+            </div>
+            <textarea id="adminUserNote_${u.uid}" rows="3" placeholder="e.g. VIP client, spam risk, follow-up needed…" style="width:100%;padding:10px 12px;border:1px solid #bfdbfe;border-radius:9px;font-size:0.85rem;background:#fff;color:#0f172a;resize:vertical;font-family:inherit;">${esc(u.notes || '')}</textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button onclick="adminSaveUserNote('${u.uid}')" style="padding:8px 14px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Note</button>
+              <span id="adminUserNoteMsg_${u.uid}" style="align-self:center;font-size:0.8rem;color:#059669;font-weight:700;"></span>
+            </div>
+          </div>
+
+          <!-- Send Notification -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 8px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-bell" style="color:#10b981;"></i> Send Notification to User</h4>
+            <p style="margin:0 0 10px;font-size:0.78rem;color:#166534;">Delivered to user's dashboard bell on next visit.</p>
+            <input id="adminNotifTitle_${u.uid}" type="text" placeholder="Notification title" style="width:100%;padding:8px 12px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;margin-bottom:8px;">
+            <textarea id="adminNotifBody_${u.uid}" rows="2" placeholder="Message body…" style="width:100%;padding:8px 12px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;resize:vertical;font-family:inherit;"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+              <select id="adminNotifType_${u.uid}" style="padding:8px 10px;border:1px solid #bbf7d0;border-radius:8px;font-size:0.82rem;background:#fff;color:#0f172a;">
+                <option value="info">ℹ️ Info</option>
+                <option value="success">✅ Success</option>
+                <option value="warning">⚠️ Warning</option>
+                <option value="promo">🎁 Promo</option>
+              </select>
+              <button onclick="adminSendNotification('${u.uid}')" style="padding:8px 14px;background:#10b981;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-paper-plane"></i> Send</button>
+              <span id="adminNotifMsg_${u.uid}" style="font-size:0.8rem;color:#059669;font-weight:700;"></span>
+            </div>
+            ${(u.notifications && u.notifications.length) ? `
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid #bbf7d0;">
+                <div style="font-size:0.78rem;color:#166534;font-weight:700;margin-bottom:6px;">Sent history (${u.notifications.length})</div>
+                <div style="max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+                  ${u.notifications.slice(0,10).map(n=>`
+                    <div style="padding:8px 10px;background:#fff;border-radius:6px;border-left:3px solid #10b981;font-size:0.78rem;">
+                      <div style="font-weight:700;color:#0f172a;">${esc(n.title||'')}</div>
+                      <div style="color:#334155;">${esc(n.body||'')}</div>
+                      <div style="color:#94a3b8;font-size:0.7rem;margin-top:2px;">${fmt(n.ts)} ${n.read?'· read':'· unread'}</div>
+                    </div>`).join('')}
+                </div>
+              </div>` : ''}
+          </div>
+
+          <!-- Login History / Audit Log -->
+          ${(u.loginHistory && u.loginHistory.length) ? `
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+            <h4 style="margin:0 0 10px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-clock-rotate-left" style="color:#6366f1;"></i> Login History (${u.loginHistory.length})</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;">
+              ${u.loginHistory.slice(0,20).map(h=>{
+                const ua = String(h.userAgent||'');
+                let device = 'Desktop', dIcon='fa-desktop';
+                if (/Mobile|Android|iPhone/i.test(ua)) { device='Mobile'; dIcon='fa-mobile-screen'; }
+                else if (/iPad|Tablet/i.test(ua)) { device='Tablet'; dIcon='fa-tablet-screen-button'; }
+                let browser='Browser';
+                if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser='Chrome';
+                else if (/Firefox/i.test(ua)) browser='Firefox';
+                else if (/Safari/i.test(ua)) browser='Safari';
+                else if (/Edg/i.test(ua)) browser='Edge';
+                return `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid #6366f1;font-size:0.8rem;">
+                  <i class="fa-solid ${dIcon}" style="color:#6366f1;"></i>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:#0f172a;">${device} · ${browser} · ${esc(h.provider||'password')}</div>
+                    <div style="font-size:0.72rem;color:#94a3b8;">${fmt(h.ts)}</div>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>` : ''}
+
+
+
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
             <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:#10b981;"></i> Purchase History (${purchases.length})</h4>
             ${purchases.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No purchases tracked yet. Purchases are logged when this user clicks "Buy Now".</p>' :
