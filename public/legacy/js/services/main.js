@@ -2448,7 +2448,7 @@ window.renderShopProducts = function() {
                 <h3>${p.title || 'Untitled Product'}</h3>
                 <p class="product-desc">${p.shortDesc || ''}</p>
                 <div class="product-stats">
-                    <span class="rating-star"><i class="fa-solid fa-star"></i> ${(p.rating||5.0).toFixed(1)} <span style="color:#cbd5e1">(${p.reviews||0})</span></span>
+                    <span class="rating-star"><i class="fa-solid fa-star"></i> ${(p.rating||5.0).toFixed(1)} <span style="color:#cbd5e1">(${(Array.isArray(p.fakeReviews)?p.fakeReviews.length:0) + ((window.productComments&&window.productComments[String(p.id)])?window.productComments[String(p.id)].length:0)})</span></span>
                     <span>| ${p.sold||0} sold</span>
                 </div>
             </div>
@@ -2608,7 +2608,7 @@ window.openProduct = function(id) {
         if(document.getElementById('pdCategory')) document.getElementById('pdCategory').innerText = p.category;
         if(document.getElementById('pdTitle')) document.getElementById('pdTitle').innerText = p.title;
         if(document.getElementById('pdRating')) document.getElementById('pdRating').innerText = p.rating ? p.rating.toFixed(1) : "5.0";
-        if(document.getElementById('pdReviewCount')) document.getElementById('pdReviewCount').innerText = p.reviews || "0";
+        if(document.getElementById('pdReviewCount')) document.getElementById('pdReviewCount').innerText = ((Array.isArray(p.fakeReviews)?p.fakeReviews.length:0) + ((window.productComments&&window.productComments[String(p.id)])?window.productComments[String(p.id)].length:0)) || "0";
         if(document.getElementById('pdSoldCount')) document.getElementById('pdSoldCount').innerText = p.sold || "0";
         if(document.getElementById('pdShortDesc')) document.getElementById('pdShortDesc').innerText = p.shortDesc;
         if(document.getElementById('pdCurrentPrice')) document.getElementById('pdCurrentPrice').innerText = p.price;
@@ -2636,35 +2636,7 @@ window.openProduct = function(id) {
         if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = p.longDesc || (p.fullDesc ? `<p>${p.fullDesc}</p>` : (p.shortDesc ? `<p>${p.shortDesc}</p>` : ''));
         if(document.getElementById('pdFeatures')) document.getElementById('pdFeatures').innerHTML = (p.features||[]).map(f => `<li>${f}</li>`).join('');
 
-        const reviewsEl = document.getElementById('pdReviews');
-        if (reviewsEl) {
-            const fakeReviews = [
-                { name: "Shikha Rajani", avatar: "S", date: "5/9/2026", text: "This is really good script and working fine" },
-                { name: "John Doe", avatar: "J", date: "4/20/2026", text: "Excellent product, exactly what I needed for my project. highly recommended." }
-            ];
-            
-            let revHtml = '';
-            fakeReviews.forEach(r => {
-                revHtml += `
-                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
-                    <div class="pd-rev-header">
-                        <div class="pd-rev-left">
-                            <div class="pd-rev-avatar">${r.avatar}</div>
-                            <div>
-                                <div class="pd-rev-name">${r.name}</div>
-                                <div class="pd-stars" style="font-size:0.8rem; letter-spacing:1px; color:#ffb800;">
-                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pd-rev-date">${r.date}</div>
-                    </div>
-                    <div class="pd-rev-text">${r.text}</div>
-                </div>
-                `;
-            });
-            reviewsEl.innerHTML = revHtml;
-        }
+        // Reviews are rendered by product-extra.js (fake admin reviews + real user comments merged)
 
         const popGrid = document.getElementById('pdPopularGrid');
         const mainGrid = document.querySelector('#shopPage .services-grid');
