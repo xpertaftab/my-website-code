@@ -613,7 +613,7 @@ function wireProductForm(ov, state, existing, onSave) {
         <button type="button" data-i="${i}" class="pfImgDel" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,0.9);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:0.75rem;">×</button>
         ${i>0?`<button type="button" data-i="${i}" class="pfImgMain" style="position:absolute;bottom:2px;left:2px;background:rgba(15,23,42,0.75);color:#fff;border:none;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:0.6rem;">Set Main</button>`:''}
       </div>`).join('');
-    el.querySelectorAll('.pfImgDel').forEach(b => b.onclick = () => { state.gallery.splice(+b.dataset.i,1); renderGallery(); });
+    el.querySelectorAll('.pfImgDel').forEach(b => b.onclick = () => { state.gallery.splice(+b.dataset.i,1); renderGallery(); if (typeof updateSizeInfo==='function') updateSizeInfo(); });
     el.querySelectorAll('.pfImgMain').forEach(b => b.onclick = () => { const i=+b.dataset.i; const [x]=state.gallery.splice(i,1); state.gallery.unshift(x); renderGallery(); });
   }
   renderGallery();
