@@ -1114,6 +1114,8 @@ function renderAdminUsersTable(container, filter) {
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
         <div style="font-size:0.82rem;color:#64748b;">${users.length} shown</div>
+        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import JSON</button>
+        <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
       </div>
       ${users.length === 0 ? `
         <div class="admin-empty" style="padding:40px 20px;">
@@ -1213,6 +1215,55 @@ window.adminDeleteUser = async function(uid) {
   if (window.fsDeleteDoc) { try { await window.fsDeleteDoc('users', uid); } catch(e) {} }
   showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
 };
+
+window.adminImportUsersJson = async function(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    let data = JSON.parse(text);
+    // Firebase auth:export format => { users: [...] }
+    let arr = Array.isArray(data) ? data : (data.users || data.data || []);
+    if (!Array.isArray(arr) || arr.length === 0) { alert('No users found in JSON.'); input.value=''; return; }
+    if (!confirm(`Import ${arr.length} users into admin panel?`)) { input.value=''; return; }
+    const cache = window.__adminUsersCache || {};
+    let added = 0, skipped = 0;
+    for (const raw of arr) {
+      const uid = raw.localId || raw.uid || raw.id || raw.user_id || (raw.email ? 'imp_' + btoa(raw.email).replace(/=/g,'').slice(0,20) : null);
+      if (!uid) { skipped++; continue; }
+      const provider = (raw.providerUserInfo && raw.providerUserInfo[0] && raw.providerUserInfo[0].providerId) || raw.provider || 'password';
+      const createdAt = raw.createdAt ? (isNaN(+raw.createdAt) ? raw.createdAt : new Date(+raw.createdAt).toISOString()) : (raw.metadata && raw.metadata.creationTime) || new Date().toISOString();
+      const lastLoginAt = raw.lastLoginAt ? (isNaN(+raw.lastLoginAt) ? raw.lastLoginAt : new Date(+raw.lastLoginAt).toISOString()) : (raw.metadata && raw.metadata.lastSignInTime) || createdAt;
+      const existing = cache[uid] || {};
+      const rec = {
+        uid,
+        email: raw.email || existing.email || '',
+        name: raw.displayName || raw.name || existing.name || (raw.email ? raw.email.split('@')[0] : 'User'),
+        photoURL: raw.photoUrl || raw.photoURL || existing.photoURL || '',
+        provider,
+        emailVerified: !!(raw.emailVerified || existing.emailVerified),
+        createdAt: existing.createdAt || createdAt,
+        lastLoginAt: existing.lastLoginAt || lastLoginAt,
+        role: existing.role || 'user',
+        status: existing.status || 'active',
+        imported: true
+      };
+      cache[uid] = rec;
+      if (window.fsSetDoc) { try { await window.fsSetDoc('users', uid, rec); added++; } catch(e) { skipped++; } }
+      else added++;
+    }
+    window.__adminUsersCache = cache;
+    alert(`Imported: ${added}\nSkipped: ${skipped}`);
+    input.value = '';
+    showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+  } catch(e) {
+    console.error(e);
+    alert('Import failed: ' + e.message);
+    input.value = '';
+  }
+};
+
+
 
 
 async function renderAdminContactsNew(container) {
