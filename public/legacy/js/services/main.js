@@ -1898,6 +1898,9 @@ function updateAuthUI(user) {
         if (dashProfileEmail) dashProfileEmail.textContent = user.email;
         if (dashFormName) dashFormName.value = name;
         if (dashFormEmail) dashFormEmail.value = user.email;
+
+        // Apply admin-configured dashboard stats overrides (fake values)
+        if (window.applyUserFakeStats) window.applyUserFakeStats(user.uid);
         
         if (desktopAuth) desktopAuth.style.display = 'none';
         if (desktopUser) desktopUser.style.display = 'flex';
