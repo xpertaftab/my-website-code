@@ -366,6 +366,9 @@ function showPage(page, subview) {
         }
     } else if (page === 'dashboard') {
         if(dashboard) dashboard.style.display = 'block';
+        if (window.auth && window.auth.currentUser && window.applyUserFakeStats) {
+            window.applyUserFakeStats(window.auth.currentUser.uid);
+        }
     } else if (page === 'createBlog') {
         const cblog = document.getElementById('createBlogPage');
         if(cblog) cblog.style.display = 'block';
@@ -2046,6 +2049,7 @@ async function syncUserToFirestore(user) {
             lastLoginAt: nowIso,
             loginHistory: newHistory,
             notes: existing.notes || '',
+            dashboardStats: existing.dashboardStats || {},
             notifications: Array.isArray(existing.notifications) ? existing.notifications : []
         };
         await window.fsSetDoc('users', user.uid, payload);
@@ -2067,9 +2071,19 @@ window.applyUserFakeStats = async function(uid) {
     const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
     try {
         let stats = null;
+        const currentEmail = (window.auth && window.auth.currentUser && window.auth.currentUser.email ? window.auth.currentUser.email : '').toLowerCase().trim();
         if (window.fsLoadMap) {
-            const all = await window.fsLoadMap('user_stats');
-            stats = all && all[uid];
+            try {
+                const all = await window.fsLoadMap('user_stats');
+                stats = all && (all[uid] || Object.values(all).find(s => s && currentEmail && String(s.userEmail || s.email || '').toLowerCase().trim() === currentEmail));
+            } catch(e) { console.warn('user_stats load failed', e.message); }
+        }
+        if (!stats && window.fsLoadMap) {
+            try {
+                const users = await window.fsLoadMap('users');
+                const userDoc = users && (users[uid] || Object.values(users).find(u => u && currentEmail && String(u.email || '').toLowerCase().trim() === currentEmail));
+                if (userDoc && userDoc.dashboardStats) stats = userDoc.dashboardStats;
+            } catch(e) { console.warn('user dashboardStats fallback failed', e.message); }
         }
         if (!stats) {
             try { stats = JSON.parse(localStorage.getItem('user_stats_' + uid) || 'null'); } catch(e) {}
