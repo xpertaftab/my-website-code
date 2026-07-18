@@ -37,14 +37,24 @@
   function displayViews(id){
     const key = String(id);
     const real = (window.productStats[key]?.views) || 0;
+    const p = window.PRODUCTS_DATA && window.PRODUCTS_DATA[key];
+    const bonus = (p && Number(p.fakeViewsBonus)) || 0;
     let hash = 0;
     for (let i=0;i<key.length;i++) hash = ((hash<<5)-hash+key.charCodeAt(i))|0;
-    const fake = 180 + (Math.abs(hash) % 1420); // 180..1600 per product
-    return fake + real;
+    const fake = 180 + (Math.abs(hash) % 1420);
+    return fake + real + bonus;
   }
   window.getProductDisplayViews = displayViews;
   window.getProductRealViews = (id) => (window.productStats[String(id)]?.views) || 0;
-  window.getProductCommentCount = (id) => (window.productComments[String(id)] || []).length;
+  function allComments(id){
+    const key = String(id);
+    const real = window.productComments[key] || [];
+    const p = window.PRODUCTS_DATA && window.PRODUCTS_DATA[key];
+    const fake = (p && Array.isArray(p.fakeReviews)) ? p.fakeReviews : [];
+    return fake.concat(real);
+  }
+  window.getProductCommentCount = (id) => allComments(id).length;
+
 
   async function mountProductViewsAndComments(id){
     await loadProductData();
@@ -90,7 +100,7 @@
 
   function renderProductComments(id, container){
     const key = String(id);
-    const items = (window.productComments[key] || []).slice().reverse();
+    const items = allComments(id).slice().reverse();
     const formHtml = `
       <form id="pdCommentForm" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:24px;">
         <div style="font-weight:700;color:#0f172a;margin-bottom:12px;font-size:1.05rem;"><i class="fa-regular fa-pen-to-square" style="color:#ff6b35;"></i> Leave a Review</div>
