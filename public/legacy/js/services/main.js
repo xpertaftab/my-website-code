@@ -2448,7 +2448,7 @@ window.renderShopProducts = function() {
                 <h3>${p.title || 'Untitled Product'}</h3>
                 <p class="product-desc">${p.shortDesc || ''}</p>
                 <div class="product-stats">
-                    <span class="rating-star"><i class="fa-solid fa-star"></i> ${(p.rating||5.0).toFixed(1)} <span style="color:#cbd5e1">(${p.reviews||0})</span></span>
+                    <span class="rating-star"><i class="fa-solid fa-star"></i> ${(p.rating||5.0).toFixed(1)} <span style="color:#cbd5e1">(${(Array.isArray(p.fakeReviews)?p.fakeReviews.length:0) + ((window.productComments&&window.productComments[String(p.id)])?window.productComments[String(p.id)].length:0)})</span></span>
                     <span>| ${p.sold||0} sold</span>
                 </div>
             </div>
