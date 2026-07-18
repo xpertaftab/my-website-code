@@ -1050,13 +1050,14 @@ async function renderAdminUsersNew(container) {
   container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
   try {
     // Load users + comments + purchases + listings + contacts (for activity)
-    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {};
+    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {}, statsMap = {};
     if (window.fsLoadMap) {
       try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
       try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
       try { purchasesMap = (await window.fsLoadMap('purchases')) || {}; } catch(e) {}
       try { listingsMap = (await window.fsLoadMap('listings')) || {}; } catch(e) {}
       try { contactsMap = (await window.fsLoadMap('contacts')) || {}; } catch(e) {}
+      try { statsMap = (await window.fsLoadMap('user_stats')) || {}; } catch(e) {}
     }
     // Comments by email
     const commentsByEmail = {}, commentsListByEmail = {};
