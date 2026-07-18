@@ -1898,6 +1898,9 @@ function updateAuthUI(user) {
         if (dashProfileEmail) dashProfileEmail.textContent = user.email;
         if (dashFormName) dashFormName.value = name;
         if (dashFormEmail) dashFormEmail.value = user.email;
+
+        // Apply admin-configured dashboard stats overrides (fake values)
+        if (window.applyUserFakeStats) window.applyUserFakeStats(user.uid);
         
         if (desktopAuth) desktopAuth.style.display = 'none';
         if (desktopUser) desktopUser.style.display = 'flex';
@@ -1974,6 +1977,52 @@ async function syncUserToFirestore(user) {
     } catch(e) { console.warn('user sync failed', e.message); }
 }
 window.syncUserToFirestore = syncUserToFirestore;
+
+// ============================================================
+// Apply per-user dashboard stat overrides set from the admin panel.
+// Admin can seed fake numbers so a user's dashboard looks populated.
+// Values live in Firestore `user_stats/{uid}`.
+// ============================================================
+window.applyUserFakeStats = async function(uid) {
+    if (!uid) return;
+    const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null && val !== '') el.textContent = val;
+    };
+    const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+    try {
+        let stats = null;
+        if (window.fsLoadMap) {
+            const all = await window.fsLoadMap('user_stats');
+            stats = all && all[uid];
+        }
+        if (!stats) {
+            try { stats = JSON.parse(localStorage.getItem('user_stats_' + uid) || 'null'); } catch(e) {}
+        }
+        if (!stats) return;
+        window.__currentUserStats = stats;
+        if (stats.listings != null && stats.listings !== '')
+            setText('dashStatListings', num(stats.listings));
+        if (stats.listingsActive != null && stats.listingsActive !== '')
+            setText('dashStatListingsSub', (num(stats.listingsActive) || 0) + ' active');
+        if (stats.views != null && stats.views !== '')
+            setText('dashStatViews', Number(num(stats.views) || 0).toLocaleString());
+        if (stats.bids != null && stats.bids !== '')
+            setText('dashStatBids', num(stats.bids));
+        if (stats.portfolio != null && stats.portfolio !== '')
+            setText('dashStatPortfolio', '$' + Number(num(stats.portfolio) || 0).toLocaleString());
+        if (stats.active != null && stats.active !== '')
+            setText('dashStatActive', num(stats.active));
+        if (stats.pending != null && stats.pending !== '')
+            setText('dashStatPending', num(stats.pending));
+        if (stats.sold != null && stats.sold !== '')
+            setText('dashStatSold', num(stats.sold));
+        if (stats.blogs != null && stats.blogs !== '')
+            setText('dashStatBlogs', num(stats.blogs));
+        if (stats.rating != null && stats.rating !== '')
+            setText('dashStatRating', Number(num(stats.rating) || 0).toFixed(1));
+    } catch(e) { console.warn('applyUserFakeStats failed', e.message); }
+};
 
 // Setup real-time listeners for standard Firebase session state
 if (typeof window.auth !== 'undefined') {

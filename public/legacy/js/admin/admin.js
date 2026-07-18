@@ -1050,13 +1050,14 @@ async function renderAdminUsersNew(container) {
   container.innerHTML = `<div class="admin-panel-card"><div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading users…</p></div></div>`;
   try {
     // Load users + comments + purchases + listings + contacts (for activity)
-    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {};
+    let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {}, statsMap = {};
     if (window.fsLoadMap) {
       try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
       try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
       try { purchasesMap = (await window.fsLoadMap('purchases')) || {}; } catch(e) {}
       try { listingsMap = (await window.fsLoadMap('listings')) || {}; } catch(e) {}
       try { contactsMap = (await window.fsLoadMap('contacts')) || {}; } catch(e) {}
+      try { statsMap = (await window.fsLoadMap('user_stats')) || {}; } catch(e) {}
     }
     // Comments by email
     const commentsByEmail = {}, commentsListByEmail = {};
@@ -1101,7 +1102,7 @@ async function renderAdminUsersNew(container) {
     window.__adminUsersCommentsByEmail = commentsByEmail;
     window.__adminUsersData = {
       commentsListByEmail, purchasesByEmail, purchasesListByEmail,
-      listingsByEmail, contactsByEmail
+      listingsByEmail, contactsByEmail, statsMap
     };
     renderAdminUsersTable(container, '');
   } catch(e) {
@@ -1319,7 +1320,43 @@ window.adminViewUserDetails = function(uid) {
             ${u.imported ? kv('Source', '📥 Imported from Firebase') : ''}
           </div>
 
-          <!-- Purchases -->
+          <!-- Dashboard Stats Override (admin-controlled fake numbers) -->
+          ${(function(){
+            const s = (window.__adminUsersData && window.__adminUsersData.statsMap && window.__adminUsersData.statsMap[u.uid]) || {};
+            const val = v => (v === undefined || v === null) ? '' : String(v);
+            const field = (id, label, ph, step) => `
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:0.72rem;color:#64748b;font-weight:700;">${label}</label>
+                <input id="ust_${id}" type="number" step="${step||'1'}" placeholder="${ph}" value="${val(s[id])}"
+                  style="padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;background:#fff;color:#0f172a;">
+              </div>`;
+            return `
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                <h4 style="margin:0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-sliders" style="color:#f59e0b;"></i> Dashboard Stats Override</h4>
+                <span style="font-size:0.72rem;color:#92400e;background:#fef3c7;padding:3px 8px;border-radius:20px;font-weight:700;">Shown on user's dashboard</span>
+              </div>
+              <p style="margin:4px 0 12px;font-size:0.78rem;color:#78716c;">Leave a field blank to hide it (dashboard falls back to 0). Values sync live to this user's dashboard.</p>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+                ${field('listings','Total Listings','0')}
+                ${field('listingsActive','Active (sub)','0')}
+                ${field('views','Total Views','0')}
+                ${field('bids','Total Bids','0')}
+                ${field('portfolio','Portfolio Value ($)','0')}
+                ${field('active','Active','0')}
+                ${field('pending','Pending','0')}
+                ${field('sold','Sold','0')}
+                ${field('blogs','Blogs','0')}
+                ${field('rating','Rating (0–5)','0.0','0.1')}
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                <button onclick="adminSaveUserStats('${u.uid}')" style="padding:9px 16px;background:#f59e0b;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Stats</button>
+                <button onclick="adminClearUserStats('${u.uid}')" style="padding:9px 16px;background:#fff;color:#b45309;border:1px solid #fcd34d;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-eraser"></i> Clear All</button>
+                <span id="ust_saveMsg_${u.uid}" style="align-self:center;font-size:0.8rem;color:#059669;font-weight:700;"></span>
+              </div>
+            </div>`;
+          })()}
+
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
             <h4 style="margin:0 0 12px 0;font-size:0.9rem;color:#0f172a;font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:#10b981;"></i> Purchase History (${purchases.length})</h4>
             ${purchases.length === 0 ? '<p style="color:#94a3b8;font-size:0.85rem;margin:0;">No purchases tracked yet. Purchases are logged when this user clicks "Buy Now".</p>' :
@@ -1383,6 +1420,48 @@ window.adminViewUserDetails = function(uid) {
   const wrapper = document.createElement('div');
   wrapper.innerHTML = html;
   document.body.appendChild(wrapper.firstElementChild);
+};
+
+// Save admin-configured dashboard stat overrides for a specific user
+window.adminSaveUserStats = async function(uid) {
+  const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
+  const payload = { uid };
+  keys.forEach(k => {
+    const el = document.getElementById('ust_' + k);
+    if (!el) return;
+    const v = el.value.trim();
+    payload[k] = v === '' ? '' : v;
+  });
+  payload.updatedAt = new Date().toISOString();
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('user_stats', uid, payload);
+    try { localStorage.setItem('user_stats_' + uid, JSON.stringify(payload)); } catch(e) {}
+    if (!window.__adminUsersData) window.__adminUsersData = {};
+    if (!window.__adminUsersData.statsMap) window.__adminUsersData.statsMap = {};
+    window.__adminUsersData.statsMap[uid] = payload;
+    const msg = document.getElementById('ust_saveMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Saved'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+    // If the admin is editing their own account, refresh their dashboard live
+    if (window.auth && window.auth.currentUser && window.auth.currentUser.uid === uid && window.applyUserFakeStats) {
+      window.applyUserFakeStats(uid);
+    }
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  }
+};
+
+// Clear all overrides for a user
+window.adminClearUserStats = async function(uid) {
+  if (!confirm('Clear all dashboard stat overrides for this user?')) return;
+  const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
+  keys.forEach(k => { const el = document.getElementById('ust_' + k); if (el) el.value = ''; });
+  try {
+    if (window.fsDeleteDoc) await window.fsDeleteDoc('user_stats', uid);
+    try { localStorage.removeItem('user_stats_' + uid); } catch(e) {}
+    if (window.__adminUsersData && window.__adminUsersData.statsMap) delete window.__adminUsersData.statsMap[uid];
+    const msg = document.getElementById('ust_saveMsg_' + uid);
+    if (msg) { msg.textContent = '✓ Cleared'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
+  } catch(e) { alert('Clear failed: ' + e.message); }
 };
 
 
