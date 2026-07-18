@@ -5592,6 +5592,19 @@ if (document.readyState === 'loading') {
                 if (list.length > 500) list.length = 500;
                 localStorage.setItem(key, JSON.stringify(list));
             } catch(e) {}
+            // Notify admin of buy-now click
+            try {
+                if (window.notifyAdmin) {
+                    window.notifyAdmin('New Buy Now Click — ' + (payload.title || 'Item'),
+                        'A user clicked Buy Now / WhatsApp on your site.\n\n' +
+                        'Type: ' + kind + '\nItem: ' + (payload.title || '') +
+                        '\nPrice: ' + (payload.price || 'N/A') +
+                        '\nUser: ' + (record.userName || 'Guest') +
+                        '\nEmail: ' + (record.userEmail || 'N/A') +
+                        '\nProduct ID: ' + (payload.productId || ''),
+                        record.userName || 'Guest');
+                }
+            } catch(e) {}
         } catch(e) { console.warn('trackPurchaseIntent failed', e); }
     }
     window.trackPurchaseIntent = trackPurchaseIntent;
