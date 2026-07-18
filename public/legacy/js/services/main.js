@@ -1585,6 +1585,13 @@ async function handleAuthSubmit(event) {
             if (verifyDisplay) verifyDisplay.textContent = user.email;
             
             switchAuthTab('verifyEmail');
+            // Notify admin of new signup
+            try {
+                window.notifyAdmin('New User Signup',
+                    'A new user has registered on Vextro Lyntra.\n\nName: ' + (name || '(not set)') +
+                    '\nEmail: ' + email + '\nUser ID: ' + (user.uid || '')
+                    , name || 'New User');
+            } catch(e) {}
         } else {
             // Log In Flow
             await window.auth.signInWithEmailAndPassword(email, password);
