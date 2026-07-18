@@ -2633,7 +2633,7 @@ window.openProduct = function(id) {
         const waLink = 'https://wa.me/923281270900?text=' + encodeURIComponent(p.whatsappMsg || '');
         if(document.getElementById('pdBuyNow')) document.getElementById('pdBuyNow').href = waLink;
 
-        if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = `<p>${p.fullDesc}</p>`;
+        if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = p.longDesc || (p.fullDesc ? `<p>${p.fullDesc}</p>` : (p.shortDesc ? `<p>${p.shortDesc}</p>` : ''));
         if(document.getElementById('pdFeatures')) document.getElementById('pdFeatures').innerHTML = (p.features||[]).map(f => `<li>${f}</li>`).join('');
 
         const reviewsEl = document.getElementById('pdReviews');
