@@ -701,12 +701,11 @@ function wireProductForm(ov, state, existing, onSave) {
       if (!title || isNaN(price)) return alert('Title and price are required');
       if (state.gallery.length === 0) return alert('Add at least one product image');
       let longDescVal = document.getElementById('pfLong').value;
-      // Base64 images embedded in the description blow past Firestore's 1MB doc limit.
-      // Strip them and tell the user to use the Gallery instead.
-      if (/<img[^>]+src=["']data:image\//i.test(longDescVal)) {
-        const ok = confirm('Description me embedded (base64) images hain — ye Firestore 1MB limit cross kar dete hain aur save fail hota hai.\n\nOK dabao to wo images description se hata di jayengi (gallery me alag se add karo). Cancel dabao to save ruk jayega.');
-        if (!ok) return;
-        longDescVal = longDescVal.replace(/<img[^>]+src=["']data:image\/[^"']+["'][^>]*>/gi, '');
+      // Firestore doc limit is 1 MB. Estimate final payload size and warn early.
+      const estBytes = new Blob([JSON.stringify(state.gallery) + longDescVal + JSON.stringify(state.fakeReviews)]).size;
+      if (estBytes > 950 * 1024) {
+        const mb = (estBytes/1024/1024).toFixed(2);
+        return alert(`Product data is too large (${mb} MB). Cloud limit is 1 MB per product.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.\n\nImages are already auto-compressed — very high-res photos still add up quickly.`);
       }
       const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
       const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
