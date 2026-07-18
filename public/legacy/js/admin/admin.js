@@ -304,11 +304,15 @@ function removeAdminDashboard() {
   const adm = document.getElementById('adminFullDashboard');
   if (adm) adm.remove();
   adminDashboardCreated = false;
+  document.body.classList.remove('is-admin');
   const userDash = document.getElementById('dashboardPage');
   if (userDash) userDash.style.display = '';
   // Show footer again
   const footer = document.querySelector('.real-footer');
-  if (footer) footer.style.display = '';
+  if (footer) {
+    footer.style.removeProperty('display');
+    footer.style.display = 'block';
+  }
 }
 
 window.adminLogout = function() {
@@ -322,7 +326,12 @@ window.adminLogout = function() {
 window.adminGoToSite = function() {
   removeAdminDashboard();
   sessionStorage.setItem('admin_skip_redirect', '1');
-  location.reload();
+  if (origShowPage) {
+    origShowPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    location.reload();
+  }
 };
 
 // Override show page to use separate admin dashboard
@@ -340,6 +349,7 @@ window.showPage = function (page, subview) {
     return;
   }
   // For all non-dashboard pages, use original showPage
+  removeAdminDashboard();
   if (origShowPage) origShowPage(page, subview);
 };
 
@@ -2213,6 +2223,7 @@ window.updateAuthUI = function(user) {
       sessionStorage.removeItem('admin_skip_redirect');
       isAdmin = false;
       document.body.classList.remove('is-admin');
+      removeAdminDashboard();
       return;
     }
     isAdmin = true;
