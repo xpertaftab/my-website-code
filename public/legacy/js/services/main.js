@@ -2398,6 +2398,8 @@ window.openProduct = function(id) {
     const p = window.PRODUCTS_DATA ? window.PRODUCTS_DATA[id] : null;
     if (!p) return;
     currentProductId = id;
+    window.currentProductId = id;
+
 
     try {
         if(document.getElementById('pdBreadcrumbTitle')) document.getElementById('pdBreadcrumbTitle').innerText = p.title;
