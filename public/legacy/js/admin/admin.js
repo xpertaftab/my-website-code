@@ -501,11 +501,15 @@ async function saveProductCatalogMeta() {
 }
 
 async function saveProductEverywhere(id, data) {
+  // Firestore first — if it fails (e.g. doc too large) we do NOT poison localStorage
+  if (window.fsSetDoc) {
+    await window.fsSetDoc('products', id, data);
+  } else if (window.vextroSave) {
+    await window.vextroSave('products', { ...(window.PRODUCTS_DATA||{}), [id]: data });
+  }
   window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
   window.PRODUCTS_DATA[id] = data;
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
-  if (window.fsSetDoc) await window.fsSetDoc('products', id, data);
-  else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA);
   await saveProductCatalogMeta();
 }
 
@@ -670,6 +674,14 @@ function wireProductForm(ov, state, existing, onSave) {
       const price = parseFloat(document.getElementById('pfPrice').value);
       if (!title || isNaN(price)) return alert('Title and price are required');
       if (state.gallery.length === 0) return alert('Add at least one product image');
+      let longDescVal = document.getElementById('pfLong').value;
+      // Base64 images embedded in the description blow past Firestore's 1MB doc limit.
+      // Strip them and tell the user to use the Gallery instead.
+      if (/<img[^>]+src=["']data:image\//i.test(longDescVal)) {
+        const ok = confirm('Description me embedded (base64) images hain — ye Firestore 1MB limit cross kar dete hain aur save fail hota hai.\n\nOK dabao to wo images description se hata di jayengi (gallery me alag se add karo). Cancel dabao to save ruk jayega.');
+        if (!ok) return;
+        longDescVal = longDescVal.replace(/<img[^>]+src=["']data:image\/[^"']+["'][^>]*>/gi, '');
+      }
       const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
       const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
       const data = {
@@ -681,7 +693,7 @@ function wireProductForm(ov, state, existing, onSave) {
         demoUrl: document.getElementById('pfDemo').value.trim() || '#',
         whatsappMsg: document.getElementById('pfWa').value.trim() || `Hi! I want to buy ${title} for USD ${price}. Please guide me.`,
         shortDesc: document.getElementById('pfShort').value.trim(),
-        longDesc: document.getElementById('pfLong').value,
+        longDesc: longDescVal,
         features: document.getElementById('pfFeatures').value.split(',').map(s=>s.trim()).filter(Boolean),
         image: state.gallery[0],
         gallery: state.gallery.slice(),
@@ -691,7 +703,13 @@ function wireProductForm(ov, state, existing, onSave) {
         reviews: cleanReviews.length,
         fakeReviews: cleanReviews
       };
-      await onSave(data);
+      try {
+        await onSave(data);
+      } catch(err) {
+        console.error(err);
+        alert('Save failed: ' + err.message);
+        btn.innerText='Save Product'; btn.disabled=false;
+      }
     } catch(e) { console.error(e); alert('Error: '+e.message); }
   };
 }
