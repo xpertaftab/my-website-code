@@ -2726,6 +2726,8 @@ window.filterMpCategory = function(category, el) {
 window.openMarketplaceListing = function(id) {
     const listing = MARKETPLACE_DATA[id];
     if (!listing) return;
+    window.currentListingId = id;
+
 
     // Status badge
     const statusEl = document.getElementById('mpdStatusBadge');
