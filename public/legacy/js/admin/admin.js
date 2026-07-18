@@ -553,9 +553,9 @@ function buildProductForm(p) {
       <div>
         <label style="${LS}">Full Description (supports inline images)</label>
         <textarea id="pfLong" rows="5" style="${IS}" placeholder="Detailed description. Click 'Add Image' to insert product images inline.">${p.longDesc||''}</textarea>
-        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
-          <label style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;color:#ff6b35;font-weight:600;"><i class="fa-solid fa-image"></i> Add Image to Description<input type="file" id="pfLongImg" accept="image/*" style="display:none;"></label>
-          <span style="color:#94a3b8;font-size:0.75rem;align-self:center;">Images embed as HTML</span>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center;">
+          <label style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;color:#ff6b35;font-weight:600;"><i class="fa-solid fa-image"></i> Add Image to Description<input type="file" id="pfLongImg" accept="image/*" multiple style="display:none;"></label>
+          <span id="pfLongImgStatus" style="color:#94a3b8;font-size:0.75rem;">Images auto-compressed for cloud save</span>
         </div>
       </div>
 
@@ -588,9 +588,12 @@ function buildProductForm(p) {
         <div id="pfReviews" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;position:sticky;bottom:0;background:#fff;padding-top:12px;">
-        <button id="pfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
-        <button id="pfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">${p.id?'Save Changes':'Save Product'}</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;position:sticky;bottom:0;background:#fff;padding-top:12px;flex-wrap:wrap;">
+        <div id="pfSizeInfo" style="font-size:0.75rem;color:#64748b;"><i class="fa-solid fa-database"></i> <span id="pfSizeVal">0 KB</span> / 950 KB (cloud limit)</div>
+        <div style="display:flex;gap:12px;">
+          <button id="pfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
+          <button id="pfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">${p.id?'Save Changes':'Save Product'}</button>
+        </div>
       </div>
     </div>`,
     state: { gallery, fakeReviews }
@@ -610,7 +613,7 @@ function wireProductForm(ov, state, existing, onSave) {
         <button type="button" data-i="${i}" class="pfImgDel" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,0.9);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:0.75rem;">×</button>
         ${i>0?`<button type="button" data-i="${i}" class="pfImgMain" style="position:absolute;bottom:2px;left:2px;background:rgba(15,23,42,0.75);color:#fff;border:none;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:0.6rem;">Set Main</button>`:''}
       </div>`).join('');
-    el.querySelectorAll('.pfImgDel').forEach(b => b.onclick = () => { state.gallery.splice(+b.dataset.i,1); renderGallery(); });
+    el.querySelectorAll('.pfImgDel').forEach(b => b.onclick = () => { state.gallery.splice(+b.dataset.i,1); renderGallery(); if (typeof updateSizeInfo==='function') updateSizeInfo(); });
     el.querySelectorAll('.pfImgMain').forEach(b => b.onclick = () => { const i=+b.dataset.i; const [x]=state.gallery.splice(i,1); state.gallery.unshift(x); renderGallery(); });
   }
   renderGallery();
@@ -622,24 +625,47 @@ function wireProductForm(ov, state, existing, onSave) {
     document.getElementById('pfImgUrl').value = '';
     renderGallery();
   };
-  document.getElementById('pfImgFiles').onchange = function() {
-    Array.from(this.files||[]).forEach(f => {
-      const r = new FileReader();
-      r.onload = e => { state.gallery.push(e.target.result); renderGallery(); };
-      r.readAsDataURL(f);
-    });
+  document.getElementById('pfImgFiles').onchange = async function() {
+    const files = Array.from(this.files||[]);
     this.value = '';
+    for (const f of files) {
+      try {
+        const dataUrl = await window.adminCompressImage(f, 1100, 0.72);
+        state.gallery.push(dataUrl);
+        renderGallery();
+        updateSizeInfo();
+      } catch(e) { console.warn('compress failed', e); }
+    }
   };
-  document.getElementById('pfLongImg').onchange = function() {
-    const f = this.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = e => {
-      const ta = document.getElementById('pfLong');
-      ta.value = (ta.value ? ta.value + '\n\n' : '') + `<img src="${e.target.result}" style="max-width:100%;border-radius:10px;margin:10px 0;">`;
-    };
-    r.readAsDataURL(f);
+  document.getElementById('pfLongImg').onchange = async function() {
+    const files = Array.from(this.files||[]);
     this.value = '';
+    const status = document.getElementById('pfLongImgStatus');
+    const ta = document.getElementById('pfLong');
+    for (const f of files) {
+      if (status) status.textContent = 'Compressing ' + f.name + '...';
+      try {
+        // Aggressive compression for description-embedded images so multiple images fit in the 1MB Firestore doc.
+        const dataUrl = await window.adminCompressImage(f, 800, 0.65);
+        ta.value = (ta.value ? ta.value + '\n\n' : '') + `<img src="${dataUrl}" style="max-width:100%;border-radius:10px;margin:10px 0;" alt="">`;
+        updateSizeInfo();
+      } catch(e) { console.warn('desc image failed', e); }
+    }
+    if (status) status.textContent = 'Images auto-compressed for cloud save';
   };
+
+  // Live size indicator — helps admin see whether they'll blow past the Firestore 1MB doc cap.
+  function updateSizeInfo() {
+    const el = document.getElementById('pfSizeVal'); if (!el) return;
+    const longV = (document.getElementById('pfLong')||{}).value || '';
+    const bytes = new Blob([JSON.stringify(state.gallery) + longV]).size;
+    const kb = Math.round(bytes/1024);
+    el.textContent = kb + ' KB';
+    const parent = document.getElementById('pfSizeInfo');
+    if (parent) parent.style.color = kb > 950 ? '#dc2626' : (kb > 750 ? '#ea580c' : '#64748b');
+  }
+  const longTa = document.getElementById('pfLong'); if (longTa) longTa.addEventListener('input', updateSizeInfo);
+  updateSizeInfo();
 
   function renderReviews() {
     const el = document.getElementById('pfReviews');
@@ -675,12 +701,11 @@ function wireProductForm(ov, state, existing, onSave) {
       if (!title || isNaN(price)) return alert('Title and price are required');
       if (state.gallery.length === 0) return alert('Add at least one product image');
       let longDescVal = document.getElementById('pfLong').value;
-      // Base64 images embedded in the description blow past Firestore's 1MB doc limit.
-      // Strip them and tell the user to use the Gallery instead.
-      if (/<img[^>]+src=["']data:image\//i.test(longDescVal)) {
-        const ok = confirm('Description me embedded (base64) images hain — ye Firestore 1MB limit cross kar dete hain aur save fail hota hai.\n\nOK dabao to wo images description se hata di jayengi (gallery me alag se add karo). Cancel dabao to save ruk jayega.');
-        if (!ok) return;
-        longDescVal = longDescVal.replace(/<img[^>]+src=["']data:image\/[^"']+["'][^>]*>/gi, '');
+      // Firestore doc limit is 1 MB. Estimate final payload size and warn early.
+      const estBytes = new Blob([JSON.stringify(state.gallery) + longDescVal + JSON.stringify(state.fakeReviews)]).size;
+      if (estBytes > 950 * 1024) {
+        const mb = (estBytes/1024/1024).toFixed(2);
+        return alert(`Product data is too large (${mb} MB). Cloud limit is 1 MB per product.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.\n\nImages are already auto-compressed — very high-res photos still add up quickly.`);
       }
       const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
       const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
