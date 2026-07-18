@@ -1062,8 +1062,10 @@ async function renderAdminUsersNew(container) {
     // Comments by email
     const commentsByEmail = {}, commentsListByEmail = {};
     Object.values(commentsMap || {}).forEach(entry => {
+      if (!entry || typeof entry !== 'object') return;
       const items = Array.isArray(entry.items) ? entry.items : [];
       items.forEach(c => {
+        if (!c || typeof c !== 'object') return;
         const em = (c.email || '').toLowerCase().trim();
         if (em) {
           commentsByEmail[em] = (commentsByEmail[em] || 0) + 1;
@@ -1075,6 +1077,7 @@ async function renderAdminUsersNew(container) {
     // Purchases by email
     const purchasesByEmail = {}, purchasesListByEmail = {};
     Object.values(purchasesMap || {}).forEach(p => {
+      if (!p || typeof p !== 'object') return;
       const em = (p.userEmail || '').toLowerCase().trim();
       if (!em) return;
       purchasesByEmail[em] = (purchasesByEmail[em] || 0) + 1;
@@ -1084,6 +1087,7 @@ async function renderAdminUsersNew(container) {
     // Listings by userEmail (if tracked)
     const listingsByEmail = {};
     Object.values(listingsMap || {}).forEach(l => {
+      if (!l || typeof l !== 'object') return;
       const em = (l.userEmail || l.ownerEmail || '').toLowerCase().trim();
       if (!em) return;
       if (!listingsByEmail[em]) listingsByEmail[em] = [];
@@ -1092,12 +1096,16 @@ async function renderAdminUsersNew(container) {
     // Contacts by email
     const contactsByEmail = {};
     Object.values(contactsMap || {}).forEach(c => {
+      if (!c || typeof c !== 'object') return;
       const em = (c.email || '').toLowerCase().trim();
       if (!em) return;
       if (!contactsByEmail[em]) contactsByEmail[em] = [];
       contactsByEmail[em].push(c);
     });
 
+    Object.entries(usersMap || {}).forEach(([uid, u]) => {
+      if (u && typeof u === 'object' && !u.uid) u.uid = uid;
+    });
     window.__adminUsersCache = usersMap;
     window.__adminUsersCommentsByEmail = commentsByEmail;
     window.__adminUsersData = {
@@ -1112,7 +1120,33 @@ async function renderAdminUsersNew(container) {
 }
 
 
+function adminUserTime(value) {
+  if (!value) return 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'number') return value < 1000000000000 ? value * 1000 : value;
+  if (typeof value === 'string') {
+    const ms = Date.parse(value);
+    return Number.isFinite(ms) ? ms : 0;
+  }
+  if (typeof value === 'object') {
+    if (typeof value.toDate === 'function') {
+      try { return value.toDate().getTime() || 0; } catch(e) {}
+    }
+    if (value.seconds || value._seconds) return Number(value.seconds || value._seconds) * 1000;
+    if (value.timestampValue) return adminUserTime(value.timestampValue);
+    if (value.stringValue) return adminUserTime(value.stringValue);
+  }
+  return 0;
+}
+
+function adminUserDate(value) {
+  const ms = adminUserTime(value);
+  return ms ? new Date(ms).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : '—';
+}
+
 function renderAdminUsersTable(container, filter) {
+  container = container || document.getElementById('adminContent');
+  if (!container) return;
   const usersMap = window.__adminUsersCache || {};
   const commentsByEmail = window.__adminUsersCommentsByEmail || {};
   const f = (filter || '').toLowerCase().trim();
@@ -1122,7 +1156,7 @@ function renderAdminUsersTable(container, filter) {
     (u.displayName || '').toLowerCase().includes(f)
   );
   // newest first
-  users.sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  users.sort((a,b) => adminUserTime(b.createdAt || b.lastLoginAt) - adminUserTime(a.createdAt || a.lastLoginAt));
 
   const stats = {
     total: Object.keys(usersMap).length,
@@ -1135,11 +1169,11 @@ function renderAdminUsersTable(container, filter) {
   const now = Date.now();
   const DAY = 86400000;
   const allUsersArr = Object.values(usersMap);
-  const new7d = allUsersArr.filter(u => u.createdAt && (now - new Date(u.createdAt).getTime()) < 7*DAY).length;
-  const active7d = allUsersArr.filter(u => u.lastLoginAt && (now - new Date(u.lastLoginAt).getTime()) < 7*DAY).length;
+  const new7d = allUsersArr.filter(u => u && adminUserTime(u.createdAt) && (now - adminUserTime(u.createdAt)) < 7*DAY).length;
+  const active7d = allUsersArr.filter(u => u && adminUserTime(u.lastLoginAt) && (now - adminUserTime(u.lastLoginAt)) < 7*DAY).length;
   const purchasesByEmail = (window.__adminUsersData && window.__adminUsersData.purchasesByEmail) || {};
   const withPurchases = Object.keys(purchasesByEmail).length;
-  const totalPurchases = Object.values(purchasesByEmail).reduce((a,b)=>a+b,0);
+  const totalPurchases = Object.values(purchasesByEmail).reduce((a,b)=>a + (Number(b) || 0),0);
 
   // Current filter state
   const fRole = window.__adminUserFilterRole || '';
@@ -1182,17 +1216,17 @@ function renderAdminUsersTable(container, filter) {
           <input id="adminUserSearch" type="text" placeholder="Search by name or email…" value="${f.replace(/"/g,'&quot;')}"
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
-        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Roles</option>
           <option value="user" ${fRole==='user'?'selected':''}>👤 User</option>
           <option value="admin" ${fRole==='admin'?'selected':''}>🛡️ Admin</option>
         </select>
-        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Status</option>
           <option value="active" ${fStatus==='active'?'selected':''}>Active</option>
           <option value="banned" ${fStatus==='banned'?'selected':''}>Banned</option>
         </select>
-        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.getElementById('adminContent'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
           <option value="">All Providers</option>
           <option value="google" ${fProvider==='google'?'selected':''}>Google</option>
           <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
@@ -1230,12 +1264,13 @@ function renderAdminUsersTable(container, filter) {
           const commentsN = commentsByEmail[email] || 0;
           const purchasesN = (window.__adminUsersData?.purchasesByEmail || {})[email] || 0;
           const initial = (u.displayName || u.email || '?').trim().charAt(0).toUpperCase();
-          const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
-          const last = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
+          const joined = adminUserDate(u.createdAt);
+          const last = adminUserDate(u.lastLoginAt);
           const status = u.status || 'active';
           const role = u.role || 'user';
-          const provIcon = u.provider && u.provider.includes('google') ? 'fa-brands fa-google' : 'fa-solid fa-envelope';
-          const provLabel = u.provider && u.provider.includes('google') ? 'Google' : 'Email';
+          const provider = String(u.provider || 'password').toLowerCase();
+          const provIcon = provider.includes('google') ? 'fa-brands fa-google' : 'fa-solid fa-envelope';
+          const provLabel = provider.includes('google') ? 'Google' : 'Email';
           const noteBadge = u.notes ? '<span title="Has admin note" style="color:#f59e0b;margin-left:4px;"><i class="fa-solid fa-note-sticky"></i></span>' : '';
           return `
           <tr>
