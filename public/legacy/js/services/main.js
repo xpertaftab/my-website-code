@@ -2442,7 +2442,7 @@ window.renderShopProducts = function() {
                 ${ribbonHtml}
                 ${badgesHtml}
                 <img src="${p.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80'}" alt="${p.title || 'Product'}" loading="lazy">
-                <div class="card-overlay"><span class="view-btn"><i class="fa-solid fa-eye"></i> Quick View</span></div>
+                
             </div>
             <div class="product-info-body">
                 <div class="product-category">${p.category || 'General'}</div>
