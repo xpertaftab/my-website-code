@@ -1131,17 +1131,47 @@ function renderAdminUsersTable(container, filter) {
     active: Object.values(usersMap).filter(u => (u.status || 'active') === 'active').length
   };
 
+  // Advanced analytics
+  const now = Date.now();
+  const DAY = 86400000;
+  const allUsersArr = Object.values(usersMap);
+  const new7d = allUsersArr.filter(u => u.createdAt && (now - new Date(u.createdAt).getTime()) < 7*DAY).length;
+  const active7d = allUsersArr.filter(u => u.lastLoginAt && (now - new Date(u.lastLoginAt).getTime()) < 7*DAY).length;
+  const withPurchases = Object.keys(purchasesByEmail || {}).length;
+  const totalPurchases = Object.values(purchasesByEmail || {}).reduce((a,b)=>a+b,0);
+
+  // Current filter state
+  const fRole = window.__adminUserFilterRole || '';
+  const fStatus = window.__adminUserFilterStatus || '';
+  const fProvider = window.__adminUserFilterProvider || '';
+
+  // Apply advanced filters on top of search
+  const filteredUsers = users.filter(u => {
+    if (fRole && (u.role || 'user') !== fRole) return false;
+    if (fStatus && (u.status || 'active') !== fStatus) return false;
+    if (fProvider) {
+      const p = (u.provider || 'password').toLowerCase();
+      if (fProvider === 'google' && !p.includes('google')) return false;
+      if (fProvider === 'password' && p.includes('google')) return false;
+    }
+    return true;
+  });
+
   container.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;">
       ${[
         {label:'Total Users', val:stats.total, c:'#3b82f6', i:'fa-users'},
         {label:'Active', val:stats.active, c:'#10b981', i:'fa-user-check'},
-        {label:'Admins', val:stats.admins, c:'#f59e0b', i:'fa-user-shield'},
+        {label:'New (7d)', val:new7d, c:'#06b6d4', i:'fa-user-plus'},
+        {label:'Active (7d)', val:active7d, c:'#8b5cf6', i:'fa-bolt'},
+        {label:'Buyers', val:withPurchases, c:'#f59e0b', i:'fa-cart-shopping'},
+        {label:'Buy Clicks', val:totalPurchases, c:'#ec4899', i:'fa-hand-pointer'},
+        {label:'Admins', val:stats.admins, c:'#f97316', i:'fa-user-shield'},
         {label:'Banned', val:stats.banned, c:'#ef4444', i:'fa-user-slash'}
       ].map(s => `
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;border-radius:10px;background:${s.c}18;color:${s.c};display:flex;align-items:center;justify-content:center;"><i class="fa-solid ${s.i}"></i></div>
-          <div><div style="font-size:0.78rem;color:#94a3b8;font-weight:600;">${s.label}</div><div style="font-size:1.35rem;font-weight:800;color:#0f172a;">${s.val}</div></div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:${s.c}18;color:${s.c};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid ${s.i}"></i></div>
+          <div style="min-width:0;"><div style="font-size:0.72rem;color:#94a3b8;font-weight:600;">${s.label}</div><div style="font-size:1.25rem;font-weight:800;color:#0f172a;">${s.val}</div></div>
         </div>`).join('')}
     </div>
     <div class="admin-panel-card">
@@ -1151,20 +1181,50 @@ function renderAdminUsersTable(container, filter) {
           <input id="adminUserSearch" type="text" placeholder="Search by name or email…" value="${f.replace(/"/g,'&quot;')}"
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
-        <div style="font-size:0.82rem;color:#64748b;">${users.length} shown</div>
-        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import JSON</button>
+        <select id="adminUserFilterRole" onchange="window.__adminUserFilterRole=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Roles</option>
+          <option value="user" ${fRole==='user'?'selected':''}>👤 User</option>
+          <option value="admin" ${fRole==='admin'?'selected':''}>🛡️ Admin</option>
+        </select>
+        <select id="adminUserFilterStatus" onchange="window.__adminUserFilterStatus=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Status</option>
+          <option value="active" ${fStatus==='active'?'selected':''}>Active</option>
+          <option value="banned" ${fStatus==='banned'?'selected':''}>Banned</option>
+        </select>
+        <select id="adminUserFilterProvider" onchange="window.__adminUserFilterProvider=this.value;renderAdminUsersTable(document.querySelector('.admin-content'), document.getElementById('adminUserSearch')?.value||'')" style="padding:9px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:0.82rem;color:#0f172a;">
+          <option value="">All Providers</option>
+          <option value="google" ${fProvider==='google'?'selected':''}>Google</option>
+          <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
+        </select>
+        <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
+        <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+        <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
+        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
       </div>
-      ${users.length === 0 ? `
+
+      <!-- Bulk action bar (shown when selection > 0) -->
+      <div id="adminBulkBar" style="display:none;padding:10px 16px;background:linear-gradient(90deg,#fff7ed,#ffedd5);border-bottom:1px solid #fed7aa;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span style="font-weight:700;color:#9a3412;font-size:0.85rem;"><i class="fa-solid fa-check-double"></i> <span id="adminBulkCount">0</span> selected</span>
+        <button onclick="adminBulkAction('ban')" style="padding:7px 12px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-ban"></i> Ban</button>
+        <button onclick="adminBulkAction('unban')" style="padding:7px 12px;background:#10b981;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user-check"></i> Unban</button>
+        <button onclick="adminBulkAction('role-admin')" style="padding:7px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user-shield"></i> Make Admin</button>
+        <button onclick="adminBulkAction('role-user')" style="padding:7px 12px;background:#64748b;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-user"></i> Make User</button>
+        <button onclick="adminBulkNotify()" style="padding:7px 12px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-bell"></i> Notify</button>
+        <button onclick="adminBulkAction('delete')" style="padding:7px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        <button onclick="adminBulkClear()" style="padding:7px 12px;background:#fff;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;margin-left:auto;">Clear</button>
+      </div>
+
+      ${filteredUsers.length === 0 ? `
         <div class="admin-empty" style="padding:40px 20px;">
           <i class="fa-solid fa-users"></i>
-          <p style="font-weight:600;">${f ? 'No matching users' : 'No users yet'}</p>
+          <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
           ${!f ? '<p style="font-size:0.82rem;color:#94a3b8;">Users appear here after they sign in for the first time.</p>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead><tr><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
-        <tbody>${users.map(u => {
+        <thead><tr><th style="width:32px;"><input type="checkbox" id="adminBulkSelectAll" onchange="adminBulkToggleAll(this.checked)"></th><th>User</th><th>Provider</th><th>Role</th><th>Status</th><th>Purchases</th><th>Comments</th><th>Joined</th><th>Last Login</th><th style="text-align:right;">Actions</th></tr></thead>
+        <tbody>${filteredUsers.map(u => {
           const email = (u.email || '').toLowerCase();
           const commentsN = commentsByEmail[email] || 0;
           const purchasesN = (window.__adminUsersData?.purchasesByEmail || {})[email] || 0;
@@ -1175,14 +1235,16 @@ function renderAdminUsersTable(container, filter) {
           const role = u.role || 'user';
           const provIcon = u.provider && u.provider.includes('google') ? 'fa-brands fa-google' : 'fa-solid fa-envelope';
           const provLabel = u.provider && u.provider.includes('google') ? 'Google' : 'Email';
+          const noteBadge = u.notes ? '<span title="Has admin note" style="color:#f59e0b;margin-left:4px;"><i class="fa-solid fa-note-sticky"></i></span>' : '';
           return `
           <tr>
+            <td><input type="checkbox" class="adminBulkChk" data-uid="${u.uid}" onchange="adminBulkUpdateBar()"></td>
             <td>
               <div style="display:flex;align-items:center;gap:10px;">
                 ${u.photoURL ? `<img src="${u.photoURL}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` :
                   `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;">${initial}</div>`}
                 <div style="min-width:0;">
-                  <div style="font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${(u.displayName||'User').replace(/</g,'&lt;')}</div>
+                  <div style="font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${(u.displayName||'User').replace(/</g,'&lt;')}${noteBadge}</div>
                   <div style="font-size:0.78rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${(u.email||'').replace(/</g,'&lt;')}</div>
                 </div>
               </div>
