@@ -553,9 +553,9 @@ function buildProductForm(p) {
       <div>
         <label style="${LS}">Full Description (supports inline images)</label>
         <textarea id="pfLong" rows="5" style="${IS}" placeholder="Detailed description. Click 'Add Image' to insert product images inline.">${p.longDesc||''}</textarea>
-        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
-          <label style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;color:#ff6b35;font-weight:600;"><i class="fa-solid fa-image"></i> Add Image to Description<input type="file" id="pfLongImg" accept="image/*" style="display:none;"></label>
-          <span style="color:#94a3b8;font-size:0.75rem;align-self:center;">Images embed as HTML</span>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center;">
+          <label style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;color:#ff6b35;font-weight:600;"><i class="fa-solid fa-image"></i> Add Image to Description<input type="file" id="pfLongImg" accept="image/*" multiple style="display:none;"></label>
+          <span id="pfLongImgStatus" style="color:#94a3b8;font-size:0.75rem;">Images auto-compressed for cloud save</span>
         </div>
       </div>
 
