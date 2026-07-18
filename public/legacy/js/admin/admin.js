@@ -1114,6 +1114,8 @@ function renderAdminUsersTable(container, filter) {
             style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e2e8f0;border-radius:10px;font-size:0.9rem;background:#f8fafc;color:#0f172a;">
         </div>
         <div style="font-size:0.82rem;color:#64748b;">${users.length} shown</div>
+        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import JSON</button>
+        <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
       </div>
       ${users.length === 0 ? `
         <div class="admin-empty" style="padding:40px 20px;">
