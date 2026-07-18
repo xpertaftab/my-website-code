@@ -2216,7 +2216,10 @@ window.adminSaveUserStats = async function(uid) {
   const u = (window.__adminUsersCache || {})[uid];
   if (u && u.email) payload.userEmail = u.email;
   try {
-    if (window.fsSetDoc) await window.fsSetDoc('user_stats', uid, payload);
+    if (window.fsSetDoc) {
+      try { await window.fsSetDoc('user_stats', uid, payload); }
+      catch(e) { console.warn('user_stats save failed, saving inside user record instead', e.message); }
+    }
     try { localStorage.setItem('user_stats_' + uid, JSON.stringify(payload)); } catch(e) {}
     if (!window.__adminUsersData) window.__adminUsersData = {};
     if (!window.__adminUsersData.statsMap) window.__adminUsersData.statsMap = {};
@@ -2245,7 +2248,10 @@ window.adminClearUserStats = async function(uid) {
   const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
   keys.forEach(k => { const el = document.getElementById('ust_' + k); if (el) el.value = ''; });
   try {
-    if (window.fsDeleteDoc) await window.fsDeleteDoc('user_stats', uid);
+    if (window.fsDeleteDoc) {
+      try { await window.fsDeleteDoc('user_stats', uid); }
+      catch(e) { console.warn('user_stats delete failed, clearing inside user record instead', e.message); }
+    }
     try { localStorage.removeItem('user_stats_' + uid); } catch(e) {}
     if (window.__adminUsersData && window.__adminUsersData.statsMap) delete window.__adminUsersData.statsMap[uid];
     const u = (window.__adminUsersCache || {})[uid];
