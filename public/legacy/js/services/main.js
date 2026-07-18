@@ -1901,6 +1901,9 @@ function updateAuthUI(user) {
 
         // Apply admin-configured dashboard stats overrides (fake values)
         if (window.applyUserFakeStats) window.applyUserFakeStats(user.uid);
+        // Load admin-sent notifications into the user's bell
+        if (window.loadUserNotifications) window.loadUserNotifications(user.uid);
+        
         
         if (desktopAuth) desktopAuth.style.display = 'none';
         if (desktopUser) desktopUser.style.display = 'flex';
