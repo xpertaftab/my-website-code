@@ -2016,7 +2016,7 @@ window.adminViewUserDetails = function(uid) {
 
           <!-- Dashboard Stats Override (admin-controlled fake numbers) -->
           ${(function(){
-            const s = (window.__adminUsersData && window.__adminUsersData.statsMap && window.__adminUsersData.statsMap[u.uid]) || {};
+            const s = window.adminGetUserStatsFromCache ? window.adminGetUserStatsFromCache(u.uid, u) : ((window.__adminUsersData && window.__adminUsersData.statsMap && window.__adminUsersData.statsMap[u.uid]) || u.dashboardStats || {});
             const val = v => (v === undefined || v === null) ? '' : String(v);
             const field = (id, label, ph, step) => `
               <div style="display:flex;flex-direction:column;gap:4px;">
@@ -2188,23 +2188,49 @@ window.adminViewUserDetails = function(uid) {
   document.body.appendChild(wrapper.firstElementChild);
 };
 
-// Save admin-configured dashboard stat overrides for a specific user
-window.adminSaveUserStats = async function(uid) {
+window.adminGetUserStatsFromCache = function(uid, user) {
+  const statsMap = (window.__adminUsersData && window.__adminUsersData.statsMap) || {};
+  let stats = (statsMap && statsMap[uid]) || (user && user.dashboardStats) || null;
+  if (!stats) {
+    try { stats = JSON.parse(localStorage.getItem('user_stats_' + uid) || 'null'); } catch(e) {}
+  }
+  return stats || {};
+};
+
+window.adminBuildUserStatsPayload = function(uid) {
   const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
   const payload = { uid };
   keys.forEach(k => {
     const el = document.getElementById('ust_' + k);
     if (!el) return;
-    const v = el.value.trim();
+    const v = String(el.value || '').trim();
     payload[k] = v === '' ? '' : v;
   });
   payload.updatedAt = new Date().toISOString();
+  return payload;
+};
+
+// Save admin-configured dashboard stat overrides for a specific user
+window.adminSaveUserStats = async function(uid) {
+  const payload = window.adminBuildUserStatsPayload ? window.adminBuildUserStatsPayload(uid) : { uid, updatedAt: new Date().toISOString() };
+  const u = (window.__adminUsersCache || {})[uid];
+  if (u && u.email) payload.userEmail = u.email;
   try {
-    if (window.fsSetDoc) await window.fsSetDoc('user_stats', uid, payload);
+    if (window.fsSetDoc) {
+      try { await window.fsSetDoc('user_stats', uid, payload); }
+      catch(e) { console.warn('user_stats save failed, saving inside user record instead', e.message); }
+    }
     try { localStorage.setItem('user_stats_' + uid, JSON.stringify(payload)); } catch(e) {}
     if (!window.__adminUsersData) window.__adminUsersData = {};
     if (!window.__adminUsersData.statsMap) window.__adminUsersData.statsMap = {};
     window.__adminUsersData.statsMap[uid] = payload;
+    if (u) {
+      u.dashboardStats = payload;
+      window.__adminUsersCache[uid] = u;
+      if (window.fsSetDoc) {
+        try { await window.fsSetDoc('users', uid, u); } catch(e) { console.warn('embedded dashboard stats save failed', e.message); }
+      }
+    }
     const msg = document.getElementById('ust_saveMsg_' + uid);
     if (msg) { msg.textContent = '✓ Saved'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
     // If the admin is editing their own account, refresh their dashboard live
@@ -2222,9 +2248,20 @@ window.adminClearUserStats = async function(uid) {
   const keys = ['listings','listingsActive','views','bids','portfolio','active','pending','sold','blogs','rating'];
   keys.forEach(k => { const el = document.getElementById('ust_' + k); if (el) el.value = ''; });
   try {
-    if (window.fsDeleteDoc) await window.fsDeleteDoc('user_stats', uid);
+    if (window.fsDeleteDoc) {
+      try { await window.fsDeleteDoc('user_stats', uid); }
+      catch(e) { console.warn('user_stats delete failed, clearing inside user record instead', e.message); }
+    }
     try { localStorage.removeItem('user_stats_' + uid); } catch(e) {}
     if (window.__adminUsersData && window.__adminUsersData.statsMap) delete window.__adminUsersData.statsMap[uid];
+    const u = (window.__adminUsersCache || {})[uid];
+    if (u) {
+      u.dashboardStats = {};
+      window.__adminUsersCache[uid] = u;
+      if (window.fsSetDoc) {
+        try { await window.fsSetDoc('users', uid, u); } catch(e) { console.warn('embedded dashboard stats clear failed', e.message); }
+      }
+    }
     const msg = document.getElementById('ust_saveMsg_' + uid);
     if (msg) { msg.textContent = '✓ Cleared'; setTimeout(()=>{ if (msg) msg.textContent=''; }, 2500); }
   } catch(e) { alert('Clear failed: ' + e.message); }
