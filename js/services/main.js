@@ -384,6 +384,10 @@ function showPage(page, subview) {
     } else if (page === 'product') {
         const pd = document.getElementById('productDetailPage');
         if(pd) pd.style.display = 'block';
+    } else if (page === 'tools') {
+        const tp = document.getElementById('toolsPage');
+        if(tp) tp.style.display = 'block';
+        if (typeof window.renderToolsPage === 'function') window.renderToolsPage();
     } else {
         if(home) home.style.display = 'block';
         if(navItems[0]) navItems[0].classList.add('active');
