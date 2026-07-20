@@ -60,9 +60,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const hasLocalData = window.PRODUCTS_DATA && Object.keys(window.PRODUCTS_DATA).length > 0;
 
   // 1. Try Firestore first (cross-browser/device sync). Remote data wins over stale localStorage.
-  if (window.fsLoadMap) {
+  // Uses the media-hydrated loader so images stored in the separate
+  // `product_media` collection get inlined back into each product.
+  if (window.fsLoadProductsHydrated || window.fsLoadMap) {
     try {
-      const fsData = await window.fsLoadMap('products');
+      const fsData = window.fsLoadProductsHydrated
+        ? await window.fsLoadProductsHydrated()
+        : await window.fsLoadMap('products');
       if (fsData && Object.keys(fsData).length > 0) {
         window.PRODUCTS_DATA = fsData;
         try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
