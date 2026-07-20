@@ -263,10 +263,18 @@ function showPage(page, subview) {
 
     // Update location path to enable refresh and back/forward persistence without #
     const pageKey = page || 'home';
+    const isToolRoute = pageKey === 'tools' && (
+        location.pathname === '/tools' ||
+        location.pathname.startsWith('/tools/') ||
+        location.hash.startsWith('#/tools')
+    );
     if (pageKey === 'home') {
         if (location.pathname !== '/' && location.pathname !== '/index.html') {
             history.pushState(null, null, '/');
         }
+    } else if (pageKey === 'tools') {
+        // Keep /tools/<id> or #/tools/<id> intact so direct links and refresh open the detail page.
+        if (!isToolRoute) history.pushState(null, null, '/tools');
     } else {
         if (location.pathname !== '/' + pageKey) {
             history.pushState(null, null, '/' + pageKey);
@@ -985,7 +993,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentHash = location.hash.replace('#', '');
     const activeRoute = currentHash ? currentHash : currentPath;
 
-    if (activeRoute.startsWith('service/') || activeRoute.startsWith('service-')) {
+    if (currentHash.startsWith('/tools') || currentPath === 'tools' || currentPath.startsWith('tools/')) {
+        showPage('tools');
+    } else if (activeRoute.startsWith('service/') || activeRoute.startsWith('service-')) {
         const serviceId = activeRoute.replace('service/', '').replace('service-', '');
         showService(serviceId);
     } else if (activeRoute !== 'home' && activeRoute !== 'index.html') {
@@ -1000,6 +1010,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Listen to popstate changes for browser back/forward buttons (replaces hashchange)
 window.addEventListener('popstate', () => {
+    if (location.hash.startsWith('#/tools') || location.pathname === '/tools' || location.pathname.startsWith('/tools/')) {
+        showPage('tools');
+        return;
+    }
     const currentPath = location.pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
     if (currentPath.startsWith('service/')) {
         const serviceId = currentPath.replace('service/', '');
@@ -1007,6 +1021,13 @@ window.addEventListener('popstate', () => {
     } else {
         const page = (currentPath === 'index.html') ? 'home' : currentPath;
         showPage(page);
+    }
+});
+
+// Hash routes are used for individual tool pages: #/tools/<tool-id>
+window.addEventListener('hashchange', () => {
+    if (location.hash.startsWith('#/tools')) {
+        showPage('tools');
     }
 });
 

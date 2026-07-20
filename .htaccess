@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Serve existing files and folders normally.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# SPA fallback: /tools/url-shortener, /shop, /service/web etc. load index.html.
+RewriteRule ^ index.html [L]

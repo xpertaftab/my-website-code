@@ -37,6 +37,7 @@ cp -f "$SRC"/index.html "$SRC"/style.css "$DEPLOYPATH/"
 [ ! -f "$SRC"/main.mp4 ] || cp -f "$SRC"/main.mp4 "$DEPLOYPATH/"
 [ ! -f "$SRC"/robots.txt ] || cp -f "$SRC"/robots.txt "$DEPLOYPATH/"
 [ ! -f "$SRC"/sitemap.xml ] || cp -f "$SRC"/sitemap.xml "$DEPLOYPATH/"
+[ ! -f "$SRC"/.htaccess ] || cp -f "$SRC"/.htaccess "$DEPLOYPATH/"
 
 mkdir -p "$DEPLOYPATH/js" "$DEPLOYPATH/data" "$DEPLOYPATH/assets"
 cp -Rf "$SRC"/js/. "$DEPLOYPATH/js/"

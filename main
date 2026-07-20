@@ -41,6 +41,7 @@ done
 [ ! -f "$SRC"/main.mp4 ] || /bin/cp -f "$SRC"/main.mp4 "$DEPLOYPATH/"
 [ ! -f "$SRC"/robots.txt ] || /bin/cp -f "$SRC"/robots.txt "$DEPLOYPATH/"
 [ ! -f "$SRC"/sitemap.xml ] || /bin/cp -f "$SRC"/sitemap.xml "$DEPLOYPATH/"
+[ ! -f "$SRC"/.htaccess ] || /bin/cp -f "$SRC"/.htaccess "$DEPLOYPATH/"
 
 /bin/mkdir -p "$DEPLOYPATH/js" "$DEPLOYPATH/data" "$DEPLOYPATH/assets"
 /bin/cp -Rf "$SRC"/js/. "$DEPLOYPATH/js/"

@@ -15,6 +15,7 @@ deployment:
     - /bin/test ! -f $SRC/main.mp4 || /bin/cp -f $SRC/main.mp4 $DEPLOYPATH
     - /bin/test ! -f $SRC/robots.txt || /bin/cp -f $SRC/robots.txt $DEPLOYPATH
     - /bin/test ! -f $SRC/sitemap.xml || /bin/cp -f $SRC/sitemap.xml $DEPLOYPATH
+    - /bin/test ! -f $SRC/.htaccess || /bin/cp -f $SRC/.htaccess $DEPLOYPATH
     - /bin/mkdir -p $DEPLOYPATH/js $DEPLOYPATH/data $DEPLOYPATH/assets
     - /bin/cp -Rf $SRC/js/. $DEPLOYPATH/js/
     - /bin/cp -Rf $SRC/data/. $DEPLOYPATH/data/
