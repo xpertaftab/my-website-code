@@ -427,8 +427,10 @@ async function renderAdminProductsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
     try {
-      if (window.fsLoadMap) {
-        const fsData = await window.fsLoadMap('products');
+      if (window.fsLoadProductsHydrated || window.fsLoadMap) {
+        const fsData = window.fsLoadProductsHydrated
+          ? await window.fsLoadProductsHydrated()
+          : await window.fsLoadMap('products');
         const meta = await window.fsLoadMap('site_meta');
         if (fsData && Object.keys(fsData).length > 0) {
           window.PRODUCTS_DATA = fsData;
@@ -501,8 +503,12 @@ async function saveProductCatalogMeta() {
 }
 
 async function saveProductEverywhere(id, data) {
-  // Firestore first — if it fails (e.g. doc too large) we do NOT poison localStorage
-  if (window.fsSetDoc) {
+  // Firestore first — the media-splitter stores heavy base64 images
+  // as separate `product_media` docs so the main product doc stays
+  // under 1 MB and each product can carry up to ~5 MB total media.
+  if (window.fsSaveProductWithMedia) {
+    await window.fsSaveProductWithMedia(id, data);
+  } else if (window.fsSetDoc) {
     await window.fsSetDoc('products', id, data);
   } else if (window.vextroSave) {
     await window.vextroSave('products', { ...(window.PRODUCTS_DATA||{}), [id]: data });
@@ -516,7 +522,8 @@ async function saveProductEverywhere(id, data) {
 async function deleteProductEverywhere(id) {
   if (window.PRODUCTS_DATA && window.PRODUCTS_DATA[id]) delete window.PRODUCTS_DATA[id];
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA || {})); } catch(e) {}
-  if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
+  if (window.fsDeleteProductWithMedia) await window.fsDeleteProductWithMedia(id);
+  else if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
   else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA || {});
   await saveProductCatalogMeta();
 }
@@ -596,7 +603,7 @@ function buildProductForm(p) {
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;position:sticky;bottom:0;background:#fff;padding-top:12px;flex-wrap:wrap;">
-        <div id="pfSizeInfo" style="font-size:0.75rem;color:#64748b;"><i class="fa-solid fa-database"></i> <span id="pfSizeVal">0 KB</span> / 950 KB (cloud limit)</div>
+        <div id="pfSizeInfo" style="font-size:0.75rem;color:#64748b;"><i class="fa-solid fa-database"></i> <span id="pfSizeVal">0 KB</span> / 5 MB total media (each image ≤ 950 KB)</div>
         <div style="display:flex;gap:12px;">
           <button id="pfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
           <button id="pfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">${p.id?'Save Changes':'Save Product'}</button>
@@ -661,15 +668,17 @@ function wireProductForm(ov, state, existing, onSave) {
     if (status) status.textContent = 'Images auto-compressed for cloud save';
   };
 
-  // Live size indicator — helps admin see whether they'll blow past the Firestore 1MB doc cap.
+  // Live size indicator — total media (gallery + inline desc images)
+  // is now split across separate Firestore docs; overall budget = 5 MB.
   function updateSizeInfo() {
     const el = document.getElementById('pfSizeVal'); if (!el) return;
     const longV = (document.getElementById('pfLong')||{}).value || '';
     const bytes = new Blob([JSON.stringify(state.gallery) + longV]).size;
     const kb = Math.round(bytes/1024);
-    el.textContent = kb + ' KB';
+    el.textContent = kb < 1024 ? (kb + ' KB') : ((kb/1024).toFixed(2) + ' MB');
     const parent = document.getElementById('pfSizeInfo');
-    if (parent) parent.style.color = kb > 950 ? '#dc2626' : (kb > 750 ? '#ea580c' : '#64748b');
+    const MB5 = 5 * 1024;
+    if (parent) parent.style.color = kb > MB5 ? '#dc2626' : (kb > MB5 * 0.8 ? '#ea580c' : '#64748b');
   }
   const longTa = document.getElementById('pfLong'); if (longTa) longTa.addEventListener('input', updateSizeInfo);
   updateSizeInfo();
@@ -708,11 +717,13 @@ function wireProductForm(ov, state, existing, onSave) {
       if (!title || isNaN(price)) return alert('Title and price are required');
       if (state.gallery.length === 0) return alert('Add at least one product image');
       let longDescVal = document.getElementById('pfLong').value;
-      // Firestore doc limit is 1 MB. Estimate final payload size and warn early.
+      // Per-product total media budget = 5 MB (heavy images are stored
+      // in the separate `product_media` collection, so the main doc
+      // stays small; splitter also rejects any single image > 950 KB).
       const estBytes = new Blob([JSON.stringify(state.gallery) + longDescVal + JSON.stringify(state.fakeReviews)]).size;
-      if (estBytes > 950 * 1024) {
+      if (estBytes > 5 * 1024 * 1024) {
         const mb = (estBytes/1024/1024).toFixed(2);
-        return alert(`Product data is too large (${mb} MB). Cloud limit is 1 MB per product.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.\n\nImages are already auto-compressed — very high-res photos still add up quickly.`);
+        return alert(`Product media is too large (${mb} MB). Total budget per product is 5 MB.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.`);
       }
       const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
       const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
