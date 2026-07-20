@@ -1,0 +1,92 @@
+[
+  {
+    "id": "t1",
+    "title": "JSON Formatter",
+    "category": "Developer",
+    "icon": "fa-solid fa-code",
+    "color": "#3b82f6",
+    "description": "Beautify, validate, and minify JSON instantly in your browser. Perfect for API debugging.",
+    "url": "https://jsonformatter.org/",
+    "badge": "Free"
+  },
+  {
+    "id": "t2",
+    "title": "Image Compressor",
+    "category": "Design",
+    "icon": "fa-solid fa-image",
+    "color": "#ec4899",
+    "description": "Compress PNG and JPG images up to 80% without visible quality loss.",
+    "url": "https://tinypng.com/",
+    "badge": "Free"
+  },
+  {
+    "id": "t3",
+    "title": "Password Generator",
+    "category": "Security",
+    "icon": "fa-solid fa-key",
+    "color": "#10b981",
+    "description": "Generate strong, random passwords with custom length and character rules.",
+    "url": "#",
+    "badge": "Free"
+  },
+  {
+    "id": "t4",
+    "title": "QR Code Generator",
+    "category": "Utility",
+    "icon": "fa-solid fa-qrcode",
+    "color": "#f97316",
+    "description": "Create custom QR codes for URLs, WiFi, contacts, and more in seconds.",
+    "url": "#",
+    "badge": "Free"
+  },
+  {
+    "id": "t5",
+    "title": "Word & Character Counter",
+    "category": "Writing",
+    "icon": "fa-solid fa-pen-nib",
+    "color": "#8b5cf6",
+    "description": "Count words, characters, sentences, and reading time in any text.",
+    "url": "#",
+    "badge": "Free"
+  },
+  {
+    "id": "t6",
+    "title": "Color Picker & Palette",
+    "category": "Design",
+    "icon": "fa-solid fa-palette",
+    "color": "#ef4444",
+    "description": "Pick colors, generate palettes, and convert between HEX, RGB, and HSL.",
+    "url": "#",
+    "badge": "Free"
+  },
+  {
+    "id": "t7",
+    "title": "Meta Tag Generator",
+    "category": "SEO",
+    "icon": "fa-solid fa-tags",
+    "color": "#14b8a6",
+    "description": "Generate SEO-friendly meta tags, Open Graph, and Twitter card markup.",
+    "url": "#",
+    "badge": "Pro"
+  },
+  {
+    "id": "t8",
+    "title": "URL Shortener",
+    "category": "Utility",
+    "icon": "fa-solid fa-link",
+    "color": "#0ea5e9",
+    "description": "Shorten long URLs into clean, trackable short links.",
+    "url": "#",
+    "badge": "Free"
+  },
+  {
+    "id": "t9",
+    "title": "Base64 Encoder / Decoder",
+    "category": "Developer",
+    "icon": "fa-solid fa-terminal",
+    "color": "#6366f1",
+    "description": "Encode or decode Base64 strings and files quickly and safely.",
+    "url": "#",
+    "badge": "Free"
+  }
+]
