@@ -772,7 +772,7 @@ Rules: mostly 5★, some 4★, occasional 3★; diverse "First L." names (Ahmed 
 Return ONLY: [{"name":"...","rating":5,"text":"..."}]`;
 
     // Fast model first. flash-lite is 2-3x faster than flash.
-    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash'];
     const callModel = async (model, n) => {
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
       return fetch(url, {
