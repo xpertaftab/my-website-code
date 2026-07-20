@@ -2831,9 +2831,35 @@ window.openProduct = function(id) {
         // Reviews are rendered by product-extra.js (fake admin reviews + real user comments merged)
 
         const popGrid = document.getElementById('pdPopularGrid');
-        const mainGrid = document.querySelector('#shopPage .services-grid');
-        if (popGrid && mainGrid) {
-            popGrid.innerHTML = mainGrid.innerHTML;
+        const popSection = popGrid ? popGrid.closest('.pd-popular-section') : null;
+        if (popGrid) {
+            const all = Object.values(window.PRODUCTS_DATA || {});
+            const popular = all.filter(x => x && x.isPopular && String(x.id) !== String(currentProductId));
+            if (popular.length === 0) {
+                if (popSection) popSection.style.display = 'none';
+                popGrid.innerHTML = '';
+            } else {
+                if (popSection) popSection.style.display = '';
+                popGrid.innerHTML = popular.slice(0, 4).map(prod => {
+                    const img = (prod.gallery && prod.gallery[0]) || prod.image || '';
+                    const title = productDescEscapeHtml(prod.title || '');
+                    const short = productDescEscapeHtml(prod.shortDesc || '');
+                    const priceNum = Number(prod.price) || 0;
+                    const oldPrice = Number(prod.oldPrice) || 0;
+                    return `
+                        <div class="service-card product-card" onclick="viewProduct('${prod.id}')" style="cursor:pointer;">
+                            <div class="product-card-img-wrap"><img src="${img}" alt="${title}" loading="lazy"></div>
+                            <div class="service-card-content">
+                                <h3>${title}</h3>
+                                <p class="product-desc">${short}</p>
+                                <div class="product-price-row">
+                                    <span class="product-price">$${priceNum}</span>
+                                    ${oldPrice ? `<span class="product-old-price">$${oldPrice}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
         }
     } catch(e) {
         console.error("Error setting product details:", e);
