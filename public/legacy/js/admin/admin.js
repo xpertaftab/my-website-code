@@ -601,7 +601,7 @@ function buildProductForm(p) {
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;position:sticky;bottom:0;background:#fff;padding-top:12px;flex-wrap:wrap;">
-        <div id="pfSizeInfo" style="font-size:0.75rem;color:#64748b;"><i class="fa-solid fa-database"></i> <span id="pfSizeVal">0 KB</span> / 950 KB (cloud limit)</div>
+        <div id="pfSizeInfo" style="font-size:0.75rem;color:#64748b;"><i class="fa-solid fa-database"></i> <span id="pfSizeVal">0 KB</span> / 5 MB total media (each image ≤ 950 KB)</div>
         <div style="display:flex;gap:12px;">
           <button id="pfCancel" style="padding:10px 20px;background:#f1f5f9;border:1px solid rgba(15,23,42,0.08);border-radius:8px;color:#0f172a;cursor:pointer;font-weight:600;">Cancel</button>
           <button id="pfSave" style="padding:10px 22px;background:#ff6b35;border:none;border-radius:8px;color:white;cursor:pointer;font-weight:700;">${p.id?'Save Changes':'Save Product'}</button>
