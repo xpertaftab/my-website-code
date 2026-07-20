@@ -2620,6 +2620,107 @@ try {
 
 let currentProductId = null;
 
+function productDescEscapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function productDescEscapeAttr(value) {
+    return productDescEscapeHtml(value).replace(/`/g, '&#96;');
+}
+
+function productDescIsSafeImg(src) {
+    if (!src || typeof src !== 'string') return false;
+    const clean = src.trim();
+    return /^(data:image\/|https?:\/\/|\.\/assets\/|assets\/|\/legacy\/assets\/|legacy\/assets\/)/i.test(clean);
+}
+
+function productDescIsSafeLink(href) {
+    if (!href || typeof href !== 'string') return false;
+    return /^(https?:\/\/|mailto:|tel:|#)/i.test(href.trim());
+}
+
+function productDescPlainTextToHtml(text) {
+    const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+    const html = [];
+    let listOpen = false;
+    const closeList = () => {
+        if (listOpen) {
+            html.push('</ul>');
+            listOpen = false;
+        }
+    };
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+            closeList();
+            return;
+        }
+        const bullet = trimmed.match(/^[-*•✓✔]\s*(.+)$/);
+        if (bullet) {
+            if (!listOpen) {
+                html.push('<ul>');
+                listOpen = true;
+            }
+            html.push(`<li>${productDescEscapeHtml(bullet[1])}</li>`);
+            return;
+        }
+        closeList();
+        html.push(`<p>${productDescEscapeHtml(trimmed)}</p>`);
+    });
+    closeList();
+    return html.join('');
+}
+
+function sanitizeProductDescriptionNode(node) {
+    if (!node) return '';
+    if (node.nodeType === Node.TEXT_NODE) return productDescEscapeHtml(node.textContent || '');
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+    const tag = node.tagName.toLowerCase();
+    if (['script','style','iframe','object','embed','form','input','button','svg','canvas','video','audio','source','link','meta'].includes(tag)) return '';
+
+    if (tag === 'br') return '<br>';
+
+    if (tag === 'img') {
+        const src = (node.getAttribute('src') || '').trim();
+        if (!productDescIsSafeImg(src)) return '';
+        const alt = node.getAttribute('alt') || 'Product description image';
+        return `<figure class="pd-desc-figure"><img src="${productDescEscapeAttr(src)}" alt="${productDescEscapeAttr(alt)}" loading="lazy" onerror="this.parentElement.remove()"></figure>`;
+    }
+
+    const children = Array.from(node.childNodes).map(sanitizeProductDescriptionNode).join('').trim();
+    if (!children) return '';
+
+    if (tag === 'a') {
+        const href = (node.getAttribute('href') || '').trim();
+        if (!productDescIsSafeLink(href)) return children;
+        return `<a href="${productDescEscapeAttr(href)}" target="_blank" rel="noopener noreferrer">${children}</a>`;
+    }
+
+    const allowed = ['p','div','section','article','span','strong','b','em','i','u','ul','ol','li','h2','h3','h4','blockquote','code','pre'];
+    if (!allowed.includes(tag)) return children;
+    const outputTag = (tag === 'div' || tag === 'section' || tag === 'article') ? 'p' : tag;
+    return `<${outputTag}>${children}</${outputTag}>`;
+}
+
+function formatProductDescriptionHtml(description) {
+    const raw = String(description || '').trim();
+    if (!raw) return '';
+    if (!/<\/?[a-z][\s\S]*>/i.test(raw)) return productDescPlainTextToHtml(raw);
+
+    const template = document.createElement('template');
+    template.innerHTML = raw;
+    const safeHtml = Array.from(template.content.childNodes).map(sanitizeProductDescriptionNode).join('').trim();
+    return safeHtml || productDescPlainTextToHtml(raw.replace(/<[^>]*>/g, ' '));
+}
+window.formatProductDescriptionHtml = formatProductDescriptionHtml;
+
 window.openProduct = function(id) {
     const p = window.PRODUCTS_DATA ? window.PRODUCTS_DATA[id] : null;
     if (!p) return;
@@ -2678,8 +2779,8 @@ window.openProduct = function(id) {
         const waLink = 'https://wa.me/923281270900?text=' + encodeURIComponent(p.whatsappMsg || '');
         if(document.getElementById('pdBuyNow')) document.getElementById('pdBuyNow').href = waLink;
 
-        if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = p.longDesc || (p.fullDesc ? `<p>${p.fullDesc}</p>` : (p.shortDesc ? `<p>${p.shortDesc}</p>` : ''));
-        if(document.getElementById('pdFeatures')) document.getElementById('pdFeatures').innerHTML = (p.features||[]).map(f => `<li>${f}</li>`).join('');
+        if(document.getElementById('pdFullDesc')) document.getElementById('pdFullDesc').innerHTML = formatProductDescriptionHtml(p.longDesc || p.fullDesc || p.shortDesc || '');
+        if(document.getElementById('pdFeatures')) document.getElementById('pdFeatures').innerHTML = (p.features||[]).map(f => `<li>${productDescEscapeHtml(f)}</li>`).join('');
 
         // Reviews are rendered by product-extra.js (fake admin reviews + real user comments merged)
 
