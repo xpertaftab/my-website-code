@@ -232,9 +232,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Reload frontend data after admin changes
 window.reloadFrontendData = async function() {
   let loaded = false;
-  if (window.fsLoadMap) {
+  if (window.fsLoadProductsHydrated || window.fsLoadMap) {
     try {
-      const fsData = await window.fsLoadMap('products');
+      const fsData = window.fsLoadProductsHydrated
+        ? await window.fsLoadProductsHydrated()
+        : await window.fsLoadMap('products');
       if (fsData && Object.keys(fsData).length > 0) {
         window.PRODUCTS_DATA = fsData;
         try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
