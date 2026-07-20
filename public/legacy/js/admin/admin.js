@@ -715,11 +715,13 @@ function wireProductForm(ov, state, existing, onSave) {
       if (!title || isNaN(price)) return alert('Title and price are required');
       if (state.gallery.length === 0) return alert('Add at least one product image');
       let longDescVal = document.getElementById('pfLong').value;
-      // Firestore doc limit is 1 MB. Estimate final payload size and warn early.
+      // Per-product total media budget = 5 MB (heavy images are stored
+      // in the separate `product_media` collection, so the main doc
+      // stays small; splitter also rejects any single image > 950 KB).
       const estBytes = new Blob([JSON.stringify(state.gallery) + longDescVal + JSON.stringify(state.fakeReviews)]).size;
-      if (estBytes > 950 * 1024) {
+      if (estBytes > 5 * 1024 * 1024) {
         const mb = (estBytes/1024/1024).toFixed(2);
-        return alert(`Product data is too large (${mb} MB). Cloud limit is 1 MB per product.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.\n\nImages are already auto-compressed — very high-res photos still add up quickly.`);
+        return alert(`Product media is too large (${mb} MB). Total budget per product is 5 MB.\n\nFix:\n• Remove a few gallery images, or\n• Remove some images from the description.`);
       }
       const btn = document.getElementById('pfSave'); btn.innerText='Saving...'; btn.disabled=true;
       const cleanReviews = state.fakeReviews.filter(r => r.name && r.text).map(r => ({ ...r, date: r.date || new Date().toISOString() }));
