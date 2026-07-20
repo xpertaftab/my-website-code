@@ -170,6 +170,10 @@
             <div id="toolBody"></div>
           </div>
 
+          <div id="toolExtraDetails"></div>
+
+
+
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
             <button id="toolBackBtn" style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0f172a;border:1px solid #e2e8f0;padding:12px 20px;border-radius:12px;font-weight:700;cursor:pointer;font-size:0.9rem;">
               <i class="fa-solid fa-arrow-left"></i> Back to All Tools
@@ -211,8 +215,14 @@
     const body = document.getElementById('toolBody');
     if (impl) impl(body, t);
     else body.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#64748b;"><i class="fa-solid fa-hammer" style="font-size:2rem;color:#cbd5e1;display:block;margin-bottom:12px;"></i><b>Coming Soon</b><p style="margin-top:8px;font-size:0.9rem;">This tool is under development.</p></div>`;
+
+    const extra = document.getElementById('toolExtraDetails');
+    if (extra) extra.innerHTML = renderToolExtraDetails(t, color);
+    bindToolFaq();
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
 
   function backToGrid() {
     CURRENT_TOOL = null;
@@ -873,6 +883,429 @@
       }, 'image/png');
     };
   };
+
+  /* ============ RICH DETAILS CONTENT (per-tool + generic fallback) ============ */
+  const TOOL_DETAILS = {
+    'json-formatter': {
+      about: 'JSON Formatter is a lightning-fast, browser-based tool that beautifies, validates, and minifies JSON data. Whether you are debugging an API response, cleaning up config files, or preparing data for production, it works 100% locally — your data never leaves your device.',
+      features: ['Beautify with proper indentation', 'One-click minification', 'Real-time syntax validation', 'Detects trailing commas & missing brackets', 'Copy result with a single click', 'Works fully offline in your browser', 'Handles files of any size', 'Zero tracking, zero uploads'],
+      howToUse: ['Paste your JSON data into the input box', 'Click "Beautify" to format it or "Minify" to compress it', 'Fix any syntax errors highlighted below', 'Click "Copy Result" to use it anywhere'],
+      useCases: ['Debugging REST API responses', 'Cleaning up config & package.json files', 'Preparing JSON for documentation', 'Learning JSON structure & syntax'],
+      faqs: [
+        { q: 'Is my JSON data safe?', a: 'Yes — everything runs inside your browser. No data is uploaded to any server.' },
+        { q: 'Can it handle large JSON files?', a: 'Yes, it can process files up to several megabytes with ease.' },
+        { q: 'Why do I get a syntax error?', a: 'Common causes are trailing commas, missing quotes, or unescaped characters. The tool highlights exactly where the error is.' },
+      ],
+    },
+    'password-generator': {
+      about: 'Generate cryptographically strong passwords instantly — using your browser\'s built-in secure random generator. Perfect for creating unbreakable logins, WiFi keys, API secrets, and app passwords without ever exposing them to any server.',
+      features: ['Customizable length (up to 128 characters)', 'Uppercase, lowercase, numbers & symbols', 'Exclude look-alike characters (0/O, l/1)', 'Cryptographically secure randomness', 'One-click copy', 'Strength meter feedback', 'Bulk generation support', 'No data leaves your browser'],
+      howToUse: ['Choose your desired password length', 'Toggle character types (letters, numbers, symbols)', 'Click "Generate" to create a fresh password', 'Copy and use it immediately'],
+      useCases: ['Website & app account logins', 'WiFi network passwords', 'API keys & secrets', 'Database credentials', 'Encryption passphrases'],
+      faqs: [
+        { q: 'Are generated passwords truly random?', a: 'Yes — we use the browser\'s crypto.getRandomValues() API which is cryptographically secure.' },
+        { q: 'Does it store my passwords?', a: 'Never. Passwords vanish the moment you leave the page.' },
+        { q: 'What length is recommended?', a: 'For most accounts use 16+ characters. For critical accounts use 24+ with all character types enabled.' },
+      ],
+    },
+    'qr-generator': {
+      about: 'Create sharp, high-resolution QR codes for URLs, WiFi credentials, contact cards, plain text, and more — instantly in your browser. Great for business cards, restaurant menus, event posters, and product packaging.',
+      features: ['Supports URL, text, phone, email, SMS, WiFi', 'High-resolution PNG download', 'Custom size & error correction level', 'Instant preview as you type', 'Fully offline — no uploads', 'Print-ready quality', 'Unlimited generations', 'Fast, lightweight & mobile friendly'],
+      howToUse: ['Enter the URL or text you want to encode', 'Adjust size or error correction if needed', 'Preview updates instantly', 'Download the QR code as PNG'],
+      useCases: ['Restaurant digital menus', 'Business cards & marketing flyers', 'Product packaging & barcodes', 'Event tickets & check-ins', 'WiFi guest access sharing'],
+      faqs: [
+        { q: 'Do QR codes expire?', a: 'No — QR codes are permanent as long as the destination URL is active.' },
+        { q: 'Can I print my QR code?', a: 'Yes, download the PNG at high resolution and print at any size.' },
+        { q: 'What size should I use for print?', a: 'For posters use at least 512×512 px. For business cards 256×256 is enough.' },
+      ],
+    },
+    'word-counter': {
+      about: 'A precise word, character, sentence, and paragraph counter for writers, students, marketers, and SEO professionals. Also estimates reading time so you know how long your audience will spend on your content.',
+      features: ['Live word & character count', 'Character count with & without spaces', 'Sentence & paragraph count', 'Estimated reading & speaking time', 'Keyword density analysis (top words)', 'Works with any language', '100% private — text stays local', 'Great for Twitter, essays, blogs, SEO'],
+      howToUse: ['Paste or type your text into the box', 'Statistics update in real time', 'Use the results for essays, tweets, blog posts or SEO'],
+      useCases: ['Essay & assignment word limits', 'Twitter/X & LinkedIn character limits', 'Blog post length optimization', 'SEO meta description length (~155 chars)', 'Speech & presentation prep'],
+      faqs: [
+        { q: 'How accurate is the reading time?', a: 'We use an average of 225 words per minute — the standard for adult English readers.' },
+        { q: 'Does it work with other languages?', a: 'Yes, it counts characters and whitespace-separated words for any language.' },
+        { q: 'Is my text saved anywhere?', a: 'No. Everything runs in your browser and is never sent to a server.' },
+      ],
+    },
+    'color-picker': {
+      about: 'Pick any color visually and instantly convert it between HEX, RGB, and HSL formats. A must-have tool for designers, developers, and anyone building brand identities, websites, or design systems.',
+      features: ['Visual color picker', 'HEX ↔ RGB ↔ HSL conversion', 'Copy any format with one click', 'Perfect for CSS, design systems & branding', 'Real-time preview', 'Accurate color values', 'Works offline', 'Simple, distraction-free interface'],
+      howToUse: ['Click the color swatch to open the picker', 'Choose your color or paste a value', 'Copy the format you need (HEX / RGB / HSL)'],
+      useCases: ['Web design & CSS coding', 'Brand identity color palettes', 'Matching client color specifications', 'UI/UX design systems'],
+      faqs: [
+        { q: 'Which format should I use in CSS?', a: 'HEX is most common for solid colors; use RGBA/HSLA when you need transparency.' },
+        { q: 'What is HSL best for?', a: 'HSL makes it easy to tweak lightness and saturation while keeping the same hue.' },
+      ],
+    },
+    'meta-tag-generator': {
+      about: 'Generate complete SEO meta tags — title, description, Open Graph, and Twitter Cards — in one click. Boost your search rankings and get beautiful preview cards when your page is shared on social media.',
+      features: ['Standard SEO meta tags', 'Open Graph (Facebook/LinkedIn) tags', 'Twitter Card markup', 'Canonical URL support', 'Live preview of social cards', 'Copy-ready HTML output', 'Best-practice character limits', 'Free forever'],
+      howToUse: ['Fill in your page title, description, and URL', 'Add an image URL for social sharing', 'Copy the generated meta tags', 'Paste into your HTML <head> section'],
+      useCases: ['New website launches', 'Blog post SEO optimization', 'Landing page social sharing', 'E-commerce product pages'],
+      faqs: [
+        { q: 'What is a good meta description length?', a: 'Aim for 150–160 characters to avoid truncation on Google.' },
+        { q: 'Do I need Open Graph and Twitter Cards?', a: 'Yes, they control how your page looks when shared on social platforms.' },
+      ],
+    },
+    'base64': {
+      about: 'Encode any text or decode a Base64 string instantly in your browser. Base64 is used everywhere — from data URIs to email attachments to authentication tokens.',
+      features: ['Text ↔ Base64 conversion', 'UTF-8 safe encoding', 'Handles emojis & unicode', 'Copy result with one click', '100% offline', 'Instant results', 'No character limits', 'Bidirectional (encode & decode)'],
+      howToUse: ['Paste your text or Base64 string', 'Click Encode or Decode', 'Copy the result'],
+      useCases: ['Embedding images in CSS/HTML', 'Basic HTTP authentication headers', 'Storing binary data in JSON', 'Debugging JWT payloads'],
+      faqs: [
+        { q: 'Is Base64 encryption?', a: 'No — it is encoding, not encryption. Anyone can decode it. Never use it to hide passwords.' },
+        { q: 'Why is my Base64 longer than the original?', a: 'Base64 always increases size by ~33% since it uses only 64 characters.' },
+      ],
+    },
+    'image-compressor': {
+      about: 'Compress JPG and PNG images directly in your browser — no upload required. Reduce file size by up to 90% while keeping the quality your users expect. Faster websites, lower bandwidth, better SEO.',
+      features: ['Client-side compression (nothing uploaded)', 'Adjustable quality slider', 'Supports JPG, PNG, WebP', 'Before/after size comparison', 'Batch download support', 'Preserves original resolution', 'Works offline', 'Unlimited free usage'],
+      howToUse: ['Drop or select your image', 'Adjust the quality slider', 'Preview the compressed result', 'Download the optimized file'],
+      useCases: ['Website performance optimization', 'Email attachments size limits', 'Faster social media uploads', 'E-commerce product images'],
+      faqs: [
+        { q: 'Are my images uploaded?', a: 'Never. Compression happens 100% in your browser.' },
+        { q: 'Will quality be visibly reduced?', a: 'At 70–80% quality most images look identical to the original but are 60–80% smaller.' },
+        { q: 'What is the maximum file size?', a: 'Limited only by your device memory — typically 20–50 MB works fine.' },
+      ],
+    },
+    'url-encoder': {
+      about: 'Encode or decode URLs and query string parameters safely. Essential when working with special characters, spaces, or non-ASCII text in URLs, API calls, or query strings.',
+      features: ['URL encode & decode', 'Handles special characters correctly', 'Unicode & emoji support', 'One-click copy', 'Works offline', 'Instant conversion', 'Perfect for API testing', 'Zero data collection'],
+      howToUse: ['Paste your URL or text', 'Click Encode or Decode', 'Copy the result'],
+      useCases: ['API query string parameters', 'Debugging OAuth redirects', 'Sharing URLs with special characters', 'Web scraping & automation'],
+      faqs: [
+        { q: 'What is URL encoding?', a: 'It replaces unsafe characters (space, &, ?) with % codes so URLs stay valid.' },
+      ],
+    },
+    'lorem-ipsum': {
+      about: 'Generate realistic Lorem Ipsum placeholder text for design mockups, wireframes, and content prototypes. Choose how many paragraphs, sentences, or words you need.',
+      features: ['Paragraphs, sentences, or words', 'Classic Lorem Ipsum text', 'Configurable length', 'Copy with one click', 'Great for mockups', 'Zero delay generation', 'Unlimited output', 'Free forever'],
+      howToUse: ['Choose paragraphs, sentences, or words', 'Enter the count you need', 'Click Generate', 'Copy and paste into your design'],
+      useCases: ['UI/UX mockups & wireframes', 'CMS content placeholders', 'Print layout previews', 'Typography testing'],
+      faqs: [
+        { q: 'What is Lorem Ipsum?', a: 'It is scrambled Latin used since the 1500s as filler text so readers focus on layout rather than content.' },
+      ],
+    },
+    'case-converter': {
+      about: 'Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case, kebab-case, and more — all in a single click. Perfect for developers, writers, and content editors.',
+      features: ['9+ case styles', 'Instant conversion', 'Preserves original for comparison', 'Copy any result', 'Great for coding & content', 'Works offline', 'Unicode friendly', 'Zero character limit'],
+      howToUse: ['Paste your text', 'Click the case style you want', 'Copy the converted text'],
+      useCases: ['Renaming code variables', 'Cleaning up copy-pasted text', 'Formatting article titles', 'Standardizing database keys'],
+      faqs: [
+        { q: 'What is camelCase vs snake_case?', a: 'camelCase joins words with capitals (myVariable); snake_case uses underscores (my_variable).' },
+      ],
+    },
+    'slugify': {
+      about: 'Turn any title, heading, or phrase into a clean, SEO-friendly URL slug — lowercase, hyphen-separated, and stripped of special characters. Boost your search visibility with readable URLs.',
+      features: ['Removes special characters & accents', 'Lowercase & hyphen separated', 'Unicode-safe transliteration', 'Preview before copying', 'Perfect for blogs & products', 'One-click copy', '100% offline', 'Handles any language'],
+      howToUse: ['Type or paste your title', 'The slug is generated instantly', 'Copy and use in your CMS or code'],
+      useCases: ['Blog post URLs', 'E-commerce product URLs', 'Category & tag pages', 'File naming for uploads'],
+      faqs: [
+        { q: 'Why use slugs?', a: 'Clean slugs improve SEO, user trust, and shareability of URLs.' },
+      ],
+    },
+    'regex-tester': {
+      about: 'Test JavaScript regular expressions with live match highlighting and flag support. See exactly what your pattern matches, capture groups, and how many results you get — instantly.',
+      features: ['Live match highlighting', 'All JS regex flags (g, i, m, s, u)', 'Capture group display', 'Match count', 'Copy pattern', 'Works fully offline', 'Great for learning regex', 'Error-safe execution'],
+      howToUse: ['Type your regex pattern', 'Set flags if needed', 'Paste your test text below', 'Matches are highlighted live'],
+      useCases: ['Form validation patterns', 'Text extraction & scraping', 'Search & replace in code', 'Learning regex syntax'],
+      faqs: [
+        { q: 'Does it support PCRE / Python regex?', a: 'This tool uses JavaScript regex which differs slightly from PCRE. Basic patterns work the same.' },
+      ],
+    },
+    'jwt-decoder': {
+      about: 'Decode JSON Web Tokens (JWT) safely in your browser. Inspect the header, payload, and signature to debug authentication flows — without ever sending the token to a server.',
+      features: ['Header & payload decoded', 'Signature displayed', 'Human-readable timestamps (iat, exp)', 'Copy any section', 'Works fully offline', 'No token leaves your browser', 'Detects expired tokens', 'Free forever'],
+      howToUse: ['Paste your JWT into the input', 'Header, payload and signature appear instantly', 'Check the exp field for expiry'],
+      useCases: ['Debugging authentication', 'API token inspection', 'OAuth troubleshooting', 'Security audits'],
+      faqs: [
+        { q: 'Can I verify the signature?', a: 'Signature verification requires the secret/public key which we intentionally do not accept. This tool only decodes.' },
+        { q: 'Is it safe to paste production tokens?', a: 'Yes — the token never leaves your browser. But still avoid pasting tokens on any tool you do not trust.' },
+      ],
+    },
+    'hash-generator': {
+      about: 'Generate SHA-1, SHA-256, and SHA-512 cryptographic hashes of any text — instantly and fully offline. Useful for checksums, data integrity checks, and password hashing preparation.',
+      features: ['SHA-1, SHA-256, SHA-512', 'UTF-8 safe', 'Copy any hash', 'Fully offline generation', 'Web Crypto API powered', 'Unlimited input length', 'Fast even on large text', 'Zero server calls'],
+      howToUse: ['Paste your text', 'Hashes generate instantly for all algorithms', 'Copy the one you need'],
+      useCases: ['File integrity verification', 'Password hashing prep', 'Blockchain & crypto learning', 'Digital signature workflows'],
+      faqs: [
+        { q: 'Is SHA-1 still safe?', a: 'SHA-1 is broken for security uses. Use SHA-256 or higher for anything sensitive.' },
+      ],
+    },
+    'timestamp': {
+      about: 'Convert Unix timestamps to human-readable dates and back. Supports seconds and milliseconds, all timezones, and instant conversion — perfect for developers debugging APIs and databases.',
+      features: ['Unix ↔ Human date', 'Seconds & milliseconds', 'Local & UTC display', 'Current timestamp button', 'ISO 8601 format', 'Copy any format', 'Fully offline', 'Timezone aware'],
+      howToUse: ['Enter a Unix timestamp or pick a date', 'Both formats appear instantly', 'Copy whichever you need'],
+      useCases: ['Debugging API responses', 'Log file analysis', 'Database date fields', 'Scheduling & cron jobs'],
+      faqs: [
+        { q: 'Seconds or milliseconds?', a: 'Unix time is traditionally in seconds; JavaScript uses milliseconds. The tool detects and shows both.' },
+      ],
+    },
+    'gradient-generator': {
+      about: 'Design stunning CSS linear gradients visually — pick colors, angle, and stops — then copy production-ready CSS code. Great for hero sections, buttons, and modern UI backgrounds.',
+      features: ['Live gradient preview', 'Custom colors & stops', 'Adjustable angle', 'Ready-to-paste CSS code', 'Multiple color stops', 'Copy CSS with one click', 'Save favorite gradients', 'Free forever'],
+      howToUse: ['Pick your gradient colors', 'Choose the angle or direction', 'Preview updates live', 'Copy the CSS'],
+      useCases: ['Hero section backgrounds', 'CTA button styles', 'Card & modal designs', 'Modern web UI branding'],
+      faqs: [
+        { q: 'Do gradients work on all browsers?', a: 'Yes — linear-gradient is supported on all modern browsers.' },
+      ],
+    },
+    'box-shadow': {
+      about: 'Build perfect CSS box shadows visually — control offset, blur, spread, color, and opacity — then copy ready-to-use CSS. Design elegant elevation and depth in seconds.',
+      features: ['Live preview', 'X/Y offset & blur & spread', 'Inset shadows', 'Color & opacity control', 'Multiple shadow layers', 'One-click copy', 'Works offline', 'No sign-up needed'],
+      howToUse: ['Adjust the sliders to shape your shadow', 'Fine-tune color and opacity', 'Preview updates in real time', 'Copy the CSS'],
+      useCases: ['Card & button elevation', 'Modal drop shadows', 'Neumorphic UI design', 'Photorealistic UI mockups'],
+      faqs: [
+        { q: 'What is inset shadow?', a: 'Inset shadows appear inside the element instead of outside — perfect for pressed buttons and inputs.' },
+      ],
+    },
+    'bmi-calculator': {
+      about: 'Calculate your Body Mass Index (BMI) and see your health category — underweight, normal, overweight, or obese. Supports both metric and imperial units.',
+      features: ['Metric & imperial units', 'Instant results', 'WHO health category', 'Ideal weight range', 'Privacy-first — no data stored', 'Mobile friendly', 'Works offline', 'Free forever'],
+      howToUse: ['Enter your height and weight', 'Choose units (kg/cm or lb/in)', 'See your BMI and category instantly'],
+      useCases: ['Personal fitness tracking', 'Health check reminders', 'Nutrition planning', 'Doctor visit prep'],
+      faqs: [
+        { q: 'Is BMI accurate for everyone?', a: 'BMI is a rough guide. Athletes with high muscle mass may register as overweight. Always consult a doctor for real advice.' },
+      ],
+    },
+    'age-calculator': {
+      about: 'Calculate your exact age in years, months, days, hours, minutes, and seconds. Also shows days until your next birthday. Perfect for curiosity or official form fills.',
+      features: ['Years, months & days precision', 'Hours, minutes, seconds', 'Days until next birthday', 'Any date supported', 'Timezone aware', 'Fully private — no data sent', 'Works offline', 'Instant results'],
+      howToUse: ['Pick your date of birth', 'See your exact age instantly'],
+      useCases: ['Filling official forms', 'Birthday planning', 'Insurance & pension calculations', 'Fun facts about yourself'],
+      faqs: [
+        { q: 'Does it count leap years?', a: 'Yes — the calculation is exact down to the second, including leap years.' },
+      ],
+    },
+    'url-shortener': {
+      about: 'Shorten long URLs into clean, shareable links with the free is.gd service. Great for tweets, SMS, printed materials, and anywhere character count matters.',
+      features: ['Instant short URL', 'Powered by is.gd', 'Copy with one click', 'Permanent short links', 'No account needed', 'Free forever', 'Safe & spam-checked', 'Mobile friendly'],
+      howToUse: ['Paste your long URL', 'Click Shorten', 'Copy the short link and share'],
+      useCases: ['Twitter/X posts', 'SMS & WhatsApp shares', 'Print advertising', 'Podcast show notes'],
+      faqs: [
+        { q: 'Do the short links expire?', a: 'No — is.gd links are permanent unless flagged for abuse.' },
+        { q: 'Can I customize the alias?', a: 'The is.gd API in this tool generates random aliases. Custom aliases are a paid feature on their site.' },
+      ],
+    },
+    'text-to-speech': {
+      about: 'Convert any text into natural-sounding speech using your browser\'s built-in voices. Pick a language, voice, speed and pitch — great for accessibility, learning, and content creation.',
+      features: ['Dozens of voices & languages', 'Speed & pitch control', 'Play, pause & stop', 'Fully offline (uses OS voices)', 'No character limit', 'Privacy-first', 'Great for accessibility', 'Free forever'],
+      howToUse: ['Paste your text', 'Pick a voice and adjust speed/pitch', 'Click Play to hear it'],
+      useCases: ['Accessibility for visually impaired', 'Proofreading your writing by ear', 'Language learning', 'Podcast / video draft narration'],
+      faqs: [
+        { q: 'Which voices are available?', a: 'It uses voices installed on your operating system — Windows, macOS, iOS, and Android all include high-quality voices.' },
+      ],
+    },
+    'speech-to-text': {
+      about: 'Speak into your microphone and get instant, live transcription — right in your browser. Perfect for meeting notes, captions, voice journals, and accessibility.',
+      features: ['Live transcription', 'Multiple languages', 'No file upload', 'Copy transcript instantly', 'Pause & resume', 'Powered by Web Speech API', 'Free forever', 'Privacy-friendly'],
+      howToUse: ['Click the microphone button', 'Allow browser mic access', 'Speak clearly — text appears live', 'Copy your transcript'],
+      useCases: ['Meeting notes on the fly', 'Quick voice journals', 'Draft blog posts by speaking', 'Video subtitle drafting'],
+      faqs: [
+        { q: 'Which browsers are supported?', a: 'Chrome, Edge, and Safari support the Web Speech API. Firefox has limited support.' },
+        { q: 'Is my voice recorded?', a: 'No — audio is processed on the fly and never stored.' },
+      ],
+    },
+    'youtube-thumbnail': {
+      about: 'Download HD, SD, and max-resolution thumbnails from any YouTube video. Just paste the URL and grab all available thumbnail sizes instantly.',
+      features: ['Max-res, HD, SD & default sizes', 'Works with any YouTube URL', 'Instant preview', 'Direct download', 'No sign-up required', 'Works offline (once loaded)', 'Free forever', 'Mobile friendly'],
+      howToUse: ['Paste the YouTube video URL', 'All available thumbnail sizes appear', 'Click any size to download'],
+      useCases: ['Video reaction / commentary channels', 'Blog featured images', 'Content research & inspiration', 'Educational reference material'],
+      faqs: [
+        { q: 'Is downloading thumbnails legal?', a: 'For personal & fair-use purposes yes. For commercial use always credit the owner or get permission.' },
+      ],
+    },
+    'image-watermark': {
+      about: 'Protect your images by adding a custom text watermark — control position, color, size and opacity. Everything runs in your browser, your images never leave your device.',
+      features: ['Text watermark with any font', '9 position presets', 'Custom color & opacity', 'Adjustable font size', 'Client-side — no uploads', 'PNG & JPG export', 'Preserves original quality', 'Free forever'],
+      howToUse: ['Upload your image', 'Type your watermark text', 'Choose position, color, and opacity', 'Download the watermarked image'],
+      useCases: ['Photographers protecting portfolios', 'E-commerce product images', 'Blog & social content branding', 'Educational course screenshots'],
+      faqs: [
+        { q: 'Are my images uploaded anywhere?', a: 'No — watermarking happens entirely in your browser. Nothing is sent to any server.' },
+      ],
+    },
+    'image-to-base64': {
+      about: 'Convert any image into a Base64 data URI you can embed directly in HTML, CSS, or JSON. Useful for icons, email templates, and offline-ready apps.',
+      features: ['PNG, JPG, GIF, SVG & WebP support', 'Instant conversion', 'Copy data URI', 'Preview embedded result', 'Works fully offline', 'Unlimited images', 'Privacy-first', 'Free forever'],
+      howToUse: ['Upload your image', 'Base64 output is generated instantly', 'Copy and paste into your code'],
+      useCases: ['Embedding icons in CSS', 'Self-contained HTML emails', 'Offline PWA assets', 'Storing images in JSON'],
+      faqs: [
+        { q: 'Should I use Base64 for all images?', a: 'No — Base64 is ~33% larger. Use it for small icons only; use regular URLs for larger images.' },
+      ],
+    },
+    'csv-to-json': {
+      about: 'Convert CSV data to clean JSON — and back — with a single click. Handles quoted fields, custom delimiters, and preserves data types where possible.',
+      features: ['CSV → JSON & JSON → CSV', 'Quoted field handling', 'Custom delimiter support', 'Preview before copy', 'Fully offline', 'Great for spreadsheets & APIs', 'Unlimited rows', 'Free forever'],
+      howToUse: ['Paste your CSV or JSON data', 'Click Convert', 'Copy the output'],
+      useCases: ['Migrating spreadsheet data to APIs', 'Preparing seed data for databases', 'Cleaning survey exports', 'Building data-driven mockups'],
+      faqs: [
+        { q: 'Does it handle commas inside quotes?', a: 'Yes — proper quoted CSV fields are parsed correctly.' },
+      ],
+    },
+    'markdown-preview': {
+      about: 'Write Markdown on the left and see the rendered HTML preview instantly on the right. Perfect for READMEs, blog posts, documentation, and GitHub content.',
+      features: ['Live side-by-side preview', 'GitHub-style rendering', 'Headings, lists, code, tables', 'Copy HTML output', 'Fully offline', 'Great for READMEs & blogs', 'No sign-up', 'Free forever'],
+      howToUse: ['Type Markdown in the editor', 'Preview updates in real time', 'Copy the HTML when done'],
+      useCases: ['GitHub README files', 'Static site blog posts', 'Documentation writing', 'Note-taking & Zettelkasten'],
+      faqs: [
+        { q: 'Which markdown flavor is used?', a: 'A GitHub-flavored subset — headings, lists, code blocks, tables, links, images and inline formatting.' },
+      ],
+    },
+    'favicon-generator': {
+      about: 'Generate a full set of favicons from any image or emoji — instantly. Get all the sizes and HTML tags you need for a professional website.',
+      features: ['16×16, 32×32, 180×180, 192×192, 512×512', 'Emoji favicons in one click', 'Ready-to-paste HTML', 'ZIP download', 'Fully client-side', 'Free forever', 'Works offline', 'Great for PWAs'],
+      howToUse: ['Upload an image or pick an emoji', 'Preview all favicon sizes', 'Download the pack and paste the HTML into your <head>'],
+      useCases: ['New website launches', 'PWA icon sets', 'Portfolio projects', 'Client site handoffs'],
+      faqs: [
+        { q: 'What sizes do I really need?', a: '32×32 (favicon), 180×180 (apple-touch-icon), and 512×512 (PWA) cover 99% of cases.' },
+      ],
+    },
+    'percentage-calculator': {
+      about: 'Calculate percentages, discounts, tips, tax, and percentage change in seconds. Covers every common percentage question you\'ll ever need.',
+      features: ['% of a number', '% change (increase / decrease)', 'Discount & final price', 'Tip & tax add-ons', 'Instant results', 'Works offline', 'Mobile friendly', 'Free forever'],
+      howToUse: ['Pick the calculation type', 'Enter the numbers', 'See the result instantly'],
+      useCases: ['Shopping discounts', 'Restaurant tips & tax', 'Sales & marketing metrics', 'Grades & test scores'],
+      faqs: [
+        { q: 'How is % change calculated?', a: '((new − old) / old) × 100. A negative result means a decrease.' },
+      ],
+    },
+    'emi-calculator': {
+      about: 'Calculate the monthly EMI for any loan — home, car, personal, or education. See total interest paid and a full amortization schedule.',
+      features: ['Monthly EMI calculation', 'Total interest & payment', 'Amortization schedule', 'Adjustable tenure & rate', 'Multiple currencies', 'Works offline', 'Mobile friendly', 'Free forever'],
+      howToUse: ['Enter loan amount, interest rate & tenure', 'See EMI, total interest & schedule instantly'],
+      useCases: ['Home loan planning', 'Car & vehicle financing', 'Personal & education loans', 'Refinance comparisons'],
+      faqs: [
+        { q: 'Which formula is used?', a: 'The standard EMI formula: P × r × (1+r)^n / ((1+r)^n − 1), where r is monthly rate.' },
+      ],
+    },
+    'image-cropper': {
+      about: 'Crop any image to a custom size — drag to select, then download. Works fully in your browser, keeps original quality, and never uploads your files.',
+      features: ['Drag-to-crop selection', 'Custom aspect ratios', 'Original quality preserved', 'PNG export', 'Fully client-side', 'Works offline', 'Unlimited free usage', 'Mobile friendly'],
+      howToUse: ['Upload your image', 'Drag on the image to select the area', 'Click Crop and download the result'],
+      useCases: ['Social media profile pictures', 'Product image cleanup', 'Blog featured images', 'Passport / ID photo preparation'],
+      faqs: [
+        { q: 'Does it lose quality?', a: 'No — cropping only removes pixels outside the selection; the remaining pixels are untouched.' },
+      ],
+    },
+  };
+
+  function getDetails(t) {
+    const specific = TOOL_DETAILS[t.id];
+    if (specific) return specific;
+    // Generic fallback
+    return {
+      about: `${t.title} is a free, fast, browser-based ${(t.category || 'utility').toLowerCase()} tool. ${t.description} It works fully in your browser — no sign-up, no uploads, and no tracking.`,
+      features: ['100% free & unlimited use', 'Runs fully in your browser', 'No sign-up or login required', 'Privacy-first — your data stays local', 'Mobile & desktop friendly', 'Fast, lightweight interface', 'Instant results', 'Free forever'],
+      howToUse: ['Open the tool above', 'Enter or upload your input', 'Adjust any options if available', 'Get your result instantly'],
+      useCases: ['Everyday productivity tasks', 'Professional workflows', 'Students & learners', 'Quick one-off conversions'],
+      faqs: [
+        { q: `Is ${t.title} really free?`, a: 'Yes — completely free with no hidden charges, sign-ups, or credit card required.' },
+        { q: 'Is my data safe?', a: 'Everything runs in your browser. We do not store, log, or upload your data.' },
+        { q: 'Do I need to install anything?', a: 'No — it works instantly in any modern browser on desktop or mobile.' },
+      ],
+    };
+  }
+
+  function renderToolExtraDetails(t, color) {
+    const d = getDetails(t);
+    const iconColor = color || '#3b82f6';
+    const sectionBase = 'background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:28px;box-shadow:0 4px 20px rgba(15,23,42,0.04);margin-top:20px;';
+    const h = (title, iconClass) => `<h2 style="display:flex;align-items:center;gap:12px;margin:0 0 18px;font-size:1.3rem;font-weight:900;color:#0f172a;letter-spacing:-0.3px;"><span style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,${iconColor}22,${iconColor}0a);color:${iconColor};display:inline-flex;align-items:center;justify-content:center;font-size:1rem;"><i class="${iconClass}"></i></span>${safe(title)}</h2>`;
+
+    const featuresHtml = (d.features || []).map((f) => `
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+        <span style="flex-shrink:0;width:26px;height:26px;border-radius:8px;background:${iconColor};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;"><i class="fa-solid fa-check"></i></span>
+        <span style="color:#334155;font-size:0.92rem;line-height:1.5;font-weight:600;">${safe(f)}</span>
+      </div>`).join('');
+
+    const howToHtml = (d.howToUse || []).map((step, i) => `
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed #e2e8f0;">
+        <span style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:${iconColor};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;">${i + 1}</span>
+        <span style="color:#334155;font-size:0.95rem;line-height:1.6;padding-top:4px;">${safe(step)}</span>
+      </div>`).join('');
+
+    const useCasesHtml = (d.useCases || []).map((u) => `
+      <div style="display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,${iconColor}12,${iconColor}04);border:1px solid ${iconColor}33;padding:12px 16px;border-radius:12px;">
+        <i class="fa-solid fa-circle-check" style="color:${iconColor};font-size:0.95rem;"></i>
+        <span style="color:#0f172a;font-weight:700;font-size:0.9rem;">${safe(u)}</span>
+      </div>`).join('');
+
+    const faqsHtml = (d.faqs || []).map((f, i) => `
+      <details class="tool-faq" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;">
+        <summary style="cursor:pointer;padding:16px 20px;font-weight:800;color:#0f172a;font-size:0.98rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <span><i class="fa-solid fa-circle-question" style="color:${iconColor};margin-right:10px;"></i>${safe(f.q)}</span>
+          <i class="fa-solid fa-chevron-down" style="color:${iconColor};font-size:0.8rem;transition:transform 0.2s;"></i>
+        </summary>
+        <div style="padding:0 20px 18px 20px;color:#475569;font-size:0.92rem;line-height:1.65;">${safe(f.a)}</div>
+      </details>`).join('');
+
+    const why = [
+      { i: 'fa-solid fa-bolt', t: 'Blazing Fast', d: 'Runs instantly in your browser — no waiting, no loading.' },
+      { i: 'fa-solid fa-lock', t: '100% Private', d: 'Your data never leaves your device. Zero tracking.' },
+      { i: 'fa-solid fa-hand-holding-dollar', t: 'Free Forever', d: 'No sign-up, no credit card, no hidden limits.' },
+      { i: 'fa-solid fa-mobile-screen', t: 'Works Everywhere', d: 'Desktop, tablet, mobile — any modern browser.' },
+    ];
+    const whyHtml = why.map((w) => `
+      <div style="text-align:center;padding:20px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:${iconColor};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:1.15rem;margin-bottom:10px;box-shadow:0 8px 20px ${iconColor}55;"><i class="${w.i}"></i></div>
+        <div style="font-weight:800;color:#0f172a;margin-bottom:4px;font-size:0.98rem;">${w.t}</div>
+        <div style="color:#64748b;font-size:0.85rem;line-height:1.5;">${w.d}</div>
+      </div>`).join('');
+
+    return `
+      <div style="${sectionBase}">
+        ${h('About ' + t.title, 'fa-solid fa-circle-info')}
+        <p style="margin:0;color:#475569;font-size:1rem;line-height:1.75;">${safe(d.about)}</p>
+      </div>
+
+      <div style="${sectionBase}">
+        ${h('Key Features', 'fa-solid fa-sparkles')}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">${featuresHtml}</div>
+      </div>
+
+      <div style="${sectionBase}">
+        ${h('How to Use', 'fa-solid fa-list-check')}
+        <div>${howToHtml}</div>
+      </div>
+
+      <div style="${sectionBase}">
+        ${h('Popular Use Cases', 'fa-solid fa-bullseye')}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${useCasesHtml}</div>
+      </div>
+
+      <div style="${sectionBase}">
+        ${h('Why Choose Our ' + t.title, 'fa-solid fa-award')}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;">${whyHtml}</div>
+      </div>
+
+      <div style="${sectionBase}">
+        ${h('Frequently Asked Questions', 'fa-regular fa-comments')}
+        <div style="display:flex;flex-direction:column;gap:10px;">${faqsHtml}</div>
+      </div>
+
+      <div style="${sectionBase};background:linear-gradient(135deg,${iconColor} 0%,#1e1b4b 140%);color:#fff;border:none;text-align:center;">
+        <h2 style="color:#fff;font-size:1.5rem;font-weight:900;margin:0 0 10px;">Need a custom version of ${safe(t.title)}?</h2>
+        <p style="color:#e2e8f0;margin:0 0 18px;font-size:1rem;line-height:1.6;">We build custom tools, dashboards, and full-stack web apps for teams and businesses. Get in touch and let's build something great together.</p>
+        <a href="javascript:void(0)" onclick="showPage && showPage('contact')" style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0f172a;padding:12px 24px;border-radius:12px;font-weight:800;text-decoration:none;font-size:0.95rem;box-shadow:0 12px 28px rgba(0,0,0,0.25);">
+          <i class="fa-solid fa-paper-plane"></i> Contact Us
+        </a>
+      </div>
+    `;
+  }
+
+  function bindToolFaq() {
+    document.querySelectorAll('.tool-faq').forEach((el) => {
+      el.addEventListener('toggle', () => {
+        const chev = el.querySelector('summary i.fa-chevron-down');
+        if (chev) chev.style.transform = el.open ? 'rotate(180deg)' : '';
+      });
+    });
+  }
+
+
 
   window.renderToolsPage = async function () {
     await loadTools();
