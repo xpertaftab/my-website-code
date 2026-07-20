@@ -2645,7 +2645,17 @@ function productDescIsSafeLink(href) {
 }
 
 function productDescPlainTextToHtml(text) {
-    const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+    const source = String(text || '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\u00a0/g, ' ')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim();
+    const prepared = source.includes('\n')
+        ? source
+        : source
+            .replace(/\s+(?=(?:✅|☑️?|✔️?|✓|•)\s*)/g, '\n')
+            .replace(/([.!?])\s+(?=[A-Z0-9][a-zA-Z0-9])/g, '$1\n');
+    const lines = prepared.split('\n');
     const html = [];
     let listOpen = false;
     const closeList = () => {
@@ -2661,7 +2671,7 @@ function productDescPlainTextToHtml(text) {
             closeList();
             return;
         }
-        const bullet = trimmed.match(/^[-*•✓✔]\s*(.+)$/);
+        const bullet = trimmed.match(/^[-*•✓✔✅☑️?]\s*(.+)$/);
         if (bullet) {
             if (!listOpen) {
                 html.push('<ul>');
@@ -2690,6 +2700,9 @@ function sanitizeProductDescriptionNode(node) {
     if (tag === 'img') {
         const src = (node.getAttribute('src') || '').trim();
         if (!productDescIsSafeImg(src)) return '';
+        const width = parseInt(node.getAttribute('width') || node.style.width || '0', 10);
+        const height = parseInt(node.getAttribute('height') || node.style.height || '0', 10);
+        if ((width && width <= 40) || (height && height <= 40)) return '';
         const alt = node.getAttribute('alt') || 'Product description image';
         return `<figure class="pd-desc-figure"><img src="${productDescEscapeAttr(src)}" alt="${productDescEscapeAttr(alt)}" loading="lazy" onerror="this.parentElement.remove()"></figure>`;
     }
