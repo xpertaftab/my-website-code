@@ -780,8 +780,10 @@ Generate exactly ${qty} authentic-sounding customer reviews in JSON. Rules:
 Format: [{"name":"...","rating":5,"text":"..."}]`;
 
     try {
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(key);
-      const res = await fetch(url, {
+    const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
+    const callModel = async (model) => {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
+      return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -789,9 +791,35 @@ Format: [{"name":"...","rating":5,"text":"..."}]`;
           generationConfig: { temperature: 0.9, responseMimeType: 'application/json' }
         })
       });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error('API ' + res.status + ': ' + errText.slice(0,200));
+    };
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    try {
+      let res, lastErr = '', usedModel = '';
+      outer: for (const model of models) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          setAiStatus('Contacting AI (' + model + ')' + (attempt ? ' — retry ' + attempt : '') + '...', '#2563eb');
+          res = await callModel(model);
+          if (res.ok) { usedModel = model; break outer; }
+          const errText = await res.text();
+          lastErr = 'API ' + res.status + ': ' + errText.slice(0, 300);
+          if (res.status === 429) {
+            // parse retryDelay if present
+            let waitMs = 4000 * (attempt + 1);
+            const m = errText.match(/"retryDelay"\s*:\s*"(\d+)s"/);
+            if (m) waitMs = Math.min(30000, (parseInt(m[1]) + 1) * 1000);
+            if (attempt < 2) { await sleep(waitMs); continue; }
+            break; // try next model
+          }
+          if (res.status === 401 || res.status === 403) break outer; // bad key, no point
+          break; // other error, try next model
+        }
+      }
+      if (!res || !res.ok) {
+        if (String(lastErr).includes('429')) {
+          throw new Error('Rate limit / quota exceeded on all models. Free Gemini tier allows ~15 requests per minute and ~1500 per day. Please wait a minute and try again, generate fewer reviews at a time, or use a different API key.');
+        }
+        throw new Error(lastErr || 'AI request failed');
       }
       const data = await res.json();
       let txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -801,6 +829,7 @@ Format: [{"name":"...","rating":5,"text":"..."}]`;
         const m = txt.match(/\[[\s\S]*\]/); if (m) arr = JSON.parse(m[0]);
       }
       if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI returned no reviews');
+
       const now = Date.now();
       arr.forEach((r, i) => {
         state.fakeReviews.push({
@@ -811,7 +840,7 @@ Format: [{"name":"...","rating":5,"text":"..."}]`;
         });
       });
       renderReviews();
-      setAiStatus('✓ Generated ' + arr.length + ' reviews', '#059669');
+      setAiStatus('✓ Generated ' + arr.length + ' reviews via ' + usedModel, '#059669');
       setTimeout(() => setAiStatus(''), 3500);
     } catch(e) {
       console.error('AI gen failed', e);
