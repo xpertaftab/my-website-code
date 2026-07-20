@@ -666,15 +666,17 @@ function wireProductForm(ov, state, existing, onSave) {
     if (status) status.textContent = 'Images auto-compressed for cloud save';
   };
 
-  // Live size indicator — helps admin see whether they'll blow past the Firestore 1MB doc cap.
+  // Live size indicator — total media (gallery + inline desc images)
+  // is now split across separate Firestore docs; overall budget = 5 MB.
   function updateSizeInfo() {
     const el = document.getElementById('pfSizeVal'); if (!el) return;
     const longV = (document.getElementById('pfLong')||{}).value || '';
     const bytes = new Blob([JSON.stringify(state.gallery) + longV]).size;
     const kb = Math.round(bytes/1024);
-    el.textContent = kb + ' KB';
+    el.textContent = kb < 1024 ? (kb + ' KB') : ((kb/1024).toFixed(2) + ' MB');
     const parent = document.getElementById('pfSizeInfo');
-    if (parent) parent.style.color = kb > 950 ? '#dc2626' : (kb > 750 ? '#ea580c' : '#64748b');
+    const MB5 = 5 * 1024;
+    if (parent) parent.style.color = kb > MB5 ? '#dc2626' : (kb > MB5 * 0.8 ? '#ea580c' : '#64748b');
   }
   const longTa = document.getElementById('pfLong'); if (longTa) longTa.addEventListener('input', updateSizeInfo);
   updateSizeInfo();
