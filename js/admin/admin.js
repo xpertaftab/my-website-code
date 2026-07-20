@@ -608,10 +608,16 @@ function buildProductForm(p) {
       </div>
 
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div style="font-weight:700;color:#1e40af;font-size:0.9rem;"><i class="fa-solid fa-star"></i> Fake Reviews</div>
-          <button type="button" id="pfAddReview" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add Review</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <input id="pfAiQty" type="number" min="1" max="20" value="5" title="How many reviews to generate" style="${IS};width:60px;padding:6px 8px;font-size:0.8rem;">
+            <button type="button" id="pfAiGen" style="padding:6px 12px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Generate</button>
+            <button type="button" id="pfAiKey" title="Set Google AI API Key" style="padding:6px 10px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;font-size:0.78rem;"><i class="fa-solid fa-key"></i></button>
+            <button type="button" id="pfAddReview" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add</button>
+          </div>
         </div>
+        <div id="pfAiStatus" style="font-size:0.75rem;color:#64748b;margin-bottom:8px;display:none;"></div>
         <div id="pfReviews" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
@@ -721,6 +727,104 @@ function wireProductForm(ov, state, existing, onSave) {
     state.fakeReviews.push({ name:'', rating:5, text:'', date:new Date().toISOString() });
     renderReviews();
   };
+
+  // === AI Review Generator (Google Gemini) ===
+  const AI_KEY_STORE = 'vextro_gemini_key';
+  const getAiKey = () => { try { return localStorage.getItem(AI_KEY_STORE) || ''; } catch(e) { return ''; } };
+  const setAiStatus = (msg, color) => {
+    const s = document.getElementById('pfAiStatus');
+    if (!s) return;
+    if (!msg) { s.style.display = 'none'; return; }
+    s.style.display = 'block'; s.textContent = msg; s.style.color = color || '#64748b';
+  };
+  document.getElementById('pfAiKey').onclick = () => {
+    const cur = getAiKey();
+    const k = prompt('Enter Google AI Studio API Key (stored locally in your browser only):', cur);
+    if (k === null) return;
+    try { localStorage.setItem(AI_KEY_STORE, k.trim()); } catch(e) {}
+    setAiStatus(k.trim() ? 'API key saved ✓' : 'API key cleared', '#059669');
+    setTimeout(() => setAiStatus(''), 2500);
+  };
+  document.getElementById('pfAiGen').onclick = async () => {
+    let key = getAiKey();
+    if (!key) {
+      key = (prompt('Enter your Google AI Studio API Key (get free key from https://aistudio.google.com/apikey):') || '').trim();
+      if (!key) return;
+      try { localStorage.setItem(AI_KEY_STORE, key); } catch(e) {}
+    }
+    const qty = Math.max(1, Math.min(20, parseInt(document.getElementById('pfAiQty').value) || 5));
+    const title = (document.getElementById('pfTitle')||{}).value || '';
+    const category = (document.getElementById('pfCategory')||{}).value || '';
+    const shortDesc = (document.getElementById('pfShort')||{}).value || '';
+    const longDesc = ((document.getElementById('pfLong')||{}).value || '').replace(/<[^>]+>/g,' ').slice(0,600);
+    if (!title.trim()) { alert('Please fill product title first — AI needs context to write relevant reviews.'); return; }
+
+    const btn = document.getElementById('pfAiGen');
+    btn.disabled = true; const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    setAiStatus('Contacting Google AI...', '#2563eb');
+
+    const prompt_text = `You are generating realistic customer reviews for an online product.
+Product Title: ${title}
+Category: ${category}
+Short Description: ${shortDesc}
+Details: ${longDesc}
+
+Generate exactly ${qty} authentic-sounding customer reviews in JSON. Rules:
+- Mix of ratings: mostly 5 and 4 stars, occasional 3-star
+- Diverse international first-name+last-initial reviewer names (e.g. "Ahmed K.", "Sarah M.", "Ravi P.")
+- Reviews must mention specifics from the product (features, use-case, quality)
+- Vary length: some short (1 sentence), some medium (2-3 sentences)
+- Natural tone, no marketing jargon, occasional minor typos ok
+- Return ONLY a JSON array, no markdown, no code fence, no commentary.
+Format: [{"name":"...","rating":5,"text":"..."}]`;
+
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(key);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt_text }] }],
+          generationConfig: { temperature: 0.9, responseMimeType: 'application/json' }
+        })
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error('API ' + res.status + ': ' + errText.slice(0,200));
+      }
+      const data = await res.json();
+      let txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      txt = txt.trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+      let arr;
+      try { arr = JSON.parse(txt); } catch(e) {
+        const m = txt.match(/\[[\s\S]*\]/); if (m) arr = JSON.parse(m[0]);
+      }
+      if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI returned no reviews');
+      const now = Date.now();
+      arr.forEach((r, i) => {
+        state.fakeReviews.push({
+          name: String(r.name||'Customer').slice(0,60),
+          rating: Math.max(1, Math.min(5, parseInt(r.rating)||5)),
+          text: String(r.text||'').slice(0,600),
+          date: new Date(now - i*86400000*Math.floor(Math.random()*30+1)).toISOString()
+        });
+      });
+      renderReviews();
+      setAiStatus('✓ Generated ' + arr.length + ' reviews', '#059669');
+      setTimeout(() => setAiStatus(''), 3500);
+    } catch(e) {
+      console.error('AI gen failed', e);
+      setAiStatus('Error: ' + e.message, '#dc2626');
+      if (String(e.message).includes('API_KEY') || String(e.message).includes('401') || String(e.message).includes('403')) {
+        try { localStorage.removeItem(AI_KEY_STORE); } catch(_) {}
+        alert('API key invalid or expired. Click the key icon to enter a new one.');
+      }
+    } finally {
+      btn.disabled = false; btn.innerHTML = orig;
+    }
+  };
+
 
   document.getElementById('pfCancel').onclick = () => ov.remove();
   document.getElementById('pfSave').onclick = async () => {
