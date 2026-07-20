@@ -764,73 +764,75 @@ function wireProductForm(ov, state, existing, onSave) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
     setAiStatus('Contacting Google AI...', '#2563eb');
 
-    const prompt_text = `You are generating realistic customer reviews for an online product.
-Product Title: ${title}
-Category: ${category}
-Short Description: ${shortDesc}
+    const buildPrompt = (n) => `Generate ${n} realistic customer reviews for this product as a JSON array only (no markdown).
+Product: ${title} | Category: ${category}
+Short: ${shortDesc}
 Details: ${longDesc}
+Rules: mostly 5★, some 4★, occasional 3★; diverse "First L." names (Ahmed K., Sarah M., Ravi P., Emma T. etc.); mention concrete product features/use-cases; vary length (1-3 sentences); natural tone.
+Return ONLY: [{"name":"...","rating":5,"text":"..."}]`;
 
-Generate exactly ${qty} authentic-sounding customer reviews in JSON. Rules:
-- Mix of ratings: mostly 5 and 4 stars, occasional 3-star
-- Diverse international first-name+last-initial reviewer names (e.g. "Ahmed K.", "Sarah M.", "Ravi P.")
-- Reviews must mention specifics from the product (features, use-case, quality)
-- Vary length: some short (1 sentence), some medium (2-3 sentences)
-- Natural tone, no marketing jargon, occasional minor typos ok
-- Return ONLY a JSON array, no markdown, no code fence, no commentary.
-Format: [{"name":"...","rating":5,"text":"..."}]`;
-
-    const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
-    const callModel = async (model) => {
+    // Fast model first. flash-lite is 2-3x faster than flash.
+    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+    const callModel = async (model, n) => {
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
       return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt_text }] }],
-          generationConfig: { temperature: 0.9, responseMimeType: 'application/json' }
+          contents: [{ parts: [{ text: buildPrompt(n) }] }],
+          generationConfig: { temperature: 0.9, responseMimeType: 'application/json', maxOutputTokens: 2048 }
         })
       });
     };
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    try {
+    const runOnce = async (n) => {
       let res, lastErr = '', usedModel = '';
       outer: for (const model of models) {
-        for (let attempt = 0; attempt < 3; attempt++) {
-          setAiStatus('Contacting AI (' + model + ')' + (attempt ? ' — retry ' + attempt : '') + '...', '#2563eb');
-          res = await callModel(model);
+        for (let attempt = 0; attempt < 2; attempt++) {
+          res = await callModel(model, n);
           if (res.ok) { usedModel = model; break outer; }
           const errText = await res.text();
-          lastErr = 'API ' + res.status + ': ' + errText.slice(0, 300);
-          if (res.status === 429) {
-            // parse retryDelay if present
-            let waitMs = 4000 * (attempt + 1);
+          lastErr = 'API ' + res.status + ': ' + errText.slice(0, 200);
+          if (res.status === 429 && attempt < 1) {
+            let waitMs = 3000;
             const m = errText.match(/"retryDelay"\s*:\s*"(\d+)s"/);
-            if (m) waitMs = Math.min(30000, (parseInt(m[1]) + 1) * 1000);
-            if (attempt < 2) { await sleep(waitMs); continue; }
-            break; // try next model
+            if (m) waitMs = Math.min(15000, (parseInt(m[1]) + 1) * 1000);
+            await sleep(waitMs); continue;
           }
-          if (res.status === 401 || res.status === 403) break outer; // bad key, no point
-          break; // other error, try next model
+          if (res.status === 401 || res.status === 403) break outer;
+          break;
         }
       }
-      if (!res || !res.ok) {
-        if (String(lastErr).includes('429')) {
-          throw new Error('Rate limit / quota exceeded on all models. Free Gemini tier allows ~15 requests per minute and ~1500 per day. Please wait a minute and try again, generate fewer reviews at a time, or use a different API key.');
-        }
-        throw new Error(lastErr || 'AI request failed');
-      }
+      if (!res || !res.ok) throw new Error(lastErr || 'AI request failed');
       const data = await res.json();
-      let txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      txt = txt.trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+      let txt = (data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+        .replace(/^```json\s*/i,'').replace(/```$/,'').trim();
       let arr;
       try { arr = JSON.parse(txt); } catch(e) {
         const m = txt.match(/\[[\s\S]*\]/); if (m) arr = JSON.parse(m[0]);
       }
-      if (!Array.isArray(arr) || arr.length === 0) throw new Error('AI returned no reviews');
+      if (!Array.isArray(arr)) throw new Error('AI returned invalid data');
+      return { arr, usedModel };
+    };
+
+    try {
+      // For large batches, split into parallel chunks (~6 each) — much faster.
+      const chunkSize = 6;
+      const chunks = [];
+      let remaining = qty;
+      while (remaining > 0) { const n = Math.min(chunkSize, remaining); chunks.push(n); remaining -= n; }
+      setAiStatus(chunks.length > 1
+        ? 'Generating ' + qty + ' reviews in ' + chunks.length + ' parallel batches...'
+        : 'Generating ' + qty + ' reviews...', '#2563eb');
+
+      const results = await Promise.all(chunks.map(n => runOnce(n)));
+      const all = results.flatMap(r => r.arr);
+      const usedModel = results[0]?.usedModel || 'gemini';
+      if (all.length === 0) throw new Error('AI returned no reviews');
 
       const now = Date.now();
-      arr.forEach((r, i) => {
+      all.forEach((r, i) => {
         state.fakeReviews.push({
           name: String(r.name||'Customer').slice(0,60),
           rating: Math.max(1, Math.min(5, parseInt(r.rating)||5)),
@@ -839,8 +841,9 @@ Format: [{"name":"...","rating":5,"text":"..."}]`;
         });
       });
       renderReviews();
-      setAiStatus('✓ Generated ' + arr.length + ' reviews via ' + usedModel, '#059669');
+      setAiStatus('✓ Generated ' + all.length + ' reviews via ' + usedModel, '#059669');
       setTimeout(() => setAiStatus(''), 3500);
+
     } catch(e) {
       console.error('AI gen failed', e);
       setAiStatus('Error: ' + e.message, '#dc2626');
