@@ -501,8 +501,12 @@ async function saveProductCatalogMeta() {
 }
 
 async function saveProductEverywhere(id, data) {
-  // Firestore first — if it fails (e.g. doc too large) we do NOT poison localStorage
-  if (window.fsSetDoc) {
+  // Firestore first — the media-splitter stores heavy base64 images
+  // as separate `product_media` docs so the main product doc stays
+  // under 1 MB and each product can carry up to ~5 MB total media.
+  if (window.fsSaveProductWithMedia) {
+    await window.fsSaveProductWithMedia(id, data);
+  } else if (window.fsSetDoc) {
     await window.fsSetDoc('products', id, data);
   } else if (window.vextroSave) {
     await window.vextroSave('products', { ...(window.PRODUCTS_DATA||{}), [id]: data });
@@ -516,7 +520,8 @@ async function saveProductEverywhere(id, data) {
 async function deleteProductEverywhere(id) {
   if (window.PRODUCTS_DATA && window.PRODUCTS_DATA[id]) delete window.PRODUCTS_DATA[id];
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA || {})); } catch(e) {}
-  if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
+  if (window.fsDeleteProductWithMedia) await window.fsDeleteProductWithMedia(id);
+  else if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
   else if (window.vextroSave) await window.vextroSave('products', window.PRODUCTS_DATA || {});
   await saveProductCatalogMeta();
 }
