@@ -1,83 +1,22 @@
 [
-  {
-    "id": "json-formatter",
-    "title": "JSON Formatter",
-    "category": "Developer",
-    "icon": "fa-solid fa-code",
-    "color": "#3b82f6",
-    "description": "Beautify, validate, and minify JSON instantly in your browser.",
-    "badge": "Free"
-  },
-  {
-    "id": "password-generator",
-    "title": "Password Generator",
-    "category": "Security",
-    "icon": "fa-solid fa-key",
-    "color": "#10b981",
-    "description": "Generate strong, random passwords with custom length and character rules.",
-    "badge": "Free"
-  },
-  {
-    "id": "qr-generator",
-    "title": "QR Code Generator",
-    "category": "Utility",
-    "icon": "fa-solid fa-qrcode",
-    "color": "#f97316",
-    "description": "Create custom QR codes for URLs, WiFi, contacts, and text in seconds.",
-    "badge": "Free"
-  },
-  {
-    "id": "word-counter",
-    "title": "Word & Character Counter",
-    "category": "Writing",
-    "icon": "fa-solid fa-pen-nib",
-    "color": "#8b5cf6",
-    "description": "Count words, characters, sentences, and reading time in any text.",
-    "badge": "Free"
-  },
-  {
-    "id": "color-picker",
-    "title": "Color Picker & Converter",
-    "category": "Design",
-    "icon": "fa-solid fa-palette",
-    "color": "#ef4444",
-    "description": "Pick colors and convert between HEX, RGB, and HSL formats.",
-    "badge": "Free"
-  },
-  {
-    "id": "meta-tag-generator",
-    "title": "Meta Tag Generator",
-    "category": "SEO",
-    "icon": "fa-solid fa-tags",
-    "color": "#14b8a6",
-    "description": "Generate SEO-friendly meta tags, Open Graph, and Twitter card markup.",
-    "badge": "Free"
-  },
-  {
-    "id": "base64",
-    "title": "Base64 Encoder / Decoder",
-    "category": "Developer",
-    "icon": "fa-solid fa-terminal",
-    "color": "#6366f1",
-    "description": "Encode or decode Base64 strings quickly and safely in your browser.",
-    "badge": "Free"
-  },
-  {
-    "id": "image-compressor",
-    "title": "Image Compressor",
-    "category": "Design",
-    "icon": "fa-solid fa-image",
-    "color": "#ec4899",
-    "description": "Compress PNG and JPG images right in your browser — no upload needed.",
-    "badge": "Free"
-  },
-  {
-    "id": "url-encoder",
-    "title": "URL Encoder / Decoder",
-    "category": "Developer",
-    "icon": "fa-solid fa-link",
-    "color": "#0ea5e9",
-    "description": "Encode or decode URLs and query string parameters instantly.",
-    "badge": "Free"
-  }
+  { "id": "json-formatter", "title": "JSON Formatter", "category": "Developer", "icon": "fa-solid fa-code", "color": "#3b82f6", "description": "Beautify, validate, and minify JSON instantly in your browser.", "badge": "Free" },
+  { "id": "password-generator", "title": "Password Generator", "category": "Security", "icon": "fa-solid fa-key", "color": "#10b981", "description": "Generate strong, random passwords with custom length and character rules.", "badge": "Free" },
+  { "id": "qr-generator", "title": "QR Code Generator", "category": "Utility", "icon": "fa-solid fa-qrcode", "color": "#f97316", "description": "Create custom QR codes for URLs, WiFi, contacts, and text in seconds.", "badge": "Free" },
+  { "id": "word-counter", "title": "Word & Character Counter", "category": "Writing", "icon": "fa-solid fa-pen-nib", "color": "#8b5cf6", "description": "Count words, characters, sentences, and reading time in any text.", "badge": "Free" },
+  { "id": "color-picker", "title": "Color Picker & Converter", "category": "Design", "icon": "fa-solid fa-palette", "color": "#ef4444", "description": "Pick colors and convert between HEX, RGB, and HSL formats.", "badge": "Free" },
+  { "id": "meta-tag-generator", "title": "Meta Tag Generator", "category": "SEO", "icon": "fa-solid fa-tags", "color": "#14b8a6", "description": "Generate SEO-friendly meta tags, Open Graph, and Twitter card markup.", "badge": "Free" },
+  { "id": "base64", "title": "Base64 Encoder / Decoder", "category": "Developer", "icon": "fa-solid fa-terminal", "color": "#6366f1", "description": "Encode or decode Base64 strings quickly and safely in your browser.", "badge": "Free" },
+  { "id": "image-compressor", "title": "Image Compressor", "category": "Design", "icon": "fa-solid fa-image", "color": "#ec4899", "description": "Compress PNG and JPG images right in your browser — no upload needed.", "badge": "Free" },
+  { "id": "url-encoder", "title": "URL Encoder / Decoder", "category": "Developer", "icon": "fa-solid fa-link", "color": "#0ea5e9", "description": "Encode or decode URLs and query string parameters instantly.", "badge": "Free" },
+  { "id": "lorem-ipsum", "title": "Lorem Ipsum Generator", "category": "Writing", "icon": "fa-solid fa-align-left", "color": "#a855f7", "description": "Generate placeholder paragraphs, sentences, or words for mockups.", "badge": "Free" },
+  { "id": "case-converter", "title": "Case Converter", "category": "Writing", "icon": "fa-solid fa-font", "color": "#0891b2", "description": "Convert text to UPPER, lower, Title, camelCase, snake_case and more.", "badge": "Free" },
+  { "id": "slugify", "title": "URL Slug Generator", "category": "SEO", "icon": "fa-solid fa-link-slash", "color": "#059669", "description": "Turn any title into a clean, SEO-friendly URL slug.", "badge": "Free" },
+  { "id": "regex-tester", "title": "Regex Tester", "category": "Developer", "icon": "fa-solid fa-magnifying-glass", "color": "#f43f5e", "description": "Test JavaScript regular expressions with live match highlighting.", "badge": "Free" },
+  { "id": "jwt-decoder", "title": "JWT Decoder", "category": "Security", "icon": "fa-solid fa-shield-halved", "color": "#7c3aed", "description": "Decode JSON Web Tokens and inspect header, payload, and signature.", "badge": "Free" },
+  { "id": "hash-generator", "title": "Hash Generator", "category": "Security", "icon": "fa-solid fa-fingerprint", "color": "#dc2626", "description": "Generate SHA-1, SHA-256, and SHA-512 hashes of any text.", "badge": "Free" },
+  { "id": "timestamp", "title": "Unix Timestamp Converter", "category": "Developer", "icon": "fa-solid fa-clock", "color": "#0284c7", "description": "Convert between Unix timestamps and human-readable dates.", "badge": "Free" },
+  { "id": "gradient-generator", "title": "CSS Gradient Generator", "category": "Design", "icon": "fa-solid fa-droplet", "color": "#db2777", "description": "Build beautiful CSS linear gradients with live preview and code.", "badge": "Free" },
+  { "id": "box-shadow", "title": "Box Shadow Generator", "category": "Design", "icon": "fa-solid fa-square", "color": "#4f46e5", "description": "Design CSS box shadows visually and copy the ready-to-use code.", "badge": "Free" },
+  { "id": "bmi-calculator", "title": "BMI Calculator", "category": "Utility", "icon": "fa-solid fa-weight-scale", "color": "#16a34a", "description": "Calculate your Body Mass Index and see your health category.", "badge": "Free" },
+  { "id": "age-calculator", "title": "Age Calculator", "category": "Utility", "icon": "fa-solid fa-cake-candles", "color": "#f59e0b", "description": "Calculate your exact age in years, months, days, and hours.", "badge": "Free" }
 ]
