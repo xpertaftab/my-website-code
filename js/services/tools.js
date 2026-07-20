@@ -87,7 +87,7 @@
       catBar.innerHTML = categories()
         .map(
           (c) =>
-            `<button class="tools-cat-btn${c === ACTIVE_CAT ? ' active' : ''}" data-cat="${c.replace(/"/g, '&quot;')}">${c}</button>`,
+            `<button class="blog-cat-btn${c === ACTIVE_CAT ? ' active' : ''}" data-cat="${c.replace(/"/g, '&quot;')}">${c}</button>`,
         )
         .join('');
       catBar.querySelectorAll('button').forEach((btn) => {
