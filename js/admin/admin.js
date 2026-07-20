@@ -758,7 +758,8 @@ function wireProductForm(ov, state, existing, onSave) {
         rating: parseFloat(document.getElementById('pfRating').value)||5,
         reviews: cleanReviews.length,
         fakeReviews: cleanReviews,
-        badge: (document.getElementById('pfBestSeller')||{}).checked ? ((document.getElementById('pfBadgeText').value||'Best Seller').trim() || 'Best Seller') : ''
+        badge: (document.getElementById('pfBestSeller')||{}).checked ? ((document.getElementById('pfBadgeText').value||'Best Seller').trim() || 'Best Seller') : '',
+        isPopular: !!(document.getElementById('pfIsPopular')||{}).checked
       };
       try {
         await onSave(data);
