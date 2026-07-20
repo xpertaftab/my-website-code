@@ -3,6 +3,10 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/sites/21b/b/b1ad457d94/public_html/
     - export SRC=/home/sites/21b/b/b1ad457d94/my-website-code
-    - /bin/rm -rf $DEPLOYPATH/legacy $DEPLOYPATH/public $DEPLOYPATH/src $DEPLOYPATH/mem $DEPLOYPATH/wp-admin $DEPLOYPATH/wp-content $DEPLOYPATH/wp-includes $DEPLOYPATH/node_modules $DEPLOYPATH/.tanstack $DEPLOYPATH/.lovable
+    - /bin/rm -rf $DEPLOYPATH/legacy $DEPLOYPATH/public $DEPLOYPATH/src $DEPLOYPATH/mem $DEPLOYPATH/js $DEPLOYPATH/data $DEPLOYPATH/assets $DEPLOYPATH/wp-admin $DEPLOYPATH/wp-content $DEPLOYPATH/wp-includes $DEPLOYPATH/node_modules $DEPLOYPATH/.tanstack $DEPLOYPATH/.lovable
     - /bin/rm -f $DEPLOYPATH/package.json $DEPLOYPATH/bun.lock $DEPLOYPATH/bunfig.toml $DEPLOYPATH/vite.config.ts $DEPLOYPATH/tsconfig.json $DEPLOYPATH/tsconfig.tsbuildinfo $DEPLOYPATH/eslint.config.js $DEPLOYPATH/components.json $DEPLOYPATH/AGENTS.md $DEPLOYPATH/deploy-cpanel.sh $DEPLOYPATH/.prettierrc $DEPLOYPATH/.prettierignore $DEPLOYPATH/wp-*.php $DEPLOYPATH/license.txt $DEPLOYPATH/readme.html
-    - /bin/cp -R $SRC/index.html $SRC/main.mp4 $SRC/style.css $SRC/robots.txt $SRC/sitemap.xml $SRC/js $SRC/data $SRC/assets $DEPLOYPATH
+    - /bin/cp -f $SRC/index.html $SRC/main.mp4 $SRC/style.css $SRC/robots.txt $SRC/sitemap.xml $DEPLOYPATH
+    - /bin/mkdir -p $DEPLOYPATH/js $DEPLOYPATH/data $DEPLOYPATH/assets
+    - /bin/cp -Rf $SRC/js/. $DEPLOYPATH/js/
+    - /bin/cp -Rf $SRC/data/. $DEPLOYPATH/data/
+    - /bin/cp -Rf $SRC/assets/. $DEPLOYPATH/assets/
