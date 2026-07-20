@@ -132,25 +132,26 @@
     const icon = t.icon || 'fa-solid fa-toolbox';
 
     detail.innerHTML = `
-      <!-- Hero (matches site .blog-hero style) -->
-      <section class="blog-hero" style="background:linear-gradient(135deg,${color}18 0%,#ffffff 60%,${color}0a 100%);padding-bottom:32px;">
-        <div class="section-container">
-          <nav aria-label="breadcrumb" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:0.85rem;color:#64748b;margin-bottom:18px;font-weight:600;">
-            <a href="javascript:void(0)" onclick="showPage('home')" style="color:#64748b;text-decoration:none;">Home</a>
-            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;color:#cbd5e1;"></i>
-            <a href="javascript:void(0)" id="tdBackCrumb" style="color:#64748b;text-decoration:none;">Tools</a>
-            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;color:#cbd5e1;"></i>
-            <span style="color:${color};font-weight:700;">${safe(t.title)}</span>
+      <!-- Hero -->
+      <section style="position:relative;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 55%,${color} 140%);padding:70px 0 90px;color:#fff;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,${color}55,transparent 50%),radial-gradient(circle at 80% 80%,#a855f755,transparent 55%);opacity:0.6;pointer-events:none;"></div>
+        <div class="section-container" style="position:relative;z-index:2;text-align:center;">
+          <nav aria-label="breadcrumb" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;font-size:0.85rem;color:#cbd5e1;margin-bottom:22px;font-weight:600;">
+            <a href="javascript:void(0)" onclick="showPage('home')" style="color:#cbd5e1;text-decoration:none;">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;opacity:0.6;"></i>
+            <a href="javascript:void(0)" id="tdBackCrumb" style="color:#cbd5e1;text-decoration:none;">Tools</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;opacity:0.6;"></i>
+            <span style="color:#fff;font-weight:700;">${safe(t.title)}</span>
           </nav>
-          <div class="badge blog-hero-badge" style="background:${color}20;color:${color};">
-            <i class="${icon}"></i> ${safe(t.category).toUpperCase()}
+          <div style="display:inline-flex;align-items:center;gap:8px;background:${color}30;border:1px solid ${color}aa;color:#fff;padding:8px 18px;border-radius:999px;font-size:0.78rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;backdrop-filter:blur(8px);">
+            <i class="${icon}"></i> ${safe(t.category)}
           </div>
-          <h1>${safe(t.title.replace(/(&|and|to)/i, (m) => m))} <span class="gradient-text" style="background:linear-gradient(135deg,${color},${color}aa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Tool</span></h1>
-          <p class="blog-subtitle">${safe(t.description)}</p>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;">
-            <span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e2e8f0;padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#0f172a;"><i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> Instant</span>
-            <span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e2e8f0;padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#0f172a;"><i class="fa-solid fa-lock" style="color:#10b981;"></i> 100% Private</span>
-            <span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e2e8f0;padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#0f172a;"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Free Forever</span>
+          <h1 style="font-size:clamp(2rem,5vw,3.4rem);font-weight:900;color:#fff;margin:0 0 16px;letter-spacing:-1px;line-height:1.15;">${safe(t.title)}</h1>
+          <p style="font-size:1.1rem;color:#cbd5e1;line-height:1.6;max-width:640px;margin:0 auto;">${safe(t.description)}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;justify-content:center;">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#fff;backdrop-filter:blur(8px);"><i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Instant</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#fff;backdrop-filter:blur(8px);"><i class="fa-solid fa-lock" style="color:#34d399;"></i> 100% Private</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:8px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;color:#fff;backdrop-filter:blur(8px);"><i class="fa-solid fa-heart" style="color:#f87171;"></i> Free Forever</span>
           </div>
         </div>
       </section>
