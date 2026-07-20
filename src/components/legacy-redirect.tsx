@@ -5,7 +5,7 @@ type LegacyRedirectProps = {
 };
 
 export function LegacyRedirect({ page }: LegacyRedirectProps) {
-  const target = page ? `/legacy/index.html#${page}` : "/legacy/index.html";
+  const target = page ? `/index.html#${page}` : "/index.html";
 
   // Client-side fallback (also runs if script tag is stripped).
   useEffect(() => {
