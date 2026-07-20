@@ -599,6 +599,12 @@ function buildProductForm(p) {
           </label>
           <input id="pfBadgeText" value="${(p.badge||'Best Seller').replace(/"/g,'&quot;')}" style="${IS};flex:1;min-width:160px;max-width:220px;padding:8px 12px;font-size:0.85rem;" placeholder="Badge text (e.g. Best Seller)">
         </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #fed7aa;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="pfIsPopular" ${p.isPopular?'checked':''} style="width:18px;height:18px;accent-color:#f59e0b;cursor:pointer;">
+            <span style="font-weight:700;color:#9a3412;font-size:0.9rem;"><i class="fa-solid fa-fire" style="color:#f59e0b;"></i> Show in "Popular Products" section</span>
+          </label>
+        </div>
       </div>
 
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
