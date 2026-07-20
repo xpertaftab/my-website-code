@@ -608,10 +608,16 @@ function buildProductForm(p) {
       </div>
 
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div style="font-weight:700;color:#1e40af;font-size:0.9rem;"><i class="fa-solid fa-star"></i> Fake Reviews</div>
-          <button type="button" id="pfAddReview" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add Review</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <input id="pfAiQty" type="number" min="1" max="20" value="5" title="How many reviews to generate" style="${IS};width:60px;padding:6px 8px;font-size:0.8rem;">
+            <button type="button" id="pfAiGen" style="padding:6px 12px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Generate</button>
+            <button type="button" id="pfAiKey" title="Set Google AI API Key" style="padding:6px 10px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;font-size:0.78rem;"><i class="fa-solid fa-key"></i></button>
+            <button type="button" id="pfAddReview" style="padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;">+ Add</button>
+          </div>
         </div>
+        <div id="pfAiStatus" style="font-size:0.75rem;color:#64748b;margin-bottom:8px;display:none;"></div>
         <div id="pfReviews" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
