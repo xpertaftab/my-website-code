@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if [ -f "$DIR/deploy-cpanel.sh" ]; then
+  /bin/bash "$DIR/deploy-cpanel.sh"
+  exit 0
+fi
+
+SRC="$DIR"
+DEPLOYPATH="/home/sites/21b/b/b1ad457d94/public_html"
+
+for required_file in index.html style.css; do
+  if [ ! -f "$SRC/$required_file" ]; then
+    echo "ERROR: $required_file missing in $SRC. Git repository files are missing; public_html was NOT changed."
+    exit 1
+  fi
+done
+
+for required_dir in js data assets; do
+  if [ ! -d "$SRC/$required_dir" ]; then
+    echo "ERROR: $required_dir folder missing in $SRC. Git repository files are missing; public_html was NOT changed."
+    exit 1
+  fi
+done
+
+/bin/mkdir -p "$DEPLOYPATH"
+/bin/rm -rf "$DEPLOYPATH/legacy" "$DEPLOYPATH/public" "$DEPLOYPATH/src" "$DEPLOYPATH/mem" \
+  "$DEPLOYPATH/js" "$DEPLOYPATH/data" "$DEPLOYPATH/assets" \
+  "$DEPLOYPATH/wp-admin" "$DEPLOYPATH/wp-content" "$DEPLOYPATH/wp-includes" \
+  "$DEPLOYPATH/node_modules" "$DEPLOYPATH/.tanstack" "$DEPLOYPATH/.lovable"
+
+/bin/rm -f "$DEPLOYPATH"/package.json "$DEPLOYPATH"/bun.lock "$DEPLOYPATH"/bunfig.toml \
+  "$DEPLOYPATH"/vite.config.ts "$DEPLOYPATH"/tsconfig.json "$DEPLOYPATH"/tsconfig.tsbuildinfo \
+  "$DEPLOYPATH"/eslint.config.js "$DEPLOYPATH"/components.json "$DEPLOYPATH"/AGENTS.md \
+  "$DEPLOYPATH"/deploy-cpanel.sh "$DEPLOYPATH"/.prettierrc "$DEPLOYPATH"/.prettierignore \
+  "$DEPLOYPATH"/wp-*.php "$DEPLOYPATH"/license.txt "$DEPLOYPATH"/readme.html
+
+/bin/cp -f "$SRC"/index.html "$SRC"/style.css "$DEPLOYPATH/"
+[ ! -f "$SRC"/main.mp4 ] || /bin/cp -f "$SRC"/main.mp4 "$DEPLOYPATH/"
+[ ! -f "$SRC"/robots.txt ] || /bin/cp -f "$SRC"/robots.txt "$DEPLOYPATH/"
+[ ! -f "$SRC"/sitemap.xml ] || /bin/cp -f "$SRC"/sitemap.xml "$DEPLOYPATH/"
+
+/bin/mkdir -p "$DEPLOYPATH/js" "$DEPLOYPATH/data" "$DEPLOYPATH/assets"
+/bin/cp -Rf "$SRC"/js/. "$DEPLOYPATH/js/"
+/bin/cp -Rf "$SRC"/data/. "$DEPLOYPATH/data/"
+/bin/cp -Rf "$SRC"/assets/. "$DEPLOYPATH/assets/"
+
+echo "Deployment completed successfully."
