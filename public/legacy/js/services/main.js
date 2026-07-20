@@ -2689,7 +2689,13 @@ function productDescPlainTextToHtml(text) {
 
 function sanitizeProductDescriptionNode(node) {
     if (!node) return '';
-    if (node.nodeType === Node.TEXT_NODE) return productDescEscapeHtml(node.textContent || '');
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        const compact = text.replace(/\s+/g, ' ').trim();
+        if (!compact) return '';
+        if (compact.length > 80 || /(?:✅|☑️?|✔️?|✓|•)/.test(compact)) return productDescPlainTextToHtml(compact);
+        return productDescEscapeHtml(compact);
+    }
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
     const tag = node.tagName.toLowerCase();
