@@ -69,13 +69,28 @@ function objToFields(obj) {
 // Load collection from Firestore via REST API
 window.fsLoadMap = async function(collectionName) {
   try {
-    const res = await fetch(`${FB_BASE}/${collectionName}?key=${FB_API_KEY}`);
-    if (!res.ok) {
-      if (res.status === 404) console.warn('FS: Firestore database not found - enable it in Firebase Console');
-      return null;
-    }
-    const data = await res.json();
-    if (!data.documents || data.documents.length === 0) return null;
+    const allDocs = [];
+    let pageToken = '';
+    let guard = 0;
+
+    // Firestore REST can paginate a collection even when it only returns
+    // a couple of large documents. If we read only the first response, new
+    // products saved by admin appear to “not save” because they sit on the
+    // next page. Always walk every page.
+    do {
+      const tokenPart = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+      const res = await fetch(`${FB_BASE}/${collectionName}?pageSize=100&key=${FB_API_KEY}${tokenPart}`);
+      if (!res.ok) {
+        if (res.status === 404) console.warn('FS: Firestore database not found - enable it in Firebase Console');
+        return allDocs.length ? allDocs : null;
+      }
+      const data = await res.json();
+      if (Array.isArray(data.documents)) allDocs.push(...data.documents);
+      pageToken = data.nextPageToken || '';
+      guard++;
+    } while (pageToken && guard < 50);
+
+    if (allDocs.length === 0) return null;
     const map = {};
     // First pass: prefer real id-keyed docs (non purely-numeric keys).
     // A prior bug called fsSaveMap with an array, which created stray
@@ -83,7 +98,7 @@ window.fsLoadMap = async function(collectionName) {
     // Drop and delete those legacy numeric-keyed docs on load.
     const idKeyed = [];
     const numericKeyed = [];
-    data.documents.forEach(doc => {
+    allDocs.forEach(doc => {
       const docKey = (doc.name || '').split('/').pop();
       (/^\d+$/.test(docKey) ? numericKeyed : idKeyed).push({ doc, docKey });
     });
