@@ -779,7 +779,6 @@ Generate exactly ${qty} authentic-sounding customer reviews in JSON. Rules:
 - Return ONLY a JSON array, no markdown, no code fence, no commentary.
 Format: [{"name":"...","rating":5,"text":"..."}]`;
 
-    try {
     const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
     const callModel = async (model) => {
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
