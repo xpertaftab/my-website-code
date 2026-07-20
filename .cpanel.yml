@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/sites/21b/b/b1ad457d94/public_html/
+    - /bin/cp -R public/legacy/. $DEPLOYPATH
