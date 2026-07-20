@@ -426,6 +426,7 @@ function adminLabelStyle() {
 async function renderAdminProductsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
+    const pendingProducts = window.__pendingProductSaves || {};
     try {
       if (window.fsLoadProductsHydrated || window.fsLoadMap) {
         const fsData = window.fsLoadProductsHydrated
@@ -433,9 +434,12 @@ async function renderAdminProductsNew(container) {
           : await window.fsLoadMap('products');
         const meta = await window.fsLoadMap('site_meta');
         if (fsData && Object.keys(fsData).length > 0) {
-          window.PRODUCTS_DATA = fsData;
+          // Remote data is the source of truth, but immediately after adding a
+          // product Firestore collection reads can lag for a moment. Keep the
+          // just-saved product visible in the admin list/shop during that gap.
+          window.PRODUCTS_DATA = { ...fsData, ...pendingProducts };
           try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
-        } else if (meta && meta.products) {
+        } else if (meta && meta.products && Object.keys(pendingProducts).length === 0) {
           window.PRODUCTS_DATA = {};
           try { localStorage.removeItem('vextro_products'); } catch(e) {}
         }
@@ -515,12 +519,15 @@ async function saveProductEverywhere(id, data) {
   }
   window.PRODUCTS_DATA = window.PRODUCTS_DATA || {};
   window.PRODUCTS_DATA[id] = data;
+  window.__pendingProductSaves = window.__pendingProductSaves || {};
+  window.__pendingProductSaves[id] = data;
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA)); } catch(e) {}
   await saveProductCatalogMeta();
 }
 
 async function deleteProductEverywhere(id) {
   if (window.PRODUCTS_DATA && window.PRODUCTS_DATA[id]) delete window.PRODUCTS_DATA[id];
+  if (window.__pendingProductSaves && window.__pendingProductSaves[id]) delete window.__pendingProductSaves[id];
   try { localStorage.setItem('vextro_products', JSON.stringify(window.PRODUCTS_DATA || {})); } catch(e) {}
   if (window.fsDeleteProductWithMedia) await window.fsDeleteProductWithMedia(id);
   else if (window.fsDeleteDoc) await window.fsDeleteDoc('products', id);
