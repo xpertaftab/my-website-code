@@ -427,8 +427,10 @@ async function renderAdminProductsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
     try {
-      if (window.fsLoadMap) {
-        const fsData = await window.fsLoadMap('products');
+      if (window.fsLoadProductsHydrated || window.fsLoadMap) {
+        const fsData = window.fsLoadProductsHydrated
+          ? await window.fsLoadProductsHydrated()
+          : await window.fsLoadMap('products');
         const meta = await window.fsLoadMap('site_meta');
         if (fsData && Object.keys(fsData).length > 0) {
           window.PRODUCTS_DATA = fsData;
