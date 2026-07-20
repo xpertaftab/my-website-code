@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Site static files (index.html, js/, data/, assets/, style.css, main.mp4) live at repo root
+    // so cPanel can deploy them straight to public_html/. Point Vite here so the Lovable preview
+    // can also serve them.
+    publicDir: ".",
+  },
 });
