@@ -2656,7 +2656,6 @@ function productDescPlainTextToHtml(text) {
         ? source
         : source
             .replace(new RegExp('\\s+(?=' + iconBreaks.source + '\\s*)', 'g'), '\n')
-            .replace(/\s+(?=(?:Admin|User|Customer|Dashboard|Payment|Order|Product|Blog|SEO|WhatsApp|Login|Signup|Register|Features|Included|Support|Security|Responsive|Live Demo|Source Code)\b)/g, '\n')
             .replace(/([.!?])\s+(?=[A-Z0-9][a-zA-Z0-9])/g, '$1\n');
     const lines = prepared.split('\n');
     const html = [];
