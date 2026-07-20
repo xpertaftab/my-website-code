@@ -119,7 +119,7 @@
     const t = ALL_TOOLS.find((x) => x.id === id);
     if (!t) return;
     CURRENT_TOOL = id;
-    if (location.hash !== '#/tools/' + id) history.pushState({ tool: id }, '', '#/tools/' + id);
+    if (location.pathname !== '/tools/' + id) history.pushState({ tool: id }, '', '/tools/' + id);
     document.title = `${t.title} — Free Online Tool | Vextrolyntra`;
 
     const gridWrap = document.getElementById('toolsGridWrap');
@@ -190,7 +190,7 @@
     document.getElementById('toolBackBtn').addEventListener('click', backToGrid);
     document.getElementById('tdBackCrumb').addEventListener('click', backToGrid);
     document.getElementById('toolShareBtn').addEventListener('click', () => {
-      const url = location.origin + location.pathname + '#/tools/' + t.id;
+      const url = location.origin + '/tools/' + t.id;
       if (navigator.share) navigator.share({ title: t.title, url }).catch(() => copyText(url));
       else copyText(url);
     });
@@ -226,14 +226,14 @@
 
   function backToGrid() {
     CURRENT_TOOL = null;
-    if (location.hash.startsWith('#/tools/')) history.pushState({}, '', '#/tools');
+    if (location.pathname.startsWith('/tools/') || location.hash.startsWith('#/tools/')) history.pushState({}, '', '/tools');
     document.title = 'Free Online Tools | Vextrolyntra';
     renderGrid();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   window.addEventListener('popstate', () => {
-    const m = location.hash.match(/^#\/tools\/(.+)$/);
+    const m = location.pathname.match(/^\/tools\/(.+)$/) || location.hash.match(/^#\/tools\/(.+)$/);
     if (m) openToolPage(m[1]);
     else if (CURRENT_TOOL) backToGrid();
   });
@@ -1309,7 +1309,7 @@
 
   window.renderToolsPage = async function () {
     await loadTools();
-    const m = location.hash.match(/^#\/tools\/(.+)$/);
+    const m = location.pathname.match(/^\/tools\/(.+)$/) || location.hash.match(/^#\/tools\/(.+)$/);
     if (m && ALL_TOOLS.find((x) => x.id === m[1])) {
       renderGrid();
       openToolPage(m[1]);
@@ -1324,7 +1324,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (location.pathname === '/tools' || location.hash.startsWith('#/tools')) {
+    if (location.pathname === '/tools' || location.pathname.startsWith('/tools/') || location.hash.startsWith('#/tools')) {
       setTimeout(() => window.showPage && window.showPage('tools'), 300);
     }
   });

@@ -263,14 +263,18 @@ function showPage(page, subview) {
 
     // Update location path to enable refresh and back/forward persistence without #
     const pageKey = page || 'home';
-    const isToolHashRoute = pageKey === 'tools' && location.hash.startsWith('#/tools');
+    const isToolRoute = pageKey === 'tools' && (
+        location.pathname === '/tools' ||
+        location.pathname.startsWith('/tools/') ||
+        location.hash.startsWith('#/tools')
+    );
     if (pageKey === 'home') {
         if (location.pathname !== '/' && location.pathname !== '/index.html') {
             history.pushState(null, null, '/');
         }
-    } else if (isToolHashRoute) {
-        // Keep #/tools/<id> intact so direct tool links and refresh open the detail page.
-        // Rewriting the URL here removes the hash before tools.js can read it.
+    } else if (pageKey === 'tools') {
+        // Keep /tools/<id> or #/tools/<id> intact so direct links and refresh open the detail page.
+        if (!isToolRoute) history.pushState(null, null, '/tools');
     } else {
         if (location.pathname !== '/' + pageKey) {
             history.pushState(null, null, '/' + pageKey);
@@ -989,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentHash = location.hash.replace('#', '');
     const activeRoute = currentHash ? currentHash : currentPath;
 
-    if (currentHash.startsWith('/tools')) {
+    if (currentHash.startsWith('/tools') || currentPath === 'tools' || currentPath.startsWith('tools/')) {
         showPage('tools');
     } else if (activeRoute.startsWith('service/') || activeRoute.startsWith('service-')) {
         const serviceId = activeRoute.replace('service/', '').replace('service-', '');
@@ -1006,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Listen to popstate changes for browser back/forward buttons (replaces hashchange)
 window.addEventListener('popstate', () => {
-    if (location.hash.startsWith('#/tools')) {
+    if (location.hash.startsWith('#/tools') || location.pathname === '/tools' || location.pathname.startsWith('/tools/')) {
         showPage('tools');
         return;
     }
