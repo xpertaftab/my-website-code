@@ -840,7 +840,7 @@ Format: [{"name":"...","rating":5,"text":"..."}]`;
         });
       });
       renderReviews();
-      setAiStatus('✓ Generated ' + arr.length + ' reviews', '#059669');
+      setAiStatus('✓ Generated ' + arr.length + ' reviews via ' + usedModel, '#059669');
       setTimeout(() => setAiStatus(''), 3500);
     } catch(e) {
       console.error('AI gen failed', e);
