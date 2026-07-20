@@ -10,7 +10,7 @@
     // ---------- SEO Data per Page ----------
     const ORIGIN = (location.origin || 'https://vextrolyntra.online').replace(/\/$/, '');
     const BRAND = 'Vextro Lyntra';
-    const DEFAULT_IMG = ORIGIN + '/legacy/assets/service-web-hero.jpg';
+    const DEFAULT_IMG = ORIGIN + '/assets/service-web-hero.jpg';
 
     const PAGE_SEO = {
         home: {
