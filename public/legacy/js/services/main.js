@@ -2648,12 +2648,15 @@ function productDescPlainTextToHtml(text) {
     const source = String(text || '')
         .replace(/\r\n/g, '\n')
         .replace(/\u00a0/g, ' ')
+        .replace(/[•·●]/g, '\n• ')
         .replace(/[ \t]{2,}/g, ' ')
         .trim();
+    const iconBreaks = /(?:✅|☑️?|✔️?|✓|•|➤|👉|🔥|🚀|💻|📱|🛒|🧾|⚙️|🔐|🛡️|🎨|📊|📈|⭐|🌟|💳|📦|🔔|📥|🔎|🧩|📝|👤|👥|📌|🎯|💡|🟢|🔵|🟣|🟠|🔴)/g;
     const prepared = source.includes('\n')
         ? source
         : source
-            .replace(/\s+(?=(?:✅|☑️?|✔️?|✓|•)\s*)/g, '\n')
+            .replace(new RegExp('\\s+(?=' + iconBreaks.source + '\\s*)', 'g'), '\n')
+            .replace(/\s+(?=(?:Admin|User|Customer|Dashboard|Payment|Order|Product|Blog|SEO|WhatsApp|Login|Signup|Register|Features|Included|Support|Security|Responsive|Live Demo|Source Code)\b)/g, '\n')
             .replace(/([.!?])\s+(?=[A-Z0-9][a-zA-Z0-9])/g, '$1\n');
     const lines = prepared.split('\n');
     const html = [];
@@ -2671,7 +2674,7 @@ function productDescPlainTextToHtml(text) {
             closeList();
             return;
         }
-        const bullet = trimmed.match(/^[-*•✓✔✅☑️?]\s*(.+)$/);
+        const bullet = trimmed.match(/^[-*•✓✔✅☑️?➤👉🔥🚀💻📱🛒🧾⚙️🔐🛡️🎨📊📈⭐🌟💳📦🔔📥🔎🧩📝👤👥📌🎯💡🟢🔵🟣🟠🔴]\s*(.+)$/u);
         if (bullet) {
             if (!listOpen) {
                 html.push('<ul>');
@@ -2685,6 +2688,21 @@ function productDescPlainTextToHtml(text) {
     });
     closeList();
     return html.join('');
+}
+
+function productDescHasBlockHtml(html) {
+    return /<\/?(?:p|ul|ol|li|figure|blockquote|h2|h3|h4|pre)\b/i.test(html || '');
+}
+
+function productDescHasLargeImage(node) {
+    if (!node || !node.querySelectorAll) return false;
+    return Array.from(node.querySelectorAll('img')).some(img => {
+        const src = (img.getAttribute('src') || '').trim();
+        if (!productDescIsSafeImg(src)) return false;
+        const width = parseInt(img.getAttribute('width') || img.style.width || '0', 10);
+        const height = parseInt(img.getAttribute('height') || img.style.height || '0', 10);
+        return (!width || width > 40) && (!height || height > 40);
+    });
 }
 
 function sanitizeProductDescriptionNode(node) {
@@ -2713,6 +2731,11 @@ function sanitizeProductDescriptionNode(node) {
         return `<figure class="pd-desc-figure"><img src="${productDescEscapeAttr(src)}" alt="${productDescEscapeAttr(alt)}" loading="lazy" onerror="this.parentElement.remove()"></figure>`;
     }
 
+    const textOnly = (node.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!productDescHasLargeImage(node) && ['p','div','section','article','span'].includes(tag) && (textOnly.length > 120 || /(?:✅|☑️?|✔️?|✓|•|➤|👉|🔥|🚀|💻|📱|🛒|🧾|⚙️|🔐|🛡️|🎨|📊|📈|⭐|🌟|💳|📦|🔔|📥|🔎|🧩|📝|👤|👥|📌|🎯|💡)/.test(textOnly))) {
+        return productDescPlainTextToHtml(textOnly);
+    }
+
     const children = Array.from(node.childNodes).map(sanitizeProductDescriptionNode).join('').trim();
     if (!children) return '';
 
@@ -2725,6 +2748,7 @@ function sanitizeProductDescriptionNode(node) {
     const allowed = ['p','div','section','article','span','strong','b','em','i','u','ul','ol','li','h2','h3','h4','blockquote','code','pre'];
     if (!allowed.includes(tag)) return children;
     const outputTag = (tag === 'div' || tag === 'section' || tag === 'article') ? 'p' : tag;
+    if (['p','span'].includes(outputTag) && productDescHasBlockHtml(children)) return children;
     return `<${outputTag}>${children}</${outputTag}>`;
 }
 
