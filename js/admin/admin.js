@@ -967,35 +967,203 @@ window.adminAddProductNew = function() {
 };
 
 // ── LISTINGS ───────────────────────────────────────────────────
+const LISTING_CATEGORIES = ['Website','YouTube Channel','Facebook Page','Instagram Page','TikTok Account','Twitter Account','Play Console','AdSense Dashboard','Shopify Store','Other'];
+
 async function renderAdminListingsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
     try {
-      const r = await fetch('/api/listings');
-      if (r.ok) { const d = await r.json(); if (d && d.length > 0) { window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {}; d.forEach(l => { window.MARKETPLACE_DATA[l.id] = l; }); } }
-    } catch(e) {}
+      if (window.fsLoadMap) {
+        const fsData = await window.fsLoadMap('listings');
+        if (fsData && Object.keys(fsData).length > 0) {
+          window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
+          Object.keys(window.MARKETPLACE_DATA).forEach(k => delete window.MARKETPLACE_DATA[k]);
+          Object.assign(window.MARKETPLACE_DATA, fsData);
+        }
+      }
+    } catch(e){}
     const listings = Object.values(window.MARKETPLACE_DATA || {});
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">Marketplace Listings</div><div style="color:#94a3b8;font-size:0.85rem;">${listings.length} listing${listings.length!==1?'s':''} total</div></div>
+        <button onclick="adminAddListingNew()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(139,92,246,0.3);"><i class="fa-solid fa-plus"></i> Add Listing</button>
       </div>
       <div class="admin-panel-card">
-        ${listings.length===0?`<div class="admin-empty"><i class="fa-solid fa-store"></i><p style="font-weight:600;">No listings yet</p><p style="font-size:0.85rem;">Users' marketplace listings will appear here.</p></div>`:`
+        ${listings.length===0?`<div class="admin-empty"><i class="fa-solid fa-store"></i><p style="font-weight:600;">No listings yet</p><button onclick="adminAddListingNew()" style="margin-top:16px;padding:10px 22px;background:#8b5cf6;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Listing</button></div>`:`
         <table class="admin-table">
-          <thead><tr><th>Listing</th><th>Category</th><th>Price</th><th>Status</th><th style="text-align:right;">Action</th></tr></thead>
-          <tbody>${listings.map(l=>`
+          <thead><tr><th>Listing</th><th>Category</th><th>Price</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
+          <tbody>${listings.map(l=>{
+            const img = (Array.isArray(l.images)&&l.images[0]) || l.image || '';
+            return `
             <tr>
-              <td><div style="font-weight:700;color:#0f172a;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.title||'Untitled'}</div><div style="font-size:0.72rem;color:#94a3b8;">ID: #${l.id}</div></td>
+              <td><div style="display:flex;align-items:center;gap:12px;">
+                ${img?`<img src="${img}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" onerror="this.style.display='none'">`:''}
+                <div><div style="font-weight:700;color:#0f172a;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(l.title||'Untitled').replace(/</g,'&lt;')}</div><div style="font-size:0.72rem;color:#94a3b8;">ID: #${l.id}</div></div>
+              </div></td>
               <td><span class="admin-badge admin-badge-blue">${l.category||'N/A'}</span></td>
               <td><span style="font-weight:700;color:#ff6b35;">$${l.price||0}</span></td>
               <td><span class="admin-badge ${l.status==='Active'?'admin-badge-green':'admin-badge-yellow'}">${l.status||'Active'}</span></td>
-              <td style="text-align:right;"><button onclick="adminDeleteListingNew('${l.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i> Delete</button></td>
-            </tr>`).join('')}
+              <td style="text-align:right;">
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                  <button onclick="adminEditListingNew('${l.id}')" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                  <button onclick="adminDeleteListingNew('${l.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.78rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+              </td>
+            </tr>`;}).join('')}
           </tbody>
         </table>`}
       </div>`;
   } catch(e) { container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error: ${e.message}</p></div>`; }
 }
+
+function buildListingForm(l) {
+  const IS = adminInputStyle(), LS = adminLabelStyle();
+  l = l || {};
+  const catOpts = LISTING_CATEGORIES.map(c => `<option ${l.category===c?'selected':''}>${c}</option>`).join('');
+  const images = Array.isArray(l.images) ? l.images.slice() : (l.image ? [l.image] : []);
+  const stats = Array.isArray(l.stats) && l.stats.length ? l.stats.slice() : [{label:'Traffic/Mo',value:''},{label:'Rev/Mo',value:''}];
+  const info = Array.isArray(l.info) && l.info.length ? l.info.slice() : [{label:'Listed',value:''},{label:'Status',value:'Active'}];
+  return `
+    <h3 style="margin:0 0 20px;font-size:1.3rem;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;color:#0f172a;">${l.id?'Edit Listing':'Add New Listing'}</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;max-height:75vh;overflow-y:auto;padding-right:8px;">
+      <input type="hidden" id="lfId" value="${l.id||''}">
+
+      <div><label style="${LS}">Listing Title *</label><input id="lfTitle" value="${(l.title||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="e.g. Movies Downloading Website - AdSense Active"></div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;"><label style="${LS}">Category *</label><select id="lfCategory" style="${IS}">${catOpts}</select></div>
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Status</label><select id="lfStatus" style="${IS}"><option ${l.status==='Active'?'selected':''}>Active</option><option ${l.status==='Sold'?'selected':''}>Sold</option><option ${l.status==='Pending'?'selected':''}>Pending</option></select></div>
+      </div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Price (USD) *</label><input id="lfPrice" value="${(l.price||'').toString().replace(/"/g,'&quot;')}" style="${IS}" placeholder="99"></div>
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Location</label><input id="lfLocation" value="${(l.location||'').replace(/"/g,'&quot;')}" style="${IS}" placeholder="Pakistan"></div>
+        <div style="flex:1;min-width:140px;"><label style="${LS}">Views (fake ok)</label><input id="lfViews" type="number" value="${l.views||0}" style="${IS}" placeholder="0"></div>
+      </div>
+
+      <div>
+        <label style="${LS}">Images (unlimited — one URL per line, or upload)</label>
+        <textarea id="lfImages" style="${IS};min-height:80px;font-family:monospace;font-size:0.82rem;" placeholder="assets/images/product1.jpg&#10;https://...">${images.join('\n').replace(/</g,'&lt;')}</textarea>
+        <input type="file" id="lfImageUpload" accept="image/*" multiple style="margin-top:8px;font-size:0.82rem;">
+        <div id="lfImagePreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          ${images.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid rgba(15,23,42,0.1);" onerror="this.style.display='none'">`).join('')}
+        </div>
+      </div>
+
+      <div>
+        <label style="${LS}">Quick Stats (shown on card + detail page)</label>
+        <div id="lfStatsRows" style="display:flex;flex-direction:column;gap:8px;">
+          ${stats.map((s,i)=>`
+            <div class="lf-stat-row" style="display:flex;gap:8px;">
+              <input class="lf-stat-label" value="${(s.label||'').replace(/"/g,'&quot;')}" placeholder="Label (e.g. Traffic/Mo)" style="${IS};flex:1;">
+              <input class="lf-stat-value" value="${(s.value||'').replace(/"/g,'&quot;')}" placeholder="Value (e.g. 15,000)" style="${IS};flex:1;">
+              <button type="button" onclick="this.parentElement.remove()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:0 12px;border-radius:8px;cursor:pointer;">&times;</button>
+            </div>`).join('')}
+        </div>
+        <button type="button" onclick="lfAddStatRow()" style="margin-top:8px;background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;"><i class="fa-solid fa-plus"></i> Add Stat</button>
+      </div>
+
+      <div>
+        <label style="${LS}">Detail Info Rows (shown on detail page)</label>
+        <div id="lfInfoRows" style="display:flex;flex-direction:column;gap:8px;">
+          ${info.map((s,i)=>`
+            <div class="lf-info-row" style="display:flex;gap:8px;">
+              <input class="lf-info-label" value="${(s.label||'').replace(/"/g,'&quot;')}" placeholder="Label" style="${IS};flex:1;">
+              <input class="lf-info-value" value="${(s.value||'').replace(/"/g,'&quot;')}" placeholder="Value" style="${IS};flex:1;">
+              <button type="button" onclick="this.parentElement.remove()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:0 12px;border-radius:8px;cursor:pointer;">&times;</button>
+            </div>`).join('')}
+        </div>
+        <button type="button" onclick="lfAddInfoRow()" style="margin-top:8px;background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;"><i class="fa-solid fa-plus"></i> Add Info Row</button>
+      </div>
+
+      <div><label style="${LS}">Description (HTML supported)</label>
+        <textarea id="lfDescription" style="${IS};min-height:140px;">${(l.description||'').replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;border-top:1px solid rgba(15,23,42,0.08);padding-top:14px;">
+        <button onclick="closeAdminOverlay()" style="background:#f1f5f9;color:#475569;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+        <button onclick="adminSaveListing()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;padding:10px 22px;border-radius:8px;cursor:pointer;font-weight:700;"><i class="fa-solid fa-save"></i> Save Listing</button>
+      </div>
+    </div>`;
+}
+
+window.lfAddStatRow = function(){
+  const wrap = document.getElementById('lfStatsRows'); if(!wrap) return;
+  const IS = adminInputStyle();
+  const div = document.createElement('div');
+  div.className='lf-stat-row'; div.style.cssText='display:flex;gap:8px;';
+  div.innerHTML = `<input class="lf-stat-label" placeholder="Label" style="${IS};flex:1;"><input class="lf-stat-value" placeholder="Value" style="${IS};flex:1;"><button type="button" onclick="this.parentElement.remove()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:0 12px;border-radius:8px;cursor:pointer;">&times;</button>`;
+  wrap.appendChild(div);
+};
+window.lfAddInfoRow = function(){
+  const wrap = document.getElementById('lfInfoRows'); if(!wrap) return;
+  const IS = adminInputStyle();
+  const div = document.createElement('div');
+  div.className='lf-info-row'; div.style.cssText='display:flex;gap:8px;';
+  div.innerHTML = `<input class="lf-info-label" placeholder="Label" style="${IS};flex:1;"><input class="lf-info-value" placeholder="Value" style="${IS};flex:1;"><button type="button" onclick="this.parentElement.remove()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:0 12px;border-radius:8px;cursor:pointer;">&times;</button>`;
+  wrap.appendChild(div);
+};
+
+window.adminAddListingNew = function(){
+  showAdminOverlay(buildListingForm(null));
+  wireListingUpload();
+};
+window.adminEditListingNew = function(id){
+  const l = (window.MARKETPLACE_DATA||{})[id];
+  if(!l){ alert('Listing not found'); return; }
+  showAdminOverlay(buildListingForm(l));
+  wireListingUpload();
+};
+
+function wireListingUpload(){
+  const inp = document.getElementById('lfImageUpload');
+  if(!inp) return;
+  inp.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files||[]);
+    const ta = document.getElementById('lfImages');
+    const prev = document.getElementById('lfImagePreview');
+    for (const f of files) {
+      const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+      ta.value = (ta.value ? ta.value + '\n' : '') + dataUrl;
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid rgba(15,23,42,0.1);';
+      prev.appendChild(img);
+    }
+  });
+}
+
+window.adminSaveListing = async function(){
+  const id = document.getElementById('lfId').value || ('l_' + Date.now());
+  const title = document.getElementById('lfTitle').value.trim();
+  if(!title){ alert('Title is required'); return; }
+  const category = document.getElementById('lfCategory').value;
+  const status = document.getElementById('lfStatus').value;
+  const price = document.getElementById('lfPrice').value.trim() || '0';
+  const location = document.getElementById('lfLocation').value.trim();
+  const views = parseInt(document.getElementById('lfViews').value||'0',10) || 0;
+  const images = document.getElementById('lfImages').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const description = document.getElementById('lfDescription').value;
+  const stats = Array.from(document.querySelectorAll('#lfStatsRows .lf-stat-row')).map(r => ({
+    label: r.querySelector('.lf-stat-label').value.trim(),
+    value: r.querySelector('.lf-stat-value').value.trim()
+  })).filter(s => s.label);
+  const info = Array.from(document.querySelectorAll('#lfInfoRows .lf-info-row')).map(r => ({
+    label: r.querySelector('.lf-info-label').value.trim(),
+    value: r.querySelector('.lf-info-value').value.trim()
+  })).filter(s => s.label);
+
+  const listing = { id, title, category, status, price, location, views, images, image: images[0]||'', stats, info, description, updatedAt: Date.now() };
+
+  window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
+  window.MARKETPLACE_DATA[id] = listing;
+  try { if(window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
+  try { if(window.fsSetDoc) await window.fsSetDoc('listings', id, listing); } catch(e){ console.error('fsSetDoc listing failed', e); }
+  window._adminChangesMade = true;
+  closeAdminOverlay();
+  if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
+  showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
+};
 
 window.adminDeleteListingNew = async function(id) {
   if (!confirm('Delete this listing permanently?')) return;
@@ -1004,6 +1172,7 @@ window.adminDeleteListingNew = async function(id) {
   if (window.fsDeleteDoc) window.fsDeleteDoc('listings', id);
   if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA);
   window._adminChangesMade = true;
+  if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
   showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
 };
 
