@@ -305,6 +305,15 @@ function showPage(page, subview) {
     if(productDetailPage) productDetailPage.style.display = 'none';
     const pd = document.getElementById('productDetailPage');
     if(pd) pd.style.display = 'none';
+    const toolsP = document.getElementById('toolsPage');
+    if(toolsP && page !== 'tools') {
+        toolsP.style.display = 'none';
+        const toolDetail = document.getElementById('toolDetailView');
+        if (toolDetail) toolDetail.style.display = 'none';
+        const gridWrap = document.getElementById('toolsGridWrap');
+        if (gridWrap) gridWrap.style.display = 'block';
+        if (window.CURRENT_TOOL) window.CURRENT_TOOL = null;
+    }
 
     // Remove active classes from mobile nav & desktop links
     navItems.forEach(item => item.classList.remove('active'));
