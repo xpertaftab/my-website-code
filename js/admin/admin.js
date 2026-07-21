@@ -108,17 +108,7 @@ let adminDashboardCreated = false;
 function createAdminDashboard() {
   if (adminDashboardCreated) return;
 
-  // Hide site header, main content, footer, mobile nav & chat widgets when admin is active
-  const navbar = document.querySelector('.navbar');
-  if (navbar) navbar.style.setProperty('display', 'none', 'important');
-  const mainContent = document.getElementById('mainContent');
-  if (mainContent) mainContent.style.setProperty('display', 'none', 'important');
-  const footer = document.querySelector('.real-footer');
-  if (footer) footer.style.setProperty('display', 'none', 'important');
-  ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.setProperty('display', 'none', 'important');
-  });
+  // Mark admin mode — CSS rules (see #adminFullStyle) hide navbar, mainContent, footer, mobile nav, chat widgets.
   document.body.classList.add('admin-mode');
 
   // Remove old admin dashboard if exists
@@ -191,6 +181,26 @@ function createAdminDashboard() {
   const style = document.createElement('style');
   style.id = 'adminFullStyle';
   style.textContent = `
+    /* Hide site chrome while admin panel is active */
+    body.admin-mode > .navbar,
+    body.admin-mode > #mainContent,
+    body.admin-mode > .real-footer,
+    body.admin-mode > #guestMobileNav,
+    body.admin-mode > #userMobileNav,
+    body.admin-mode > #whatsappFloatBtn,
+    body.admin-mode > #chatWidget,
+    body.admin-mode > #chatBubble,
+    body.admin-mode > #floatingChatBtn,
+    body.admin-mode .navbar,
+    body.admin-mode #mainContent,
+    body.admin-mode .real-footer,
+    body.admin-mode #guestMobileNav,
+    body.admin-mode #userMobileNav,
+    body.admin-mode #whatsappFloatBtn,
+    body.admin-mode #chatWidget,
+    body.admin-mode #chatBubble,
+    body.admin-mode #floatingChatBtn { display: none !important; }
+
     .admin-sidebar-item:hover { background: rgba(15,23,42,0.08); color: #0f172a !important; }
     .admin-sidebar-item.active { background: linear-gradient(90deg, rgba(255,107,53,0.15) 0%, transparent 100%); color: #ff6b35 !important; border-left: 3px solid #ff6b35; padding-left: 9px !important; }
     
@@ -316,16 +326,13 @@ function removeAdminDashboard() {
   document.body.classList.remove('is-admin');
   const userDash = document.getElementById('dashboardPage');
   if (userDash) userDash.style.display = '';
-  // Show site header, main, footer, mobile nav & chat widgets again
+  // Clear any leftover inline display styles from older versions, then drop admin-mode class
   const navbar = document.querySelector('.navbar');
   if (navbar) navbar.style.removeProperty('display');
   const mainContent = document.getElementById('mainContent');
   if (mainContent) mainContent.style.removeProperty('display');
   const footer = document.querySelector('.real-footer');
-  if (footer) {
-    footer.style.removeProperty('display');
-    footer.style.display = 'block';
-  }
+  if (footer) footer.style.removeProperty('display');
   ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.removeProperty('display');
