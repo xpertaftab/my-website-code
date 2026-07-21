@@ -316,7 +316,11 @@ function removeAdminDashboard() {
   document.body.classList.remove('is-admin');
   const userDash = document.getElementById('dashboardPage');
   if (userDash) userDash.style.display = '';
-  // Show footer + mobile nav + chat widgets again
+  // Show site header, main, footer, mobile nav & chat widgets again
+  const navbar = document.querySelector('.navbar');
+  if (navbar) navbar.style.removeProperty('display');
+  const mainContent = document.getElementById('mainContent');
+  if (mainContent) mainContent.style.removeProperty('display');
   const footer = document.querySelector('.real-footer');
   if (footer) {
     footer.style.removeProperty('display');
