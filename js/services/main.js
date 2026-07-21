@@ -3089,15 +3089,80 @@ const MARKETPLACE_FALLBACK = {
     }
 };
 const MARKETPLACE_DATA = window.vextroLoad('marketplace') || MARKETPLACE_FALLBACK;
+window.MARKETPLACE_DATA = MARKETPLACE_DATA;
 // Sync from Firestore in background
 (async () => {
   if (window.fsLoadMap) {
     const fsData = await window.fsLoadMap('listings');
     if (fsData && Object.keys(fsData).length > 0) {
+      // Firestore is source of truth once populated — replace fallback demo data
+      Object.keys(MARKETPLACE_DATA).forEach(k => delete MARKETPLACE_DATA[k]);
       Object.assign(MARKETPLACE_DATA, fsData);
+      try { window.vextroSave && window.vextroSave('marketplace', MARKETPLACE_DATA); } catch(e){}
+      if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
     }
   }
 })();
+
+// Escape for safe HTML
+function _mpEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Render marketplace grid dynamically
+window.renderMarketplaceGrid = function() {
+    const grid = document.getElementById('mpGrid');
+    if (!grid) return;
+    const listings = Object.values(MARKETPLACE_DATA || {});
+    const empty = document.getElementById('mpEmptyState');
+    if (listings.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        const badge = document.getElementById('mpCountBadge');
+        if (badge) badge.innerText = 0;
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    grid.innerHTML = listings.map(l => {
+        const img = (Array.isArray(l.images) && l.images[0]) || l.image || 'assets/images/product1.jpg';
+        const stats = Array.isArray(l.stats) ? l.stats.slice(0, 2) : [];
+        const badgeClass = (l.status === 'Sold') ? 'mp-badge-sold' : 'mp-badge-active';
+        const title = String(l.title || 'Untitled');
+        const titleShort = title.length > 32 ? title.slice(0, 32) + '...' : title;
+        return `
+        <div class="mp-card" data-mp-category="${_mpEsc(l.category||'Other')}" onclick="openMarketplaceListing('${_mpEsc(l.id)}')" style="cursor:pointer;">
+            <div class="mp-card-image">
+                <img src="${_mpEsc(img)}" alt="${_mpEsc(title)}" onerror="this.src='assets/images/product1.jpg'">
+                <div class="mp-badge-status ${badgeClass}">${_mpEsc(l.status||'Active')}</div>
+            </div>
+            <div class="mp-card-body">
+                <h3 class="mp-card-title">${_mpEsc(titleShort)}</h3>
+                <div class="mp-card-category">${_mpEsc(l.category||'Other')}</div>
+                <div class="mp-card-price">$ ${_mpEsc(l.price||'0')}</div>
+                <div class="mp-card-stats-row">
+                    ${stats.map((s,i)=>`
+                        <div class="mp-stat-box ${i===0?'green-box':''}">
+                            <span class="mp-stat-label">${_mpEsc(s.label)}</span>
+                            <span class="mp-stat-value ${i===0?'text-green':''}">${_mpEsc(s.value)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="mp-card-footer">
+                <span><i class="fa-solid fa-location-dot"></i> ${_mpEsc(l.location||'—')}</span>
+                <span><i class="fa-regular fa-eye"></i> ${_mpEsc(l.views||0)}</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    const badge = document.getElementById('mpCountBadge');
+    if (badge) badge.innerText = listings.length;
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.renderMarketplaceGrid());
+} else {
+    window.renderMarketplaceGrid();
+}
 
 // Filter Marketplace by Category
 window.filterMpCategory = function(category, el) {
