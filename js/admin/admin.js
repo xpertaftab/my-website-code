@@ -312,12 +312,17 @@ function removeAdminDashboard() {
   document.body.classList.remove('is-admin');
   const userDash = document.getElementById('dashboardPage');
   if (userDash) userDash.style.display = '';
-  // Show footer again
+  // Show footer + mobile nav + chat widgets again
   const footer = document.querySelector('.real-footer');
   if (footer) {
     footer.style.removeProperty('display');
     footer.style.display = 'block';
   }
+  ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.removeProperty('display');
+  });
+  document.body.classList.remove('admin-mode');
 }
 
 window.adminLogout = function() {
