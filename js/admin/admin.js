@@ -326,16 +326,13 @@ function removeAdminDashboard() {
   document.body.classList.remove('is-admin');
   const userDash = document.getElementById('dashboardPage');
   if (userDash) userDash.style.display = '';
-  // Show site header, main, footer, mobile nav & chat widgets again
+  // Clear any leftover inline display styles from older versions, then drop admin-mode class
   const navbar = document.querySelector('.navbar');
   if (navbar) navbar.style.removeProperty('display');
   const mainContent = document.getElementById('mainContent');
   if (mainContent) mainContent.style.removeProperty('display');
   const footer = document.querySelector('.real-footer');
-  if (footer) {
-    footer.style.removeProperty('display');
-    footer.style.display = 'block';
-  }
+  if (footer) footer.style.removeProperty('display');
   ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.removeProperty('display');
