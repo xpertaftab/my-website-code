@@ -108,9 +108,13 @@ let adminDashboardCreated = false;
 function createAdminDashboard() {
   if (adminDashboardCreated) return;
 
-  // Hide footer + mobile bottom nav + chat widgets when admin dashboard is active
+  // Hide site header, main content, footer, mobile nav & chat widgets when admin is active
+  const navbar = document.querySelector('.navbar');
+  if (navbar) navbar.style.setProperty('display', 'none', 'important');
+  const mainContent = document.getElementById('mainContent');
+  if (mainContent) mainContent.style.setProperty('display', 'none', 'important');
   const footer = document.querySelector('.real-footer');
-  if (footer) footer.style.display = 'none';
+  if (footer) footer.style.setProperty('display', 'none', 'important');
   ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.setProperty('display', 'none', 'important');
