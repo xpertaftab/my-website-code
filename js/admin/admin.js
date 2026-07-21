@@ -108,17 +108,7 @@ let adminDashboardCreated = false;
 function createAdminDashboard() {
   if (adminDashboardCreated) return;
 
-  // Hide site header, main content, footer, mobile nav & chat widgets when admin is active
-  const navbar = document.querySelector('.navbar');
-  if (navbar) navbar.style.setProperty('display', 'none', 'important');
-  const mainContent = document.getElementById('mainContent');
-  if (mainContent) mainContent.style.setProperty('display', 'none', 'important');
-  const footer = document.querySelector('.real-footer');
-  if (footer) footer.style.setProperty('display', 'none', 'important');
-  ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.setProperty('display', 'none', 'important');
-  });
+  // Mark admin mode — CSS rules (see #adminFullStyle) hide navbar, mainContent, footer, mobile nav, chat widgets.
   document.body.classList.add('admin-mode');
 
   // Remove old admin dashboard if exists
