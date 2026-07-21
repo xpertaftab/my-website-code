@@ -3207,9 +3207,24 @@ window.openMarketplaceListing = function(id) {
     if(document.getElementById('mpdCategory')) document.getElementById('mpdCategory').innerText = listing.category;
     if(document.getElementById('mpdLocation')) document.getElementById('mpdLocation').innerText = listing.location;
     if(document.getElementById('mpdViews')) document.getElementById('mpdViews').innerText = listing.views;
-    if(document.getElementById('mpdImage')) document.getElementById('mpdImage').src = listing.image;
+    const gallery = (Array.isArray(listing.images) && listing.images.length) ? listing.images : (listing.image ? [listing.image] : []);
+    const mainImg = document.getElementById('mpdImage');
+    if(mainImg) mainImg.src = gallery[0] || 'assets/images/product1.jpg';
+    // Extra thumbnails below main image
+    let thumbsEl = document.getElementById('mpdThumbs');
+    if (!thumbsEl && mainImg && mainImg.parentNode) {
+        thumbsEl = document.createElement('div');
+        thumbsEl.id = 'mpdThumbs';
+        thumbsEl.style.cssText = 'display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;';
+        mainImg.parentNode.appendChild(thumbsEl);
+    }
+    if (thumbsEl) {
+        thumbsEl.innerHTML = gallery.length > 1 ? gallery.map((src, i) => `
+            <img src="${_mpEsc(src)}" onclick="document.getElementById('mpdImage').src=this.src" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${i===0?'#2563eb':'transparent'};" onerror="this.style.display='none'">
+        `).join('') : '';
+    }
     if(document.getElementById('mpdPrice')) document.getElementById('mpdPrice').innerText = listing.price;
-    if(document.getElementById('mpdDescription')) document.getElementById('mpdDescription').innerHTML = listing.description;
+    if(document.getElementById('mpdDescription')) document.getElementById('mpdDescription').innerHTML = listing.description || '';
 
     // WhatsApp link
     const waMsg = `Hi! I am interested in the listing: "${listing.title}" priced at $${listing.price}. Please provide more details.`;
