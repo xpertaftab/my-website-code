@@ -108,9 +108,14 @@ let adminDashboardCreated = false;
 function createAdminDashboard() {
   if (adminDashboardCreated) return;
 
-  // Hide footer when admin dashboard is active
+  // Hide footer + mobile bottom nav + chat widgets when admin dashboard is active
   const footer = document.querySelector('.real-footer');
   if (footer) footer.style.display = 'none';
+  ['guestMobileNav','userMobileNav','whatsappFloatBtn','chatWidget','chatBubble','floatingChatBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.setProperty('display', 'none', 'important');
+  });
+  document.body.classList.add('admin-mode');
 
   // Remove old admin dashboard if exists
   const old = document.getElementById('adminFullDashboard');
