@@ -181,6 +181,26 @@ function createAdminDashboard() {
   const style = document.createElement('style');
   style.id = 'adminFullStyle';
   style.textContent = `
+    /* Hide site chrome while admin panel is active */
+    body.admin-mode > .navbar,
+    body.admin-mode > #mainContent,
+    body.admin-mode > .real-footer,
+    body.admin-mode > #guestMobileNav,
+    body.admin-mode > #userMobileNav,
+    body.admin-mode > #whatsappFloatBtn,
+    body.admin-mode > #chatWidget,
+    body.admin-mode > #chatBubble,
+    body.admin-mode > #floatingChatBtn,
+    body.admin-mode .navbar,
+    body.admin-mode #mainContent,
+    body.admin-mode .real-footer,
+    body.admin-mode #guestMobileNav,
+    body.admin-mode #userMobileNav,
+    body.admin-mode #whatsappFloatBtn,
+    body.admin-mode #chatWidget,
+    body.admin-mode #chatBubble,
+    body.admin-mode #floatingChatBtn { display: none !important; }
+
     .admin-sidebar-item:hover { background: rgba(15,23,42,0.08); color: #0f172a !important; }
     .admin-sidebar-item.active { background: linear-gradient(90deg, rgba(255,107,53,0.15) 0%, transparent 100%); color: #ff6b35 !important; border-left: 3px solid #ff6b35; padding-left: 9px !important; }
     
