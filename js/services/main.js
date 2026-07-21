@@ -3234,10 +3234,11 @@ window.openMarketplaceListing = function(id) {
     // Stats
     const statsRow = document.getElementById('mpdStatsRow');
     if (statsRow) {
-        statsRow.innerHTML = listing.stats.map(s => `
+        const st = Array.isArray(listing.stats) ? listing.stats : [];
+        statsRow.innerHTML = st.map(s => `
             <div class="mp-stat-item">
-                <div class="stat-label">${s.label}</div>
-                <div class="stat-value">${s.value}</div>
+                <div class="stat-label">${_mpEsc(s.label)}</div>
+                <div class="stat-value">${_mpEsc(s.value)}</div>
             </div>
         `).join('');
     }
@@ -3245,10 +3246,11 @@ window.openMarketplaceListing = function(id) {
     // Info list
     const infoList = document.getElementById('mpdInfoList');
     if (infoList) {
-        infoList.innerHTML = listing.info.map(i => `
+        const inf = Array.isArray(listing.info) ? listing.info : [];
+        infoList.innerHTML = inf.map(i => `
             <div class="mp-info-row">
-                <span>${i.label}</span>
-                <span>${i.value}</span>
+                <span>${_mpEsc(i.label)}</span>
+                <span>${_mpEsc(i.value)}</span>
             </div>
         `).join('');
     }
