@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { LegacyRedirect } from "../components/legacy-redirect";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/shop")({
-  component: ShopRoute,
+  beforeLoad: () => {
+    throw redirect({ href: "/index.html#shop" });
+  },
 });
-
-function ShopRoute() {
-  return <LegacyRedirect page="shop" />;
-}
