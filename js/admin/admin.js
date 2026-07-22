@@ -973,13 +973,14 @@ async function renderAdminListingsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
     try {
-      if (window.fsLoadMap) {
-        const fsData = await window.fsLoadMap('listings');
-        if (fsData && Object.keys(fsData).length > 0) {
-          window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
-          Object.keys(window.MARKETPLACE_DATA).forEach(k => delete window.MARKETPLACE_DATA[k]);
-          Object.assign(window.MARKETPLACE_DATA, fsData);
-        }
+      const fsData = window.fsLoadListingsHydrated
+        ? await window.fsLoadListingsHydrated()
+        : (window.fsLoadMap ? await window.fsLoadMap('listings') : null);
+      if (fsData && Object.keys(fsData).length > 0) {
+        window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
+        Object.keys(window.MARKETPLACE_DATA).forEach(k => delete window.MARKETPLACE_DATA[k]);
+        Object.assign(window.MARKETPLACE_DATA, fsData);
+        try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
       }
     } catch(e){}
     const listings = Object.values(window.MARKETPLACE_DATA || {});
