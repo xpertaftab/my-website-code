@@ -973,13 +973,14 @@ async function renderAdminListingsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
   try {
     try {
-      if (window.fsLoadMap) {
-        const fsData = await window.fsLoadMap('listings');
-        if (fsData && Object.keys(fsData).length > 0) {
-          window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
-          Object.keys(window.MARKETPLACE_DATA).forEach(k => delete window.MARKETPLACE_DATA[k]);
-          Object.assign(window.MARKETPLACE_DATA, fsData);
-        }
+      const fsData = window.fsLoadListingsHydrated
+        ? await window.fsLoadListingsHydrated()
+        : (window.fsLoadMap ? await window.fsLoadMap('listings') : null);
+      if (fsData && Object.keys(fsData).length > 0) {
+        window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
+        Object.keys(window.MARKETPLACE_DATA).forEach(k => delete window.MARKETPLACE_DATA[k]);
+        Object.assign(window.MARKETPLACE_DATA, fsData);
+        try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
       }
     } catch(e){}
     const listings = Object.values(window.MARKETPLACE_DATA || {});
@@ -1161,7 +1162,17 @@ window.adminSaveListing = async function(){
   window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
   window.MARKETPLACE_DATA[id] = listing;
   try { if(window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
-  try { if(window.fsSetDoc) await window.fsSetDoc('listings', id, listing); } catch(e){ console.error('fsSetDoc listing failed', e); }
+  try {
+    if (window.fsSaveListingWithMedia) {
+      await window.fsSaveListingWithMedia(id, listing);
+    } else if (window.fsSetDoc) {
+      await window.fsSetDoc('listings', id, listing);
+    }
+  } catch(e){
+    console.error('Save listing failed', e);
+    alert('Listing save failed: ' + (e && e.message ? e.message : e) + '\n\nTip: use smaller/fewer images.');
+    return;
+  }
   window._adminChangesMade = true;
   closeAdminOverlay();
   if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
@@ -1172,7 +1183,7 @@ window.adminDeleteListingNew = async function(id) {
   if (!confirm('Delete this listing permanently?')) return;
   if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
   try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e) {}
-  if (window.fsDeleteDoc) window.fsDeleteDoc('listings', id);
+  try { if (window.fsDeleteListingWithMedia) await window.fsDeleteListingWithMedia(id); else if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
   if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA);
   window._adminChangesMade = true;
   if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
@@ -1187,7 +1198,7 @@ window.adminDeleteAllListings = async function() {
   const ids = all.map(l => l.id);
   for (const id of ids) {
     if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
-    try { if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
+    try { if (window.fsDeleteListingWithMedia) await window.fsDeleteListingWithMedia(id); else if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
     try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e){}
   }
   try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
