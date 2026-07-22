@@ -986,7 +986,10 @@ async function renderAdminListingsNew(container) {
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div><div style="color:#0f172a;font-weight:800;font-size:1.1rem;">Marketplace Listings</div><div style="color:#94a3b8;font-size:0.85rem;">${listings.length} listing${listings.length!==1?'s':''} total</div></div>
-        <button onclick="adminAddListingNew()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(139,92,246,0.3);"><i class="fa-solid fa-plus"></i> Add Listing</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${listings.length>0?`<button onclick="adminDeleteAllListings()" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete All</button>`:''}
+          <button onclick="adminAddListingNew()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(139,92,246,0.3);"><i class="fa-solid fa-plus"></i> Add Listing</button>
+        </div>
       </div>
       <div class="admin-panel-card">
         ${listings.length===0?`<div class="admin-empty"><i class="fa-solid fa-store"></i><p style="font-weight:600;">No listings yet</p><button onclick="adminAddListingNew()" style="margin-top:16px;padding:10px 22px;background:#8b5cf6;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Listing</button></div>`:`
@@ -1171,6 +1174,23 @@ window.adminDeleteListingNew = async function(id) {
   try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e) {}
   if (window.fsDeleteDoc) window.fsDeleteDoc('listings', id);
   if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA);
+  window._adminChangesMade = true;
+  if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
+  showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
+};
+
+window.adminDeleteAllListings = async function() {
+  const all = Object.values(window.MARKETPLACE_DATA || {});
+  if (!all.length) return;
+  if (!confirm(`Delete ALL ${all.length} listings permanently? This cannot be undone.`)) return;
+  if (!confirm('Are you 100% sure? All marketplace listings will be removed.')) return;
+  const ids = all.map(l => l.id);
+  for (const id of ids) {
+    if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
+    try { if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
+    try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e){}
+  }
+  try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
   window._adminChangesMade = true;
   if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
   showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
