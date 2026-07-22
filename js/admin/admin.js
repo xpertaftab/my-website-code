@@ -1161,7 +1161,17 @@ window.adminSaveListing = async function(){
   window.MARKETPLACE_DATA = window.MARKETPLACE_DATA || {};
   window.MARKETPLACE_DATA[id] = listing;
   try { if(window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
-  try { if(window.fsSetDoc) await window.fsSetDoc('listings', id, listing); } catch(e){ console.error('fsSetDoc listing failed', e); }
+  try {
+    if (window.fsSaveListingWithMedia) {
+      await window.fsSaveListingWithMedia(id, listing);
+    } else if (window.fsSetDoc) {
+      await window.fsSetDoc('listings', id, listing);
+    }
+  } catch(e){
+    console.error('Save listing failed', e);
+    alert('Listing save failed: ' + (e && e.message ? e.message : e) + '\n\nTip: use smaller/fewer images.');
+    return;
+  }
   window._adminChangesMade = true;
   closeAdminOverlay();
   if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
