@@ -1179,6 +1179,23 @@ window.adminDeleteListingNew = async function(id) {
   showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
 };
 
+window.adminDeleteAllListings = async function() {
+  const all = Object.values(window.MARKETPLACE_DATA || {});
+  if (!all.length) return;
+  if (!confirm(`Delete ALL ${all.length} listings permanently? This cannot be undone.`)) return;
+  if (!confirm('Are you 100% sure? All marketplace listings will be removed.')) return;
+  const ids = all.map(l => l.id);
+  for (const id of ids) {
+    if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
+    try { if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
+    try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e){}
+  }
+  try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
+  window._adminChangesMade = true;
+  if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
+  showAdminView('adminListings', document.querySelector('.admin-sidebar-item[data-view="adminListings"]'));
+};
+
 // ── BLOGS ───────────────────────────────────────────────────────
 async function renderAdminAllBlogsNew(container) {
   container.innerHTML = '<div class="admin-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading...</p></div>';
