@@ -3092,8 +3092,10 @@ const MARKETPLACE_DATA = window.vextroLoad('marketplace') || MARKETPLACE_FALLBAC
 window.MARKETPLACE_DATA = MARKETPLACE_DATA;
 // Sync from Firestore in background
 (async () => {
-  if (window.fsLoadMap) {
-    const fsData = await window.fsLoadMap('listings');
+  if (window.fsLoadListingsHydrated || window.fsLoadMap) {
+    const fsData = window.fsLoadListingsHydrated
+      ? await window.fsLoadListingsHydrated()
+      : await window.fsLoadMap('listings');
     if (fsData && Object.keys(fsData).length > 0) {
       // Firestore is source of truth once populated — replace fallback demo data
       Object.keys(MARKETPLACE_DATA).forEach(k => delete MARKETPLACE_DATA[k]);
