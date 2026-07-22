@@ -33,5 +33,3 @@ function HomePreview() {
     </main>
   );
 }
-  },
-});
