@@ -1183,7 +1183,7 @@ window.adminDeleteListingNew = async function(id) {
   if (!confirm('Delete this listing permanently?')) return;
   if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
   try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e) {}
-  if (window.fsDeleteDoc) window.fsDeleteDoc('listings', id);
+  try { if (window.fsDeleteListingWithMedia) await window.fsDeleteListingWithMedia(id); else if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
   if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA);
   window._adminChangesMade = true;
   if (typeof window.renderMarketplaceGrid === 'function') window.renderMarketplaceGrid();
