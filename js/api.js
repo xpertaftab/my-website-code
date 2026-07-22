@@ -150,9 +150,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   let listingsLoaded = false;
 
   // 1. Try Firestore first
-  if (window.fsLoadMap) {
+  if (window.fsLoadListingsHydrated || window.fsLoadMap) {
     try {
-      const fsData = await window.fsLoadMap('listings');
+      const fsData = window.fsLoadListingsHydrated
+        ? await window.fsLoadListingsHydrated()
+        : await window.fsLoadMap('listings');
       if (fsData && Object.keys(fsData).length > 0) {
         if (!window.MARKETPLACE_DATA) window.MARKETPLACE_DATA = {};
         Object.assign(window.MARKETPLACE_DATA, fsData);
