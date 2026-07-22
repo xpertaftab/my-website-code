@@ -1198,7 +1198,7 @@ window.adminDeleteAllListings = async function() {
   const ids = all.map(l => l.id);
   for (const id of ids) {
     if (window.MARKETPLACE_DATA && window.MARKETPLACE_DATA[id]) delete window.MARKETPLACE_DATA[id];
-    try { if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
+    try { if (window.fsDeleteListingWithMedia) await window.fsDeleteListingWithMedia(id); else if (window.fsDeleteDoc) await window.fsDeleteDoc('listings', id); } catch(e){}
     try { await fetch(`/api/listings/${id}`, { method:'DELETE' }); } catch(e){}
   }
   try { if (window.vextroSave) window.vextroSave('marketplace', window.MARKETPLACE_DATA); } catch(e){}
