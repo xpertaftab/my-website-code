@@ -334,4 +334,116 @@ window.fsLoadProductsHydrated = async function() {
   return window.hydrateProductsWithMedia(products, media || {});
 };
 
+// ─────────────────────────────────────────────────────────────
+// Listing media splitter — same idea as products. Base64 images
+// in a listing (images[] or embedded in description HTML) are
+// stored as their own docs in the `listing_media` collection so
+// a single listing can carry many images without hitting the
+// 1 MB per-document Firestore limit.
+// ─────────────────────────────────────────────────────────────
+window.splitListingForSave = function(listingId, data) {
+  const mediaDocs = {};
+  const clone = { ...data };
+  const imgs = Array.isArray(clone.images) ? clone.images.slice() : [];
+  const newImgs = imgs.map((src, i) => {
+    if (!isDataUri(src)) return src;
+    const mid = `${listingId}__i${i}`;
+    mediaDocs[mid] = { data: src };
+    return MEDIA_REF_PREFIX + mid;
+  });
+  clone.images = newImgs;
+  if (isDataUri(clone.image)) {
+    if (newImgs[0] && typeof newImgs[0] === 'string' && newImgs[0].startsWith(MEDIA_REF_PREFIX)) {
+      clone.image = newImgs[0];
+    } else {
+      const mid = `${listingId}__main`;
+      mediaDocs[mid] = { data: clone.image };
+      clone.image = MEDIA_REF_PREFIX + mid;
+    }
+  }
+  if (typeof clone.description === 'string' && clone.description.indexOf('data:') !== -1) {
+    let idx = 0;
+    clone.description = clone.description.replace(/src=(["'])(data:[^"']+)\1/g, (m, q, uri) => {
+      const mid = `${listingId}__d${idx++}`;
+      mediaDocs[mid] = { data: uri };
+      return `src=${q}${MEDIA_REF_PREFIX}${mid}${q}`;
+    });
+  }
+  return { mainDoc: clone, mediaDocs };
+};
+
+window.fsSaveListingWithMedia = async function(listingId, data) {
+  const { mainDoc, mediaDocs } = window.splitListingForSave(listingId, data);
+  const mainBytes = new Blob([JSON.stringify(mainDoc)]).size;
+  if (mainBytes > 950 * 1024) {
+    const err = new Error(`Listing info is too large (${(mainBytes/1024/1024).toFixed(2)} MB). Shorten the description text.`);
+    err.code = 'DOC_TOO_LARGE'; throw err;
+  }
+  for (const [mid, doc] of Object.entries(mediaDocs)) {
+    const b = new Blob([doc.data]).size;
+    if (b > 950 * 1024) {
+      const err = new Error(`One image is too large (${(b/1024/1024).toFixed(2)} MB). Please choose a smaller image.`);
+      err.code = 'DOC_TOO_LARGE'; throw err;
+    }
+  }
+  await window.fsSetDoc('listings', listingId, mainDoc);
+  await Promise.all(Object.entries(mediaDocs).map(([mid, doc]) =>
+    window.fsSetDoc('listing_media', mid, doc)
+  ));
+  try {
+    const existing = await window.fsLoadMap('listing_media');
+    if (existing) {
+      const keep = new Set(Object.keys(mediaDocs));
+      await Promise.all(Object.keys(existing)
+        .filter(k => k.startsWith(listingId + '__') && !keep.has(k))
+        .map(k => window.fsDeleteDoc('listing_media', k)));
+    }
+  } catch(e) {}
+  return true;
+};
+
+window.fsDeleteListingWithMedia = async function(listingId) {
+  await window.fsDeleteDoc('listings', listingId);
+  try {
+    const existing = await window.fsLoadMap('listing_media');
+    if (existing) {
+      await Promise.all(Object.keys(existing)
+        .filter(k => k.startsWith(listingId + '__'))
+        .map(k => window.fsDeleteDoc('listing_media', k)));
+    }
+  } catch(e) {}
+};
+
+window.hydrateListingsWithMedia = function(listingsMap, mediaMap) {
+  if (!listingsMap) return listingsMap;
+  const m = mediaMap || {};
+  const resolve = ref => {
+    if (typeof ref !== 'string' || !ref.startsWith(MEDIA_REF_PREFIX)) return ref;
+    const mid = ref.slice(MEDIA_REF_PREFIX.length);
+    const doc = m[mid];
+    return (doc && doc.data) ? doc.data : ref;
+  };
+  Object.values(listingsMap).forEach(l => {
+    if (!l) return;
+    if (Array.isArray(l.images)) l.images = l.images.map(resolve);
+    if (l.image) l.image = resolve(l.image);
+    if (typeof l.description === 'string' && l.description.indexOf(MEDIA_REF_PREFIX) !== -1) {
+      l.description = l.description.replace(/(["'])media:\/\/([^"']+)\1/g, (mtch, q, mid) => {
+        const doc = m[mid];
+        return doc && doc.data ? `${q}${doc.data}${q}` : mtch;
+      });
+    }
+  });
+  return listingsMap;
+};
+
+window.fsLoadListingsHydrated = async function() {
+  const [listings, media] = await Promise.all([
+    window.fsLoadMap('listings'),
+    window.fsLoadMap('listing_media').catch(() => null)
+  ]);
+  if (!listings) return null;
+  return window.hydrateListingsWithMedia(listings, media || {});
+};
+
 console.log('Firestore REST API ready');
