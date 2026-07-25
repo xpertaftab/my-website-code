@@ -141,6 +141,24 @@
 
   function svcSite(){ return (window.servicesData && typeof window.servicesData === 'object') ? window.servicesData : {}; }
 
+  async function loadOverridesFromSettings(){
+    if (!window.fsLoadMap) return null;
+    const settings = await window.fsLoadMap('settings');
+    const doc = settings && settings.service_overrides;
+    const items = doc && doc.items;
+    return (items && typeof items === 'object') ? items : null;
+  }
+
+  async function saveOverridesToSettings(){
+    if (!window.fsSetDoc) return false;
+    await window.fsSetDoc('settings', 'service_overrides', {
+      items: SVC_OVERRIDES,
+      updatedAt: Date.now(),
+      updatedBy: (window.auth && window.auth.currentUser && window.auth.currentUser.email) || 'admin'
+    });
+    return true;
+  }
+
   async function loadOverrides(){
     try {
       if (window.fsLoadMap) {
@@ -148,6 +166,10 @@
         if (map && typeof map === 'object') { SVC_OVERRIDES = map; return; }
       }
     } catch(e){ console.warn('svc overrides load', e); }
+    try {
+      const map = await loadOverridesFromSettings();
+      if (map && typeof map === 'object') { SVC_OVERRIDES = map; return; }
+    } catch(e){ console.warn('svc overrides settings load', e); }
     try { SVC_OVERRIDES = JSON.parse(localStorage.getItem('vextro_service_overrides')||'{}') || {}; } catch(e){ SVC_OVERRIDES = {}; }
   }
 
@@ -216,7 +238,10 @@
     try { localStorage.setItem('vextro_service_overrides', JSON.stringify(SVC_OVERRIDES)); } catch(e){}
     if (window.applyServiceOverrides) window.applyServiceOverrides(SVC_OVERRIDES);
     if (window.renderMainServices) window.renderMainServices();
-    if (window.fsSetDoc) await window.fsSetDoc('service_overrides', key, cur);
+    if (window.fsSetDoc) {
+      await saveOverridesToSettings();
+      window.fsSetDoc('service_overrides', key, cur).catch(e => console.warn('legacy service_overrides save skipped:', e.message));
+    }
     logActivity('service.save', key);
   }
 
@@ -327,6 +352,7 @@
     if (!confirm('Is service ko default par reset karna hai?')) return;
     delete SVC_OVERRIDES[key];
     try { localStorage.setItem('vextro_service_overrides', JSON.stringify(SVC_OVERRIDES)); } catch(e){}
+    try { await saveOverridesToSettings(); } catch(e){ console.warn('service reset settings save failed', e.message); }
     try { if (window.fsDeleteDoc) await window.fsDeleteDoc('service_overrides', key); } catch(e){}
     logActivity('service.reset', key);
     alert('Reset ho gaya. Website par default text wapas aane ke liye page reload karo.');
@@ -339,6 +365,7 @@
     for (const k of keys) { try { if (window.fsDeleteDoc) await window.fsDeleteDoc('service_overrides', k); } catch(e){} }
     SVC_OVERRIDES = {};
     try { localStorage.removeItem('vextro_service_overrides'); } catch(e){}
+    try { await saveOverridesToSettings(); } catch(e){ console.warn('service reset all settings save failed', e.message); }
     logActivity('service.resetAll', keys.length + ' services');
     alert('Sab reset ho gaya. Page reload karo.');
     refreshServicesView();
