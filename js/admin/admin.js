@@ -391,6 +391,7 @@ window.showAdminView = async function(view, el) {
       adminBlogs: ['All Blogs', 'Manage blog posts'],
       adminOrders: ['Orders', 'View all orders'],
       adminUsers: ['Users', 'Registered users'],
+      adminTraffic: ['Traffic Analytics', 'Live visitors, sessions & pageviews'],
       adminContacts: ['Messages', 'Contact form submissions'],
       adminStats: ['Analytics', 'Site statistics']
     };
@@ -408,6 +409,7 @@ window.showAdminView = async function(view, el) {
     else if (view === 'adminBlogs') await renderAdminAllBlogsNew(content);
     else if (view === 'adminOrders') await renderAdminOrdersNew(content);
     else if (view === 'adminUsers') await renderAdminUsersNew(content);
+    else if (view === 'adminTraffic') { if (window.renderAdminTrafficNew) await window.renderAdminTrafficNew(content); else content.innerHTML = '<p style="color:#64748b;">Traffic module loading… please refresh.</p>'; }
     else if (view === 'adminContacts') await renderAdminContactsNew(content);
     else if (view === 'adminStats') await renderAdminStatsNew(content);
   } catch(e) { console.error('showAdminView error:', e); }
