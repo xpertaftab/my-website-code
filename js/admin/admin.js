@@ -2216,7 +2216,10 @@ function renderAdminUsersTable(container, filter) {
           <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
         </select>
         <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
+        <button onclick="adminRecoverUsers()" style="padding:9px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Users</button>
+        <button onclick="adminAddUserManual()" style="padding:9px 12px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>
         <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
         <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
@@ -2239,7 +2242,7 @@ function renderAdminUsersTable(container, filter) {
           <i class="fa-solid fa-users"></i>
           <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
           ${!f ? `<p style="font-size:0.82rem;color:#94a3b8;">${(window.__adminUsersData && window.__adminUsersData.usersLoadError) ? 'Users load nahi ho rahe: ' + window.__adminUsersData.usersLoadError : 'Users appear here after they sign in for the first time.'}</p>` : ''}
-          ${!f ? '<button onclick="adminSyncCurrentUserNow()" style="margin-top:14px;padding:9px 14px;background:#ff6b35;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Sync Current Login</button>' : ''}
+          ${!f ? '<button onclick="adminSyncCurrentUserNow()" style="margin-top:14px;padding:9px 14px;background:#ff6b35;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Sync Current Login</button> <button onclick="adminRecoverUsers()" style="margin-top:14px;padding:9px 14px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Old Users</button> <button onclick="adminAddUserManual()" style="margin-top:14px;padding:9px 14px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
@@ -2328,6 +2331,149 @@ async function adminSyncCurrentUserNow() {
   }
 }
 window.adminSyncCurrentUserNow = adminSyncCurrentUserNow;
+
+// ============================================================
+// Recover users: purane records (orders, purchases, contacts,
+// blog comments, listings, local backup) se user accounts wapas
+// bana kar Firestore `users` collection me save karta hai.
+// ============================================================
+async function adminRecoverUsers(silent) {
+  const found = {}; // email -> record
+  const addEmail = (email, extra) => {
+    const em = String(email || '').toLowerCase().trim();
+    if (!em || em.indexOf('@') === -1) return;
+    if (!found[em]) found[em] = { email: em };
+    Object.keys(extra || {}).forEach(k => {
+      if (extra[k] && !found[em][k]) found[em][k] = extra[k];
+    });
+  };
+
+  try {
+    // 1) Local backups (purane browser data)
+    try {
+      const localKeys = ['users', 'adminUsers', 'registeredUsers', 'siteUsers'];
+      localKeys.forEach(k => {
+        let raw = null;
+        try { raw = JSON.parse(localStorage.getItem(k) || 'null'); } catch(e) {}
+        if (!raw) return;
+        const arr = Array.isArray(raw) ? raw : Object.values(raw);
+        arr.forEach(u => {
+          if (!u || typeof u !== 'object') return;
+          addEmail(u.email, {
+            displayName: u.displayName || u.name,
+            uid: u.uid, provider: u.provider,
+            createdAt: u.createdAt || u.joinedAt,
+            lastLoginAt: u.lastLoginAt, role: u.role, status: u.status
+          });
+        });
+      });
+    } catch(e) {}
+
+    // 2) Firestore collections jinme user ka email hota hai
+    if (window.fsLoadMap) {
+      const sources = [
+        ['orders',        o => [o.userEmail || o.email || o.customerEmail, o.userName || o.customerName || o.name, o.createdAt || o.date]],
+        ['purchases',     p => [p.userEmail || p.email, p.userName || p.name, p.createdAt || p.date]],
+        ['contacts',      c => [c.email, c.name, c.createdAt || c.date]],
+        ['listings',      l => [l.userEmail || l.ownerEmail, l.userName || l.ownerName, l.createdAt]],
+        ['user_stats',    s => [s.email, s.displayName || s.name, s.createdAt]],
+        ['notifications', n => [n.email || n.userEmail, n.name, n.createdAt]]
+      ];
+      for (const [col, pick] of sources) {
+        try {
+          const map = (await window.fsLoadMap(col)) || {};
+          Object.values(map).forEach(v => {
+            if (!v || typeof v !== 'object') return;
+            const [em, nm, ts] = pick(v) || [];
+            addEmail(em, { displayName: nm, createdAt: ts });
+          });
+        } catch(e) {}
+      }
+      // blog comments nested items
+      try {
+        const cm = (await window.fsLoadMap('blog_comments')) || {};
+        Object.values(cm).forEach(entry => {
+          const items = (entry && Array.isArray(entry.items)) ? entry.items : [];
+          items.forEach(c => addEmail(c && c.email, { displayName: c && (c.name || c.author), createdAt: c && c.date }));
+        });
+      } catch(e) {}
+    }
+
+    // 3) Current login bhi include karo
+    if (window.auth && window.auth.currentUser) {
+      const cu = window.auth.currentUser;
+      addEmail(cu.email, { displayName: cu.displayName, uid: cu.uid, photoURL: cu.photoURL });
+    }
+
+    // Jo already Firestore me hain unhe skip karo
+    const existingMap = (window.fsLoadMap ? (await window.fsLoadMap('users').catch(() => ({}))) : {}) || {};
+    const existingEmails = new Set(
+      Object.values(existingMap).map(u => String((u && u.email) || '').toLowerCase().trim()).filter(Boolean)
+    );
+
+    const toAdd = Object.values(found).filter(u => !existingEmails.has(u.email));
+    if (toAdd.length === 0) {
+      if (!silent) alert('Koi missing user nahi mila — jo records mile wo pehle se admin list me hain.');
+      return 0;
+    }
+    if (!silent && !confirm(`${toAdd.length} purane user record mile hain. Inhe wapas add karein?`)) return 0;
+
+    let saved = 0;
+    for (const u of toAdd) {
+      const uid = u.uid || ('recovered_' + u.email.replace(/[^a-z0-9]/gi, '_'));
+      const nowIso = new Date().toISOString();
+      const rec = {
+        uid,
+        email: u.email,
+        displayName: u.displayName || u.email.split('@')[0],
+        photoURL: u.photoURL || '',
+        provider: u.provider || 'password',
+        emailVerified: false,
+        role: u.role || 'user',
+        status: u.status || 'active',
+        createdAt: u.createdAt || nowIso,
+        lastLoginAt: u.lastLoginAt || u.createdAt || nowIso,
+        loginHistory: [],
+        notes: 'Recovered from existing records',
+        recovered: true,
+        dashboardStats: {},
+        notifications: []
+      };
+      try { if (window.fsSetDoc) { await window.fsSetDoc('users', uid, rec); saved++; } } catch(e) {}
+    }
+
+    const el = document.getElementById('adminContent');
+    if (el) await renderAdminUsersNew(el);
+    if (!silent) alert(saved + ' users wapas add ho gaye.');
+    return saved;
+  } catch(e) {
+    if (!silent) alert('Recover failed: ' + (e.message || e));
+    return 0;
+  }
+}
+window.adminRecoverUsers = adminRecoverUsers;
+
+// Manually ek user add karne ka option
+window.adminAddUserManual = async function() {
+  const email = prompt('User ka email likho:');
+  if (!email || email.indexOf('@') === -1) return;
+  const name = prompt('User ka naam (optional):') || email.split('@')[0];
+  const uid = 'manual_' + email.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+  const nowIso = new Date().toISOString();
+  const rec = {
+    uid, email: email.toLowerCase().trim(), displayName: name, photoURL: '',
+    provider: 'password', emailVerified: false, role: 'user', status: 'active',
+    createdAt: nowIso, lastLoginAt: nowIso, loginHistory: [],
+    notes: 'Manually added by admin', dashboardStats: {}, notifications: []
+  };
+  try {
+    if (window.fsSetDoc) await window.fsSetDoc('users', uid, rec);
+    const el = document.getElementById('adminContent');
+    if (el) await renderAdminUsersNew(el);
+    alert('User add ho gaya.');
+  } catch(e) { alert('Add failed: ' + (e.message || e)); }
+};
+
 
 window.adminChangeUserRole = async function(uid, role) {
   const u = (window.__adminUsersCache || {})[uid];
