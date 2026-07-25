@@ -340,18 +340,28 @@
       card('Active Now', num(m.liveUsers), 'last 5 minutes', 'fa-signal', 'linear-gradient(135deg,#065f46,#10b981)') +
       '</div>' +
 
+      panel('🟢 Live right now — active users (last 5 min)',
+        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Visitor</th><th>Country / City</th><th>Current page</th><th>Device</th><th>Views</th><th>Time on site</th><th>Last seen</th></tr></thead><tbody>' +
+        (liveRows || '<tr><td colspan="7" style="color:#94a3b8;">Is waqt koi user online nahi hai</td></tr>') + '</tbody></table></div>',
+        '<span style="font-size:0.78rem;color:#047857;font-weight:700;">' + m.liveUsers + ' users online · auto-refresh 15s</span>') +
+
       panel('Traffic over time',
         '<div style="display:flex;gap:16px;margin-bottom:8px;font-size:0.78rem;color:#64748b;">' +
         '<span><span style="display:inline-block;width:12px;height:3px;background:#ff6b35;vertical-align:middle;"></span> Pageviews</span>' +
         '<span><span style="display:inline-block;width:12px;height:3px;background:#3b82f6;vertical-align:middle;"></span> Users</span></div>' + lineChart(m.series)) +
 
+      panel('Users by country',
+        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Country</th><th>Users</th><th>Sessions</th><th>Share of users</th></tr></thead><tbody>' +
+        (countryRows || '<tr><td colspan="4" style="color:#94a3b8;">Country data aana shuru hoga jaise hi visitors aayenge</td></tr>') + '</tbody></table></div>',
+        '<span style="font-size:0.78rem;color:#94a3b8;">' + num(m.countries.length) + ' countries</span>') +
+
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;">' +
+      panel('Top cities', barsRow(m.cities, totalSessions, 'linear-gradient(90deg,#be185d,#ec4899)')) +
       panel('Channels', barsRow(m.channels, totalSessions, 'linear-gradient(90deg,#ff6b35,#f7931e)')) +
       panel('Top sources / referrers', barsRow(m.sources, totalSessions, 'linear-gradient(90deg,#1d4ed8,#3b82f6)')) +
       panel('Devices', barsRow(m.devices, totalSessions, 'linear-gradient(90deg,#059669,#10b981)')) +
       panel('Browsers', barsRow(m.browsers, totalSessions, 'linear-gradient(90deg,#7c3aed,#a78bfa)')) +
       panel('Operating systems', barsRow(m.os, totalSessions, 'linear-gradient(90deg,#0891b2,#06b6d4)')) +
-      panel('Regions', barsRow(m.regions, totalSessions, 'linear-gradient(90deg,#be185d,#ec4899)')) +
       '</div>' +
 
       panel('Views by hour of day', hourChart(m.hours)) +
@@ -360,9 +370,9 @@
         '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Page</th><th>Views</th><th>Users</th><th>Share</th></tr></thead><tbody>' +
         (pagesRows || '<tr><td colspan="4" style="color:#94a3b8;">No pageviews yet</td></tr>') + '</tbody></table></div>') +
 
-      panel('Recent visitors (realtime)',
-        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Visitor</th><th>Page</th><th>Channel</th><th>Device</th><th>Views</th><th>Time on site</th><th>Started</th></tr></thead><tbody>' +
-        (recentRows || '<tr><td colspan="7" style="color:#94a3b8;">No visitors in this range</td></tr>') + '</tbody></table></div>',
+      panel('All visitors (latest sessions)',
+        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Visitor</th><th>Country / City</th><th>Page</th><th>Channel</th><th>Device</th><th>Views</th><th>Time on site</th><th>Last seen</th></tr></thead><tbody>' +
+        (recentRows || '<tr><td colspan="8" style="color:#94a3b8;">No visitors in this range</td></tr>') + '</tbody></table></div>',
         '<span style="font-size:0.78rem;color:#94a3b8;">' + num(m.cur.length) + ' sessions</span>');
   };
 })();
