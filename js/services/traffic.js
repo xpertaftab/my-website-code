@@ -258,6 +258,7 @@
   // initial + route changes
   function boot() {
     trackPageview();
+    fetchGeo();
     window.addEventListener('hashchange', function () { setTimeout(trackPageview, 60); });
     window.addEventListener('popstate', function () { setTimeout(trackPageview, 60); });
     // patch history for SPA navigations
@@ -266,10 +267,13 @@
       if (typeof orig !== 'function') return;
       history[m] = function () { var r = orig.apply(this, arguments); setTimeout(trackPageview, 60); return r; };
     });
-    // engagement heartbeat
-    setInterval(function () { if (!document.hidden) save(false); }, 30000);
+    // realtime heartbeat — har 15s "last" update hota hai to admin ko live users dikhein
+    setInterval(function () { if (!document.hidden) save(true); }, 15000);
     document.addEventListener('visibilitychange', function () { if (document.hidden) save(true); });
     window.addEventListener('pagehide', function () { save(true); });
+    ['click', 'keydown', 'scroll'].forEach(function (ev) {
+      window.addEventListener(ev, function () { save(false); }, { passive: true });
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
