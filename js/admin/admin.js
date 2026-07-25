@@ -2236,7 +2236,9 @@ function renderAdminUsersTable(container, filter) {
 
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
         <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
+        <button onclick="adminShowFirestoreRules()" style="padding:9px 12px;background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> Firestore Rules</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
+
       </div>
 
       <!-- Bulk action bar (shown when selection > 0) -->
