@@ -139,6 +139,7 @@ function createAdminDashboard() {
         
         <div style="padding:20px 12px 4px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:800;">PEOPLE</div>
         <a href="#" class="admin-sidebar-item" data-view="adminUsers" onclick="showAdminView('adminUsers',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-users" style="width:18px;"></i> Users</a>
+        <a href="#" class="admin-sidebar-item" data-view="adminTraffic" onclick="showAdminView('adminTraffic',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-chart-line" style="width:18px;"></i> Traffic</a>
         <a href="#" class="admin-sidebar-item" data-view="adminContacts" onclick="showAdminView('adminContacts',this);return false;" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;color:#64748b;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;"><i class="fa-solid fa-envelope" style="width:18px;"></i> Messages <span id="adminMsgUnreadBadge" style="margin-left:auto;background:#ef4444;color:#fff;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;display:none;">0</span></a>
       </nav>
       <div style="padding:20px;border-top:1px solid rgba(15,23,42,0.08);">
@@ -390,6 +391,7 @@ window.showAdminView = async function(view, el) {
       adminBlogs: ['All Blogs', 'Manage blog posts'],
       adminOrders: ['Orders', 'View all orders'],
       adminUsers: ['Users', 'Registered users'],
+      adminTraffic: ['Traffic Analytics', 'Live visitors, sessions & pageviews'],
       adminContacts: ['Messages', 'Contact form submissions'],
       adminStats: ['Analytics', 'Site statistics']
     };
@@ -407,6 +409,7 @@ window.showAdminView = async function(view, el) {
     else if (view === 'adminBlogs') await renderAdminAllBlogsNew(content);
     else if (view === 'adminOrders') await renderAdminOrdersNew(content);
     else if (view === 'adminUsers') await renderAdminUsersNew(content);
+    else if (view === 'adminTraffic') { if (window.renderAdminTrafficNew) await window.renderAdminTrafficNew(content); else content.innerHTML = '<p style="color:#64748b;">Traffic module loading… please refresh.</p>'; }
     else if (view === 'adminContacts') await renderAdminContactsNew(content);
     else if (view === 'adminStats') await renderAdminStatsNew(content);
   } catch(e) { console.error('showAdminView error:', e); }
