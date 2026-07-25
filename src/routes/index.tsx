@@ -24,12 +24,31 @@ export const Route = createFileRoute("/")({
 
 function HomePreview() {
   return (
-    <main className="legacy-preview-shell">
+    <main
+      className="legacy-preview-shell"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100vw",
+        height: "100vh",
+        margin: 0,
+        padding: 0,
+        overflow: "hidden",
+        background: "#ffffff",
+      }}
+    >
       <iframe
         title="Vextro Lyntra full website preview"
         src="/index.html"
         className="legacy-preview-frame"
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          border: "0",
+        }}
       />
     </main>
   );
 }
+
