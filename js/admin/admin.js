@@ -3439,12 +3439,38 @@ async function renderAdminStatsNew(container) {
   container.innerHTML = `<div class="admin-empty" style="padding:60px 20px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:#ff6b35;"></i><p style="margin-top:12px;color:#64748b;">Loading analytics…</p></div>`;
   try {
     // ---- Load all data in parallel ----
+    const loadBlogs = async () => {
+      // 1) already in memory
+      let list = Array.isArray(window.allBlogs) ? window.allBlogs : [];
+      if (list.length) return list;
+      // 2) local cache
+      try {
+        const saved = window.vextroLoad ? window.vextroLoad('blogs') : JSON.parse(localStorage.getItem('blogs') || 'null');
+        if (Array.isArray(saved) && saved.length) { window.allBlogs = saved; return saved; }
+      } catch(e) {}
+      // 3) fetchBlogs()
+      try {
+        if (typeof window.fetchBlogs === 'function') {
+          await window.fetchBlogs();
+          if (Array.isArray(window.allBlogs) && window.allBlogs.length) return window.allBlogs;
+        }
+      } catch(e) {}
+      // 4) Firestore blogs collection
+      try {
+        if (window.fsLoadMap) {
+          const m = await window.fsLoadMap('blogs').catch(()=>({}));
+          const arr = Object.values(m || {});
+          if (arr.length) { window.allBlogs = arr; return arr; }
+        }
+      } catch(e) {}
+      return [];
+    };
     const [ordersMap, usersMap, contactsMap, commentsMap, blogsList] = await Promise.all([
       (window.fsLoadMap ? window.fsLoadMap('orders').catch(()=>({})) : Promise.resolve({})),
       (window.fsLoadMap ? window.fsLoadMap('users').catch(()=>({})) : Promise.resolve({})),
       (window.fsLoadMap ? window.fsLoadMap('contacts').catch(()=>({})) : Promise.resolve({})),
       (window.fsLoadMap ? window.fsLoadMap('blog_comments').catch(()=>({})) : Promise.resolve({})),
-      Promise.resolve(window.allBlogs || []),
+      loadBlogs(),
     ]);
     // Fallback to localStorage for orders
     let ordersObj = ordersMap || {};
