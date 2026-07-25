@@ -24,11 +24,11 @@ export const Route = createFileRoute("/")({
 
 function HomePreview() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="legacy-preview-shell">
       <iframe
         title="Vextro Lyntra full website preview"
         src="/index.html"
-        className="block h-screen w-full border-0 bg-background"
+        className="legacy-preview-frame"
       />
     </main>
   );

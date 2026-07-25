@@ -140,5 +140,21 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    margin: 0;
   }
+}
+
+.legacy-preview-shell {
+  width: 100vw;
+  min-height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-background);
+}
+
+.legacy-preview-frame {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  background-color: var(--color-background);
 }
