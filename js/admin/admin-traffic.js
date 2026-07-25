@@ -260,7 +260,7 @@
   };
 
   window.renderAdminTrafficNew = async function (content) {
-    content.innerHTML = '<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:14px;">Loading traffic data…</p></div>';
+    if (!STATE.silent) content.innerHTML = '<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:14px;">Loading traffic data…</p></div>';
     var sessions = await loadSessions(false);
     var m = compute(sessions, STATE.range);
     var ranges = [[1, 'Today'], [7, '7 days'], [30, '30 days'], [90, '90 days'], [0, 'All time']];
