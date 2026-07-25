@@ -213,9 +213,15 @@
       os: osName(),
       screen: (screen.width || 0) + 'x' + (screen.height || 0),
       lang: navigator.language || '',
-      region: regionGuess(),
+      region: geo.regionName || regionGuess(),
+      country: geo.country || '',
+      countryCode: (geo.countryCode || '').toUpperCase(),
+      city: geo.city || '',
+      ip: geo.ip || '',
+      isp: geo.isp || '',
       tz: timezone(),
       email: userEmail(),
+      online: true,
       bounce: pages.length <= 1
     };
   }
