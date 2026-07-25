@@ -5,6 +5,20 @@ const FB_PROJECT = 'vextro-lyntra';
 const FB_API_KEY = 'AIzaSyAvlaKbCKqv1Z_sYAFhmmn-un2hYiWXEPc';
 const FB_BASE = `https://firestore.googleapis.com/v1/projects/${FB_PROJECT}/databases/(default)/documents`;
 
+async function getFirestoreHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const user = window.auth && window.auth.currentUser;
+    if (user && typeof user.getIdToken === 'function') {
+      const token = await user.getIdToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
+  } catch(e) {
+    console.warn('FS: auth token unavailable', e.message);
+  }
+  return headers;
+}
+
 // Helper: convert Firestore document to plain object
 function docToObj(doc) {
   const obj = { id: doc.name.split('/').pop() };
@@ -72,6 +86,7 @@ window.fsLoadMap = async function(collectionName) {
     const allDocs = [];
     let pageToken = '';
     let guard = 0;
+    const headers = await getFirestoreHeaders();
 
     // Firestore REST can paginate a collection even when it only returns
     // a couple of large documents. If we read only the first response, new
@@ -79,9 +94,10 @@ window.fsLoadMap = async function(collectionName) {
     // next page. Always walk every page.
     do {
       const tokenPart = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-      const res = await fetch(`${FB_BASE}/${collectionName}?pageSize=100&key=${FB_API_KEY}${tokenPart}`);
+      const res = await fetch(`${FB_BASE}/${collectionName}?pageSize=100&key=${FB_API_KEY}${tokenPart}`, { headers });
       if (!res.ok) {
         if (res.status === 404) console.warn('FS: Firestore database not found - enable it in Firebase Console');
+        else console.warn('FS: load', collectionName, 'failed with status', res.status);
         return allDocs.length ? allDocs : null;
       }
       const data = await res.json();
@@ -142,20 +158,21 @@ window.fsSaveMap = async function(collectionName, dataMap) {
   const entries = Object.entries(dataMap);
   if (entries.length === 0) return;
   try {
+    const headers = await getFirestoreHeaders();
     const promises = entries.map(([id, data]) => {
       const clean = { ...data };
       delete clean.id;
       // Try PATCH (update existing) first, fallback to POST (create new)
       return fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ fields: objToFields(clean) })
       }).then(r => {
         if (!r.ok && r.status === 404) {
           // Document doesn't exist, create it
           return fetch(`${FB_BASE}/${collectionName}?documentId=${id}&key=${FB_API_KEY}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ fields: objToFields(clean) })
           });
         }
@@ -181,16 +198,17 @@ window.fsSetDoc = async function(collectionName, id, data) {
     err.code = 'DOC_TOO_LARGE';
     throw err;
   }
+  const headers = await getFirestoreHeaders();
   const res = await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body
   });
   if (!res.ok) {
     if (res.status === 404) {
       const res2 = await fetch(`${FB_BASE}/${collectionName}?documentId=${id}&key=${FB_API_KEY}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body
       });
       if (!res2.ok) {
@@ -208,7 +226,8 @@ window.fsSetDoc = async function(collectionName, id, data) {
 // Delete a document from Firestore via REST API
 window.fsDeleteDoc = async function(collectionName, id) {
   try {
-    await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, { method: 'DELETE' });
+    const headers = await getFirestoreHeaders();
+    await fetch(`${FB_BASE}/${collectionName}/${id}?key=${FB_API_KEY}`, { method: 'DELETE', headers });
     return true;
   } catch(e) {
     console.warn('FS: delete', id, 'failed', e.message);
