@@ -271,19 +271,42 @@
 
     var totalSessions = m.a.sessions || 0;
 
-    var recentRows = m.cur.slice(0, 20).map(function (s) {
+    var recentRows = m.cur.slice(0, 25).map(function (s) {
       var lastPage = (s.pages && s.pages.length ? s.pages[s.pages.length - 1].p : s.landing) || '/';
-      var liveDot = (s.last || s.start) >= Date.now() - 5 * 60000
+      var isLive = (s.last || s.start) >= Date.now() - 5 * 60000;
+      var liveDot = isLive
         ? '<span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.18);"></span>' : '';
+      var loc = (s.country ? flag(s.countryCode) + ' ' + s.country : 'Unknown location') + (s.city ? ' · ' + s.city : '');
       return '<tr>' +
-        '<td>' + liveDot + ' <span style="font-weight:700;color:#0f172a;">' + esc(s.email || (s.isNewVisitor ? 'New visitor' : 'Returning visitor')) + '</span><div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.region || '') + ' · ' + esc(s.tz || '') + '</div></td>' +
+        '<td>' + liveDot + ' <span style="font-weight:700;color:#0f172a;">' + esc(s.email || (s.isNewVisitor ? 'New visitor' : 'Returning visitor')) + '</span><div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.tz || '') + '</div></td>' +
+        '<td>' + esc(loc) + (s.isp ? '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.isp) + '</div>' : '') + '</td>' +
         '<td>' + esc(lastPage) + '</td>' +
         '<td>' + esc(s.channel || 'Direct') + '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.source || 'direct') + '</div></td>' +
         '<td style="text-transform:capitalize;">' + esc(s.device || '') + '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.browser || '') + ' · ' + esc(s.os || '') + '</div></td>' +
         '<td>' + num(s.pageviews) + '</td>' +
         '<td>' + dur(s.duration) + '</td>' +
-        '<td style="white-space:nowrap;">' + new Date(s.start).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</td>' +
+        '<td style="white-space:nowrap;">' + (isLive ? '<span style="color:#047857;font-weight:700;">Online now</span>' : esc(ago(s.last || s.start))) + '</td>' +
         '</tr>';
+    }).join('');
+
+    var liveRows = m.liveSessions.slice(0, 25).map(function (s) {
+      var lastPage = (s.pages && s.pages.length ? s.pages[s.pages.length - 1].p : s.landing) || '/';
+      return '<tr>' +
+        '<td><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.18);"></span> ' +
+        '<span style="font-weight:700;color:#0f172a;">' + esc(s.email || (s.isNewVisitor ? 'New visitor' : 'Returning visitor')) + '</span></td>' +
+        '<td style="font-size:1rem;">' + flag(s.countryCode) + ' <span style="font-size:0.9rem;font-weight:600;">' + esc(s.country || 'Unknown') + '</span>' + (s.city ? '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(s.city) + '</div>' : '') + '</td>' +
+        '<td>' + esc(lastPage) + '</td>' +
+        '<td style="text-transform:capitalize;">' + esc(s.device || '') + '</td>' +
+        '<td>' + num(s.pageviews) + '</td>' +
+        '<td>' + dur(s.duration) + '</td>' +
+        '<td style="white-space:nowrap;color:#047857;font-weight:700;">' + esc(ago(s.last || s.start)) + '</td></tr>';
+    }).join('');
+
+    var countryRows = m.countries.slice(0, 15).map(function (c) {
+      var share = m.a.users ? (c.users / m.a.users) * 100 : 0;
+      return '<tr><td style="font-size:0.95rem;font-weight:700;color:#0f172a;">' + esc(c.key) + '</td>' +
+        '<td>' + num(c.users) + '</td><td>' + num(c.count) + '</td>' +
+        '<td style="min-width:140px;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:7px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden;"><div style="height:100%;width:' + Math.max(3, share) + '%;background:linear-gradient(90deg,#ff6b35,#f7931e);"></div></div><span style="font-size:0.78rem;color:#64748b;font-weight:700;">' + pct(share) + '</span></div></td></tr>';
     }).join('');
 
     var pagesRows = m.topPages.slice(0, 12).map(function (p) {
