@@ -17,6 +17,18 @@
     return m + 'm ' + String(s).padStart(2, '0') + 's';
   }
   function dayKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function flag(cc) {
+    cc = (cc || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(cc)) return '🌐';
+    return String.fromCodePoint(0x1F1E6 + cc.charCodeAt(0) - 65, 0x1F1E6 + cc.charCodeAt(1) - 65);
+  }
+  function ago(ts) {
+    var s = Math.max(0, Math.round((Date.now() - (ts || 0)) / 1000));
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
 
   async function loadSessions(force) {
     if (STATE.loaded && !force) return STATE.sessions;
