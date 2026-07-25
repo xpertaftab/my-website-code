@@ -5627,6 +5627,9 @@ window.showService = function(serviceId) {
             { name: 'Brand Empire', price: '$449', desc: 'Enterprise-level identity & full asset suite', features: ['Everything in Brand Pro', 'Figma UI/UX Design', 'Investor Pitch Deck', 'Product Packaging Design', 'Animated / Motion Logo', 'Dedicated Art Director'] }
         ]
     };
+    // expose defaults so admin panel can edit prices/packages
+    window.servicePricingDefaults = pricingPackages;
+
 
     // --- FAQ DATA ---
     const faqs = {
