@@ -2227,17 +2227,10 @@ function renderAdminUsersTable(container, filter) {
           <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
         </select>
         <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
-        <button onclick="adminRecoverUsers()" style="padding:9px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Users</button>
         <button onclick="adminAddUserManual()" style="padding:9px 12px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>
-        <button onclick="adminImportUsersJson()" style="padding:9px 12px;background:#f59e0b;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-upload"></i> Import JSON</button>
-        <button onclick="adminImportUsersFromRepo()" style="padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-database"></i> Import data/users.json</button>
-        <button onclick="adminExportUsersJson()" style="padding:9px 12px;background:#6366f1;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-download"></i> Backup JSON</button>
         <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
-
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
-        <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
-        <button onclick="adminShowFirestoreRules()" style="padding:9px 12px;background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> Firestore Rules</button>
-        <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
+
 
       </div>
 
@@ -2258,7 +2251,7 @@ function renderAdminUsersTable(container, filter) {
           <i class="fa-solid fa-users"></i>
           <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
           ${!f ? `<p style="font-size:0.82rem;color:#94a3b8;">${(window.__adminUsersData && window.__adminUsersData.usersLoadError) ? 'Users load nahi ho rahe: ' + window.__adminUsersData.usersLoadError : 'Users appear here after they sign in for the first time.'}</p>` : ''}
-          ${!f ? '<button onclick="adminSyncCurrentUserNow()" style="margin-top:14px;padding:9px 14px;background:#ff6b35;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Sync Current Login</button> <button onclick="adminRecoverUsers()" style="margin-top:14px;padding:9px 14px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Old Users</button> <button onclick="adminAddUserManual()" style="margin-top:14px;padding:9px 14px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>' : ''}
+          ${!f ? '<button onclick="adminAddUserManual()" style="margin-top:14px;padding:9px 14px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
@@ -2469,26 +2462,86 @@ async function adminRecoverUsers(silent) {
 }
 window.adminRecoverUsers = adminRecoverUsers;
 
-// Manually ek user add karne ka option
-window.adminAddUserManual = async function() {
-  const email = prompt('User ka email likho:');
-  if (!email || email.indexOf('@') === -1) return;
-  const name = prompt('User ka naam (optional):') || email.split('@')[0];
-  const uid = 'manual_' + email.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-  const nowIso = new Date().toISOString();
-  const rec = {
-    uid, email: email.toLowerCase().trim(), displayName: name, photoURL: '',
-    provider: 'password', emailVerified: false, role: 'user', status: 'active',
-    createdAt: nowIso, lastLoginAt: nowIso, loginHistory: [],
-    notes: 'Manually added by admin', dashboardStats: {}, notifications: []
+// Manually ek user add karne ka option — proper popup form
+window.adminAddUserManual = function() {
+  const old = document.getElementById('adminAddUserModal');
+  if (old) old.remove();
+  const inp = 'width:100%;padding:10px 12px;border:1px solid #dbe2ea;border-radius:9px;font-size:0.88rem;color:#0f172a;background:#f8fafc;';
+  const lbl = 'display:block;font-size:0.76rem;font-weight:700;color:#475569;margin-bottom:5px;letter-spacing:.02em;text-transform:uppercase;';
+  const wrap = document.createElement('div');
+  wrap.id = 'adminAddUserModal';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(5,10,25,.75);display:flex;align-items:center;justify-content:center;padding:16px;';
+  wrap.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:620px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);">
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-weight:800;font-size:1.05rem;"><i class="fa-solid fa-user-plus"></i> Add New User</div>
+          <div style="font-size:0.78rem;opacity:.85;margin-top:3px;">User ki details bharo — account list me turant add ho jayega</div>
+        </div>
+        <button id="auClose2" style="background:rgba(255,255,255,.15);color:#fff;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;">&times;</button>
+      </div>
+      <div style="padding:18px 20px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="grid-column:1/-1;"><label style="${lbl}">Full Name *</label><input id="auName" placeholder="Ali Khan" style="${inp}"></div>
+        <div style="grid-column:1/-1;"><label style="${lbl}">Email *</label><input id="auEmail" type="email" placeholder="ali@gmail.com" style="${inp}"></div>
+        <div><label style="${lbl}">Phone</label><input id="auPhone" placeholder="+92 300 0000000" style="${inp}"></div>
+        <div><label style="${lbl}">Country / City</label><input id="auCountry" placeholder="Pakistan, Lahore" style="${inp}"></div>
+        <div><label style="${lbl}">Role</label><select id="auRole" style="${inp}"><option value="user">User</option><option value="admin">Admin</option></select></div>
+        <div><label style="${lbl}">Status</label><select id="auStatus" style="${inp}"><option value="active">Active</option><option value="banned">Banned</option></select></div>
+        <div><label style="${lbl}">Provider</label><select id="auProvider" style="${inp}"><option value="password">Email</option><option value="google.com">Google</option></select></div>
+        <div><label style="${lbl}">Email Verified</label><select id="auVerified" style="${inp}"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        <div style="grid-column:1/-1;"><label style="${lbl}">Photo URL</label><input id="auPhoto" placeholder="https://..." style="${inp}"></div>
+        <div style="grid-column:1/-1;"><label style="${lbl}">Company / Website</label><input id="auCompany" placeholder="Company ya website (optional)" style="${inp}"></div>
+        <div style="grid-column:1/-1;"><label style="${lbl}">Admin Notes</label><textarea id="auNotes" rows="3" placeholder="Internal note (optional)" style="${inp}resize:vertical;"></textarea></div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid #eef2f7;display:flex;gap:10px;justify-content:flex-end;background:#fbfcfe;">
+        <button id="auCancel" style="padding:10px 16px;background:#fff;color:#334155;border:1px solid #cbd5e1;border-radius:9px;font-weight:700;cursor:pointer;">Cancel</button>
+        <button id="auSave" style="padding:10px 18px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> Save User</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.querySelector('#auClose2').onclick = close;
+  wrap.querySelector('#auCancel').onclick = close;
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+  const val = (id) => (wrap.querySelector('#' + id)?.value || '').trim();
+  wrap.querySelector('#auEmail').focus();
+  wrap.querySelector('#auSave').onclick = async function() {
+    const btn = this;
+    const email = val('auEmail').toLowerCase();
+    const name = val('auName');
+    if (!name) { alert('Name likhna zaroori hai.'); return; }
+    if (!email || email.indexOf('@') === -1) { alert('Sahi email likho.'); return; }
+    const nowIso = new Date().toISOString();
+    const rec = {
+      uid: 'manual_' + email.replace(/[^a-z0-9]/gi, '_'),
+      email, displayName: name, name,
+      phone: val('auPhone'),
+      country: val('auCountry'),
+      company: val('auCompany'),
+      photoURL: val('auPhoto'),
+      provider: val('auProvider') || 'password',
+      emailVerified: val('auVerified') === 'yes',
+      role: val('auRole') || 'user',
+      status: val('auStatus') || 'active',
+      createdAt: nowIso, lastLoginAt: nowIso, loginHistory: [],
+      notes: val('auNotes') || 'Manually added by admin',
+      dashboardStats: {}, notifications: []
+    };
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    try {
+      if (window.fsSetDoc) await window.fsSetDoc('users', rec.uid, rec);
+      close();
+      const el = document.getElementById('adminContent');
+      if (el) await renderAdminUsersNew(el);
+    } catch(e) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save User';
+      alert('Add failed: ' + (e.message || e));
+    }
   };
-  try {
-    if (window.fsSetDoc) await window.fsSetDoc('users', uid, rec);
-    const el = document.getElementById('adminContent');
-    if (el) await renderAdminUsersNew(el);
-    alert('User add ho gaya.');
-  } catch(e) { alert('Add failed: ' + (e.message || e)); }
 };
+
 
 // ---- Users JSON import / export (backup restore) ----
 function normalizeUserRecord(u) {
