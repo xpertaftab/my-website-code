@@ -2251,7 +2251,7 @@ function renderAdminUsersTable(container, filter) {
           <i class="fa-solid fa-users"></i>
           <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
           ${!f ? `<p style="font-size:0.82rem;color:#94a3b8;">${(window.__adminUsersData && window.__adminUsersData.usersLoadError) ? 'Users load nahi ho rahe: ' + window.__adminUsersData.usersLoadError : 'Users appear here after they sign in for the first time.'}</p>` : ''}
-          ${!f ? '<button onclick="adminSyncCurrentUserNow()" style="margin-top:14px;padding:9px 14px;background:#ff6b35;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Sync Current Login</button> <button onclick="adminRecoverUsers()" style="margin-top:14px;padding:9px 14px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Old Users</button> <button onclick="adminAddUserManual()" style="margin-top:14px;padding:9px 14px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>' : ''}
+          ${!f ? '<button onclick="adminAddUserManual()" style="margin-top:14px;padding:9px 14px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
