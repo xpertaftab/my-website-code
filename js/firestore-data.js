@@ -20,40 +20,30 @@ async function getFirestoreHeaders() {
 }
 
 // Helper: convert Firestore document to plain object
+function valueToJs(val) {
+  if (!val || typeof val !== 'object') return null;
+  if (val.stringValue !== undefined) return val.stringValue;
+  if (val.integerValue !== undefined) return Number(val.integerValue);
+  if (val.doubleValue !== undefined) return Number(val.doubleValue);
+  if (val.booleanValue !== undefined) return val.booleanValue;
+  if (val.nullValue !== undefined) return null;
+  if (val.timestampValue !== undefined) return val.timestampValue;
+  if (val.arrayValue) return (val.arrayValue.values || []).map(valueToJs);
+  if (val.mapValue) {
+    const obj = {};
+    Object.entries(val.mapValue.fields || {}).forEach(([key, child]) => {
+      obj[key] = valueToJs(child);
+    });
+    return obj;
+  }
+  return null;
+}
+
 function docToObj(doc) {
   const obj = { id: doc.name.split('/').pop() };
   if (!doc.fields) return obj;
   Object.entries(doc.fields).forEach(([key, val]) => {
-    if (val.stringValue !== undefined) obj[key] = val.stringValue;
-    else if (val.integerValue !== undefined) obj[key] = Number(val.integerValue);
-    else if (val.doubleValue !== undefined) obj[key] = Number(val.doubleValue);
-    else if (val.booleanValue !== undefined) obj[key] = val.booleanValue;
-    else if (val.arrayValue && val.arrayValue.values) {
-      obj[key] = val.arrayValue.values.map(v => {
-        if (v.stringValue !== undefined) return v.stringValue;
-        if (v.integerValue !== undefined) return Number(v.integerValue);
-        if (v.doubleValue !== undefined) return Number(v.doubleValue);
-        if (v.mapValue) {
-          const inner = {};
-          Object.entries(v.mapValue.fields || {}).forEach(([ik, iv]) => {
-            if (iv.stringValue !== undefined) inner[ik] = iv.stringValue;
-            if (iv.integerValue !== undefined) inner[ik] = Number(iv.integerValue);
-            if (iv.doubleValue !== undefined) inner[ik] = Number(iv.doubleValue);
-          });
-          return inner;
-        }
-        return v;
-      });
-    } else if (val.mapValue && val.mapValue.fields) {
-      const inner = {};
-      Object.entries(val.mapValue.fields).forEach(([ik, iv]) => {
-        if (iv.stringValue !== undefined) inner[ik] = iv.stringValue;
-        if (iv.integerValue !== undefined) inner[ik] = Number(iv.integerValue);
-        if (iv.doubleValue !== undefined) inner[ik] = Number(iv.doubleValue);
-        if (iv.arrayValue && iv.arrayValue.values) inner[ik] = iv.arrayValue.values.map(v => v.stringValue || '');
-      });
-      obj[key] = inner;
-    }
+    obj[key] = valueToJs(val);
   });
   return obj;
 }

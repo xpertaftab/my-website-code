@@ -26,6 +26,7 @@ service cloud.firestore {
     match /listing_media/{doc} { allow read: if true; allow write: if isAdmin(); }
     match /blogs/{doc}         { allow read: if true; allow write: if isAdmin(); }
     match /tools/{doc}         { allow read: if true; allow write: if isAdmin(); }
+    match /service_overrides/{doc} { allow read: if true; allow write: if isAdmin(); }
     match /coupons/{doc}       { allow read: if true; allow write: if isAdmin(); }
     match /settings/{doc}      { allow read: if true; allow write: if isAdmin(); }
 

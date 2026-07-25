@@ -5805,6 +5805,15 @@ window.loadServiceOverrides = async function() {
         if (window.fsLoadMap) map = await window.fsLoadMap('service_overrides');
     } catch (e) { console.warn('service overrides load failed', e); }
     if (!map || !Object.keys(map).length) {
+        try {
+            if (window.fsLoadMap) {
+                const settings = await window.fsLoadMap('settings');
+                const doc = settings && settings.service_overrides;
+                if (doc && doc.items && typeof doc.items === 'object') map = doc.items;
+            }
+        } catch (e) { console.warn('service overrides settings load failed', e); }
+    }
+    if (!map || !Object.keys(map).length) {
         try { map = JSON.parse(localStorage.getItem('vextro_service_overrides') || 'null'); } catch (e) { map = null; }
     } else {
         try { localStorage.setItem('vextro_service_overrides', JSON.stringify(map)); } catch (e) {}
