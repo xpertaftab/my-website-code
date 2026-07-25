@@ -2096,7 +2096,18 @@ async function renderAdminUsersNew(container) {
       commentsListByEmail, purchasesByEmail, purchasesListByEmail,
       listingsByEmail, contactsByEmail, statsMap, usersLoadError
     };
+
+    // Auto-recover: agar list khaali hai to purane records se users khud add kar do
+    if (!usersLoadError && Object.keys(usersMap).length === 0 && !window.__adminUsersAutoRecovered) {
+      window.__adminUsersAutoRecovered = true;
+      if (typeof adminRecoverUsers === 'function') {
+        const added = await adminRecoverUsers(true);
+        if (added > 0) return; // recover ne dobara render kar diya
+      }
+    }
+
     renderAdminUsersTable(container, '');
+
   } catch(e) {
     console.error(e);
     container.innerHTML = `<div class="admin-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error loading users</p></div>`;
