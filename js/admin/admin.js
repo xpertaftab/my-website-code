@@ -3098,35 +3098,46 @@ window.adminImportUsersJson = async function(input) {
     if (!Array.isArray(arr) || arr.length === 0) { alert('No users found in JSON.'); input.value=''; return; }
     if (!confirm(`Import ${arr.length} users into admin panel?`)) { input.value=''; return; }
     const cache = window.__adminUsersCache || {};
-    let added = 0, skipped = 0;
+    let added = 0, skipped = 0, lastErr = '';
     for (const raw of arr) {
       const uid = raw.localId || raw.uid || raw.id || raw.user_id || (raw.email ? 'imp_' + btoa(raw.email).replace(/=/g,'').slice(0,20) : null);
-      if (!uid) { skipped++; continue; }
+      if (!uid) { skipped++; lastErr = lastErr || 'record me uid/email nahi tha'; continue; }
       const provider = (raw.providerUserInfo && raw.providerUserInfo[0] && raw.providerUserInfo[0].providerId) || raw.provider || 'password';
       const createdAt = raw.createdAt ? (isNaN(+raw.createdAt) ? raw.createdAt : new Date(+raw.createdAt).toISOString()) : (raw.metadata && raw.metadata.creationTime) || new Date().toISOString();
-      const lastLoginAt = raw.lastLoginAt ? (isNaN(+raw.lastLoginAt) ? raw.lastLoginAt : new Date(+raw.lastLoginAt).toISOString()) : (raw.metadata && raw.metadata.lastSignInTime) || createdAt;
+      const lastLoginAt = raw.lastLoginAt ? (isNaN(+raw.lastLoginAt) ? raw.lastLoginAt : new Date(+raw.lastLoginAt).toISOString())
+        : (raw.lastSignedInAt ? new Date(+raw.lastSignedInAt).toISOString() : (raw.metadata && raw.metadata.lastSignInTime) || createdAt);
       const existing = cache[uid] || {};
+      const email = String(raw.email || existing.email || '').toLowerCase().trim();
+      const displayName = raw.displayName || raw.name || existing.displayName || existing.name || (email ? email.split('@')[0] : 'User');
       const rec = {
         uid,
-        email: raw.email || existing.email || '',
-        name: raw.displayName || raw.name || existing.name || (raw.email ? raw.email.split('@')[0] : 'User'),
+        email,
+        name: displayName,
+        displayName,
         photoURL: raw.photoUrl || raw.photoURL || existing.photoURL || '',
         provider,
         emailVerified: !!(raw.emailVerified || existing.emailVerified),
         createdAt: existing.createdAt || createdAt,
         lastLoginAt: existing.lastLoginAt || lastLoginAt,
-        role: existing.role || 'user',
-        status: existing.status || 'active',
+        role: raw.role || existing.role || 'user',
+        status: raw.status || existing.status || 'active',
+        loginHistory: Array.isArray(existing.loginHistory) ? existing.loginHistory : [],
+        dashboardStats: existing.dashboardStats || {},
+        notifications: Array.isArray(existing.notifications) ? existing.notifications : [],
         imported: true
       };
       cache[uid] = rec;
-      if (window.fsSetDoc) { try { await window.fsSetDoc('users', uid, rec); added++; } catch(e) { skipped++; } }
-      else added++;
+      if (window.fsSetDoc) {
+        try { await window.fsSetDoc('users', uid, rec); added++; }
+        catch(e) { skipped++; lastErr = e && (e.message || String(e)); }
+      } else added++;
     }
     window.__adminUsersCache = cache;
-    alert(`Imported: ${added}\nSkipped: ${skipped}`);
+    try { localStorage.setItem('admin_users_cache', JSON.stringify(Object.values(cache))); } catch(_) {}
+    alert(`Imported: ${added}\nSkipped: ${skipped}` + (lastErr ? `\n\nReason: ${lastErr}` : ''));
     input.value = '';
     showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+
   } catch(e) {
     console.error(e);
     alert('Import failed: ' + e.message);
