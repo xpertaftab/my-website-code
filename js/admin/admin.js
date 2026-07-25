@@ -2236,7 +2236,9 @@ function renderAdminUsersTable(container, filter) {
 
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
         <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
+        <button onclick="adminShowFirestoreRules()" style="padding:9px 12px;background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> Firestore Rules</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
+
       </div>
 
       <!-- Bulk action bar (shown when selection > 0) -->
@@ -3645,3 +3647,59 @@ setTimeout(() => {
     document.body.classList.add('is-admin');
   }
 }, 1500);
+
+// ---- Firestore Rules helper: rules dikhata hai + one-click copy ----
+window.adminShowFirestoreRules = async function() {
+  let rules = '';
+  try {
+    const res = await fetch('firestore.rules?ts=' + Date.now());
+    if (res.ok) rules = await res.text();
+  } catch (_) {}
+  if (!rules || rules.indexOf('rules_version') === -1) {
+    alert('firestore.rules file load nahi hui. Project root me firestore.rules maujood honi chahiye.');
+    return;
+  }
+  const old = document.getElementById('fsRulesModal');
+  if (old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'fsRulesModal';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(5,10,25,.75);display:flex;align-items:center;justify-content:center;padding:16px;';
+  wrap.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:820px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);">
+      <div style="padding:16px 18px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;">
+        <div style="font-weight:800;font-size:1.05rem;">Firestore Security Rules</div>
+        <div style="font-size:0.8rem;opacity:.85;margin-top:4px;">Copy dabao → Firebase Console → Firestore Database → Rules → purana delete → paste → Publish</div>
+      </div>
+      <textarea id="fsRulesText" readonly style="flex:1;min-height:320px;margin:0;padding:14px;border:none;border-bottom:1px solid #e2e8f0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:0.78rem;line-height:1.5;color:#0f172a;background:#f8fafc;resize:none;"></textarea>
+      <div style="padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+        <button id="fsRulesCopy" style="padding:10px 16px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-copy"></i> Copy Rules</button>
+        <button id="fsRulesDownload" style="padding:10px 16px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-download"></i> Download</button>
+        <a href="https://console.firebase.google.com/project/vextro-lyntra/firestore/rules" target="_blank" rel="noopener" style="padding:10px 16px;background:#f59e0b;color:#fff;border-radius:9px;font-weight:700;text-decoration:none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Firebase Rules</a>
+        <button id="fsRulesClose" style="padding:10px 16px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:700;cursor:pointer;">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const ta = wrap.querySelector('#fsRulesText');
+  ta.value = rules;
+  wrap.querySelector('#fsRulesClose').onclick = () => wrap.remove();
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });
+  wrap.querySelector('#fsRulesCopy').onclick = async function() {
+    const btn = this;
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(rules);
+      else { ta.removeAttribute('readonly'); ta.select(); document.execCommand('copy'); ta.setAttribute('readonly','readonly'); }
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+      setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Rules'; }, 1800);
+    } catch (e) {
+      ta.select();
+      alert('Auto copy block ho gaya — text select ho gaya hai, Ctrl+C dabao.');
+    }
+  };
+  wrap.querySelector('#fsRulesDownload').onclick = function() {
+    const blob = new Blob([rules], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'firestore.rules'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+};
