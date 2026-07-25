@@ -2493,18 +2493,22 @@ function normalizeUserRecord(u) {
   const nowIso = new Date().toISOString();
   const email = String(u.email || u.Email || '').toLowerCase().trim();
   if (!email || email.indexOf('@') === -1) return null;
-  const uid = u.uid || u.id || ('json_' + email.replace(/[^a-z0-9]/gi, '_'));
+  const uid = u.localId || u.uid || u.id || ('json_' + email.replace(/[^a-z0-9]/gi, '_'));
+  const created = u.createdAt ? (isNaN(+u.createdAt) ? u.createdAt : new Date(+u.createdAt).toISOString()) : nowIso;
+  const lastLogin = u.lastLoginAt || (u.lastSignedInAt ? new Date(+u.lastSignedInAt).toISOString() : created);
+  const displayName = u.displayName || u.name || email.split('@')[0];
   return {
     uid,
     email,
-    displayName: u.displayName || u.name || email.split('@')[0],
-    photoURL: u.photoURL || '',
-    provider: u.provider || 'password',
+    displayName,
+    name: displayName,
+    photoURL: u.photoURL || u.photoUrl || '',
+    provider: u.provider || ((u.providerUserInfo && u.providerUserInfo[0] && u.providerUserInfo[0].providerId) || 'password'),
     emailVerified: !!u.emailVerified,
     role: u.role || 'user',
     status: u.status || 'active',
-    createdAt: u.createdAt || nowIso,
-    lastLoginAt: u.lastLoginAt || u.createdAt || nowIso,
+    createdAt: created,
+    lastLoginAt: lastLogin,
     loginHistory: Array.isArray(u.loginHistory) ? u.loginHistory : [],
     notes: u.notes || 'Imported from JSON',
     dashboardStats: u.dashboardStats || {},
@@ -2513,16 +2517,20 @@ function normalizeUserRecord(u) {
 }
 
 async function saveUsersArray(list) {
-  let saved = 0, skipped = 0;
+  let saved = 0, skipped = 0, lastErr = '';
   for (const raw of list) {
     const rec = normalizeUserRecord(raw || {});
-    if (!rec) { skipped++; continue; }
-    try { if (window.fsSetDoc) { await window.fsSetDoc('users', rec.uid, rec); saved++; } } catch (e) { skipped++; }
+    if (!rec) { skipped++; lastErr = lastErr || 'email missing/invalid'; continue; }
+    try {
+      if (window.fsSetDoc) { await window.fsSetDoc('users', rec.uid, rec); saved++; }
+      else { skipped++; lastErr = 'Firestore helper load nahi hua'; }
+    } catch (e) { skipped++; lastErr = e && (e.message || String(e)); }
   }
   const el = document.getElementById('adminContent');
   if (el) await renderAdminUsersNew(el);
-  alert(saved + ' users import ho gaye.' + (skipped ? ' (' + skipped + ' skip hue)' : ''));
+  alert(saved + ' users import ho gaye.' + (skipped ? ' (' + skipped + ' skip hue)' : '') + (lastErr ? '\n\nReason: ' + lastErr : ''));
 }
+
 
 function pickUsersArray(data) {
   if (Array.isArray(data)) return data;
@@ -3098,35 +3106,46 @@ window.adminImportUsersJson = async function(input) {
     if (!Array.isArray(arr) || arr.length === 0) { alert('No users found in JSON.'); input.value=''; return; }
     if (!confirm(`Import ${arr.length} users into admin panel?`)) { input.value=''; return; }
     const cache = window.__adminUsersCache || {};
-    let added = 0, skipped = 0;
+    let added = 0, skipped = 0, lastErr = '';
     for (const raw of arr) {
       const uid = raw.localId || raw.uid || raw.id || raw.user_id || (raw.email ? 'imp_' + btoa(raw.email).replace(/=/g,'').slice(0,20) : null);
-      if (!uid) { skipped++; continue; }
+      if (!uid) { skipped++; lastErr = lastErr || 'record me uid/email nahi tha'; continue; }
       const provider = (raw.providerUserInfo && raw.providerUserInfo[0] && raw.providerUserInfo[0].providerId) || raw.provider || 'password';
       const createdAt = raw.createdAt ? (isNaN(+raw.createdAt) ? raw.createdAt : new Date(+raw.createdAt).toISOString()) : (raw.metadata && raw.metadata.creationTime) || new Date().toISOString();
-      const lastLoginAt = raw.lastLoginAt ? (isNaN(+raw.lastLoginAt) ? raw.lastLoginAt : new Date(+raw.lastLoginAt).toISOString()) : (raw.metadata && raw.metadata.lastSignInTime) || createdAt;
+      const lastLoginAt = raw.lastLoginAt ? (isNaN(+raw.lastLoginAt) ? raw.lastLoginAt : new Date(+raw.lastLoginAt).toISOString())
+        : (raw.lastSignedInAt ? new Date(+raw.lastSignedInAt).toISOString() : (raw.metadata && raw.metadata.lastSignInTime) || createdAt);
       const existing = cache[uid] || {};
+      const email = String(raw.email || existing.email || '').toLowerCase().trim();
+      const displayName = raw.displayName || raw.name || existing.displayName || existing.name || (email ? email.split('@')[0] : 'User');
       const rec = {
         uid,
-        email: raw.email || existing.email || '',
-        name: raw.displayName || raw.name || existing.name || (raw.email ? raw.email.split('@')[0] : 'User'),
+        email,
+        name: displayName,
+        displayName,
         photoURL: raw.photoUrl || raw.photoURL || existing.photoURL || '',
         provider,
         emailVerified: !!(raw.emailVerified || existing.emailVerified),
         createdAt: existing.createdAt || createdAt,
         lastLoginAt: existing.lastLoginAt || lastLoginAt,
-        role: existing.role || 'user',
-        status: existing.status || 'active',
+        role: raw.role || existing.role || 'user',
+        status: raw.status || existing.status || 'active',
+        loginHistory: Array.isArray(existing.loginHistory) ? existing.loginHistory : [],
+        dashboardStats: existing.dashboardStats || {},
+        notifications: Array.isArray(existing.notifications) ? existing.notifications : [],
         imported: true
       };
       cache[uid] = rec;
-      if (window.fsSetDoc) { try { await window.fsSetDoc('users', uid, rec); added++; } catch(e) { skipped++; } }
-      else added++;
+      if (window.fsSetDoc) {
+        try { await window.fsSetDoc('users', uid, rec); added++; }
+        catch(e) { skipped++; lastErr = e && (e.message || String(e)); }
+      } else added++;
     }
     window.__adminUsersCache = cache;
-    alert(`Imported: ${added}\nSkipped: ${skipped}`);
+    try { localStorage.setItem('admin_users_cache', JSON.stringify(Object.values(cache))); } catch(_) {}
+    alert(`Imported: ${added}\nSkipped: ${skipped}` + (lastErr ? `\n\nReason: ${lastErr}` : ''));
     input.value = '';
     showAdminView('adminUsers', document.querySelector('.admin-sidebar-item[data-view="adminUsers"]'));
+
   } catch(e) {
     console.error(e);
     alert('Import failed: ' + e.message);
