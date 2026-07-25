@@ -5834,8 +5834,13 @@ window.applyServiceOverrides = function(map) {
             if (typeof ov[f] === 'string' && ov[f].trim()) servicesData[key][f] = ov[f];
         });
         servicesData[key].hidden = !!ov.hidden;
+        // pricing packages override (admin editable)
+        window.__svcPricingOverrides = window.__svcPricingOverrides || {};
+        if (Array.isArray(ov.pricing) && ov.pricing.length) window.__svcPricingOverrides[key] = ov.pricing;
+        else delete window.__svcPricingOverrides[key];
     });
 };
+
 
 window.loadServiceOverrides = async function() {
     let map = null;
