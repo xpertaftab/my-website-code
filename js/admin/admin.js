@@ -2493,18 +2493,22 @@ function normalizeUserRecord(u) {
   const nowIso = new Date().toISOString();
   const email = String(u.email || u.Email || '').toLowerCase().trim();
   if (!email || email.indexOf('@') === -1) return null;
-  const uid = u.uid || u.id || ('json_' + email.replace(/[^a-z0-9]/gi, '_'));
+  const uid = u.localId || u.uid || u.id || ('json_' + email.replace(/[^a-z0-9]/gi, '_'));
+  const created = u.createdAt ? (isNaN(+u.createdAt) ? u.createdAt : new Date(+u.createdAt).toISOString()) : nowIso;
+  const lastLogin = u.lastLoginAt || (u.lastSignedInAt ? new Date(+u.lastSignedInAt).toISOString() : created);
+  const displayName = u.displayName || u.name || email.split('@')[0];
   return {
     uid,
     email,
-    displayName: u.displayName || u.name || email.split('@')[0],
-    photoURL: u.photoURL || '',
-    provider: u.provider || 'password',
+    displayName,
+    name: displayName,
+    photoURL: u.photoURL || u.photoUrl || '',
+    provider: u.provider || ((u.providerUserInfo && u.providerUserInfo[0] && u.providerUserInfo[0].providerId) || 'password'),
     emailVerified: !!u.emailVerified,
     role: u.role || 'user',
     status: u.status || 'active',
-    createdAt: u.createdAt || nowIso,
-    lastLoginAt: u.lastLoginAt || u.createdAt || nowIso,
+    createdAt: created,
+    lastLoginAt: lastLogin,
     loginHistory: Array.isArray(u.loginHistory) ? u.loginHistory : [],
     notes: u.notes || 'Imported from JSON',
     dashboardStats: u.dashboardStats || {},
@@ -2513,16 +2517,20 @@ function normalizeUserRecord(u) {
 }
 
 async function saveUsersArray(list) {
-  let saved = 0, skipped = 0;
+  let saved = 0, skipped = 0, lastErr = '';
   for (const raw of list) {
     const rec = normalizeUserRecord(raw || {});
-    if (!rec) { skipped++; continue; }
-    try { if (window.fsSetDoc) { await window.fsSetDoc('users', rec.uid, rec); saved++; } } catch (e) { skipped++; }
+    if (!rec) { skipped++; lastErr = lastErr || 'email missing/invalid'; continue; }
+    try {
+      if (window.fsSetDoc) { await window.fsSetDoc('users', rec.uid, rec); saved++; }
+      else { skipped++; lastErr = 'Firestore helper load nahi hua'; }
+    } catch (e) { skipped++; lastErr = e && (e.message || String(e)); }
   }
   const el = document.getElementById('adminContent');
   if (el) await renderAdminUsersNew(el);
-  alert(saved + ' users import ho gaye.' + (skipped ? ' (' + skipped + ' skip hue)' : ''));
+  alert(saved + ' users import ho gaye.' + (skipped ? ' (' + skipped + ' skip hue)' : '') + (lastErr ? '\n\nReason: ' + lastErr : ''));
 }
+
 
 function pickUsersArray(data) {
   if (Array.isArray(data)) return data;
