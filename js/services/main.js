@@ -5778,11 +5778,18 @@ window.toggleMobileServices = function() {
 window.renderMainServices = function() {
     const grid = document.getElementById('mainServicesGrid');
     if (!grid) return;
+    // apply cached admin overrides instantly (Firestore refresh comes later)
+    try {
+        const cached = JSON.parse(localStorage.getItem('vextro_service_overrides') || 'null');
+        if (cached && window.applyServiceOverrides) window.applyServiceOverrides(cached);
+    } catch (e) {}
     grid.innerHTML = '';
 
     for (const key in servicesData) {
         const service = servicesData[key];
+        if (service.hidden) continue;
         const prefix = service.iconPrefix || 'fa-solid';
+
 
         let featuresHtml = '';
         if (service.features && service.features.length > 0) {
