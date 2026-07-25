@@ -125,7 +125,9 @@
       devices: tally(function (s) { return s.device || 'desktop'; }),
       browsers: tally(function (s) { return s.browser || 'Other'; }),
       os: tally(function (s) { return s.os || 'Other'; }),
-      regions: tally(function (s) { return s.region || 'Unknown'; }),
+      regions: tally(function (s) { return s.region || ''; }),
+      countries: tally(function (s) { return s.country ? (flag(s.countryCode) + ' ' + s.country) : ''; }),
+      cities: tally(function (s) { return s.city ? (s.city + (s.country ? ', ' + s.country : '')) : ''; }),
       landings: tally(function (s) { return s.landing || '/'; })
     };
   }
