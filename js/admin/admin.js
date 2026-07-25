@@ -2216,7 +2216,10 @@ function renderAdminUsersTable(container, filter) {
           <option value="password" ${fProvider==='password'?'selected':''}>Email</option>
         </select>
         <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
+        <button onclick="adminRecoverUsers()" style="padding:9px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Users</button>
+        <button onclick="adminAddUserManual()" style="padding:9px 12px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>
         <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
         <button onclick="document.getElementById('adminUserImportFile').click()" style="padding:9px 14px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-import"></i> Import</button>
         <input id="adminUserImportFile" type="file" accept=".json,application/json" style="display:none;" onchange="adminImportUsersJson(this)">
