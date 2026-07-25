@@ -164,7 +164,7 @@
       hidden: !!ov.hidden,
       pricing: (Array.isArray(ov.pricing) && ov.pricing.length) ? ov.pricing : (((window.servicePricingDefaults||{})[key]) || []),
       pricingEdited: !!(Array.isArray(ov.pricing) && ov.pricing.length),
-      edited: !!(ov.title || ov.icon || ov.shortDesc || ov.desc || ov.hidden)
+      edited: !!(ov.title || ov.icon || ov.shortDesc || ov.desc || ov.hidden || (Array.isArray(ov.pricing) && ov.pricing.length))
     };
   }
 
