@@ -227,12 +227,25 @@
     var content = document.getElementById('adminContent');
     if (content) await window.renderAdminTrafficNew(content);
   };
-  window.vlTrafficRefresh = async function () {
+  window.vlTrafficRefresh = async function (silent) {
     var content = document.getElementById('adminContent');
-    if (content) { content.innerHTML = '<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:14px;">Loading traffic data…</p></div>'; }
+    if (content && !silent) { content.innerHTML = '<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:14px;">Loading traffic data…</p></div>'; }
     await loadSessions(true);
+    STATE.silent = !!silent;
     if (content) await window.renderAdminTrafficNew(content);
+    STATE.silent = false;
   };
+
+  // REALTIME: har 15 second Firestore se fresh data, jab tak Traffic tab khula ho
+  if (!window.__vlTrafficPoll) {
+    window.__vlTrafficPoll = setInterval(function () {
+      var active = document.querySelector('.admin-sidebar-item.active');
+      if (!active || active.getAttribute('data-view') !== 'adminTraffic') return;
+      if (document.hidden) return;
+      if (document.getElementById('adminModalOverlay')) return;
+      window.vlTrafficRefresh(true);
+    }, 15000);
+  }
   window.vlTrafficClearOld = async function () {
     if (!confirm('Delete traffic sessions older than 90 days?')) return;
     var cut = Date.now() - 90 * 86400000, del = 0;
