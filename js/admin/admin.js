@@ -2229,6 +2229,9 @@ function renderAdminUsersTable(container, filter) {
         <div style="font-size:0.82rem;color:#64748b;">${filteredUsers.length} shown</div>
         <button onclick="adminRecoverUsers()" style="padding:9px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-clock"></i> Recover Users</button>
         <button onclick="adminAddUserManual()" style="padding:9px 12px;background:#0f172a;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-user-plus"></i> Add User</button>
+        <button onclick="adminImportUsersJson()" style="padding:9px 12px;background:#f59e0b;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-upload"></i> Import JSON</button>
+        <button onclick="adminImportUsersFromRepo()" style="padding:9px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-database"></i> Import data/users.json</button>
+        <button onclick="adminExportUsersJson()" style="padding:9px 12px;background:#6366f1;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-download"></i> Backup JSON</button>
         <button onclick="adminExportUsers('csv')" style="padding:9px 12px;background:#10b981;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-csv"></i> CSV</button>
 
         <button onclick="adminExportUsers('json')" style="padding:9px 12px;background:#3b82f6;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.82rem;cursor:pointer;"><i class="fa-solid fa-file-code"></i> JSON</button>
@@ -2483,6 +2486,89 @@ window.adminAddUserManual = async function() {
     if (el) await renderAdminUsersNew(el);
     alert('User add ho gaya.');
   } catch(e) { alert('Add failed: ' + (e.message || e)); }
+};
+
+// ---- Users JSON import / export (backup restore) ----
+function normalizeUserRecord(u) {
+  const nowIso = new Date().toISOString();
+  const email = String(u.email || u.Email || '').toLowerCase().trim();
+  if (!email || email.indexOf('@') === -1) return null;
+  const uid = u.uid || u.id || ('json_' + email.replace(/[^a-z0-9]/gi, '_'));
+  return {
+    uid,
+    email,
+    displayName: u.displayName || u.name || email.split('@')[0],
+    photoURL: u.photoURL || '',
+    provider: u.provider || 'password',
+    emailVerified: !!u.emailVerified,
+    role: u.role || 'user',
+    status: u.status || 'active',
+    createdAt: u.createdAt || nowIso,
+    lastLoginAt: u.lastLoginAt || u.createdAt || nowIso,
+    loginHistory: Array.isArray(u.loginHistory) ? u.loginHistory : [],
+    notes: u.notes || 'Imported from JSON',
+    dashboardStats: u.dashboardStats || {},
+    notifications: Array.isArray(u.notifications) ? u.notifications : []
+  };
+}
+
+async function saveUsersArray(list) {
+  let saved = 0, skipped = 0;
+  for (const raw of list) {
+    const rec = normalizeUserRecord(raw || {});
+    if (!rec) { skipped++; continue; }
+    try { if (window.fsSetDoc) { await window.fsSetDoc('users', rec.uid, rec); saved++; } } catch (e) { skipped++; }
+  }
+  const el = document.getElementById('adminContent');
+  if (el) await renderAdminUsersNew(el);
+  alert(saved + ' users import ho gaye.' + (skipped ? ' (' + skipped + ' skip hue)' : ''));
+}
+
+function pickUsersArray(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.users)) return data.users;
+  if (data && typeof data === 'object') return Object.values(data);
+  return [];
+}
+
+// Upload a JSON file from computer
+window.adminImportUsersJson = function() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async function() {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+      const list = pickUsersArray(JSON.parse(await file.text()));
+      if (!list.length) return alert('JSON file me koi user nahi mila.');
+      await saveUsersArray(list);
+    } catch (e) { alert('Import failed: ' + (e.message || e)); }
+  };
+  input.click();
+};
+
+// Load from the repo file data/users.json
+window.adminImportUsersFromRepo = async function() {
+  try {
+    const res = await fetch('data/users.json?ts=' + Date.now());
+    if (!res.ok) throw new Error('data/users.json nahi mili');
+    const list = pickUsersArray(await res.json());
+    if (!list.length) return alert('data/users.json khali hai — pehle usme users daalo.');
+    await saveUsersArray(list);
+  } catch (e) { alert('Import failed: ' + (e.message || e)); }
+};
+
+// Backup: download current users as JSON
+window.adminExportUsersJson = function() {
+  const users = Object.values(window.__adminUsersCache || {});
+  if (!users.length) return alert('Export karne ke liye koi user nahi hai.');
+  const blob = new Blob([JSON.stringify(users, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'users.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 };
 
 
