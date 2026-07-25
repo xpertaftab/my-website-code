@@ -123,6 +123,49 @@
   var lastSaved = 0;
   var events = [];      // { n: name, ts }
 
+  /* ── REAL geo lookup (visitor ka actual IP → country/city) ───────── */
+  var GEO_KEY = 'vl_geo_cache';
+  var geo = { country: '', countryCode: '', city: '', regionName: '', ip: '', isp: '' };
+
+  function readGeoCache() {
+    try {
+      var c = JSON.parse(localStorage.getItem(GEO_KEY) || 'null');
+      if (c && c.ts && (Date.now() - c.ts) < 24 * 3600 * 1000 && c.data && c.data.country) return c.data;
+    } catch (e) {}
+    return null;
+  }
+
+  function applyGeo(g) {
+    if (!g || !g.country) return;
+    geo = g;
+    save(true);
+  }
+
+  async function fetchGeo() {
+    var cached = readGeoCache();
+    if (cached) { geo = cached; return; }
+    var providers = [
+      { url: 'https://ipwho.is/', map: function (j) { return j && j.success !== false ? { country: j.country, countryCode: j.country_code, city: j.city, regionName: j.region, ip: j.ip, isp: (j.connection && j.connection.isp) || '' } : null; } },
+      { url: 'https://get.geojs.io/v1/ip/geo.json', map: function (j) { return j && j.country ? { country: j.country, countryCode: j.country_code, city: j.city || '', regionName: j.region || '', ip: j.ip || '', isp: j.organization_name || '' } : null; } },
+      { url: 'https://api.country.is/', map: function (j) { return j && j.country ? { country: j.country, countryCode: j.country, city: '', regionName: '', ip: j.ip || '', isp: '' } : null; } }
+    ];
+    for (var i = 0; i < providers.length; i++) {
+      try {
+        var ctrl = new AbortController();
+        var to = setTimeout(function () { ctrl.abort(); }, 6000);
+        var res = await fetch(providers[i].url, { signal: ctrl.signal });
+        clearTimeout(to);
+        if (!res.ok) continue;
+        var g = providers[i].map(await res.json());
+        if (g && g.country) {
+          try { localStorage.setItem(GEO_KEY, JSON.stringify({ ts: Date.now(), data: g })); } catch (e) {}
+          applyGeo(g);
+          return;
+        }
+      } catch (e) {}
+    }
+  }
+
   function currentPath() {
     var h = (location.hash || '').replace(/^#/, '');
     if (h && h !== '/') return '/' + h.replace(/^\/+/, '');
