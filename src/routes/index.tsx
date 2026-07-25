@@ -39,7 +39,7 @@ function HomePreview() {
     >
       <iframe
         title="Vextro Lyntra full website preview"
-        src="/index.html"
+        src="/legacy-preview.html"
         className="legacy-preview-frame"
         style={{
           display: "block",
