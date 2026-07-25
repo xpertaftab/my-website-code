@@ -134,71 +134,157 @@
   };
 
   // ═══════════════════════════════════════════════════════════════
-  // 1. SERVICES MANAGER
+  // 1. SERVICES MANAGER — edits the REAL website services
+  //    (js/services/main.js servicesData + Firestore "service_overrides")
   // ═══════════════════════════════════════════════════════════════
-  function defaultServices(){
-    return [
-      { id:'web',    name:'Web Development',      icon:'fa-globe',   price:99,  desc:'Modern websites with SEO', packages:'Starter $99 · Pro $179' },
-      { id:'saas',   name:'SaaS Development',     icon:'fa-cubes',   price:499, desc:'Custom SaaS platforms',    packages:'MVP $499 · Full $1499' },
-      { id:'ai',     name:'AI Automation',        icon:'fa-robot',   price:299, desc:'AI agents & integrations', packages:'Basic $299 · Pro $899' },
-      { id:'seo',    name:'SEO Services',         icon:'fa-magnifying-glass', price:199, desc:'Dominant SEO',   packages:'Starter $199 · Pro $499' },
-      { id:'gads',   name:'Google Ads',           icon:'fa-google',  price:149, desc:'Conversion-focused Ads',   packages:'Manage $149/mo' },
-      { id:'fbads',  name:'FB & Instagram Ads',   icon:'fa-facebook',price:149, desc:'Meta Ads mastery',         packages:'Manage $149/mo' },
-      { id:'social', name:'Social Media Mgmt',    icon:'fa-hashtag', price:249, desc:'Premium content & growth', packages:'Growth $249/mo' },
-      { id:'design', name:'Graphic Design',       icon:'fa-palette', price:79,  desc:'Elite branding',           packages:'Logo $79 · Full $449' },
-    ];
+  let SVC_OVERRIDES = {};
+
+  function svcSite(){ return (window.servicesData && typeof window.servicesData === 'object') ? window.servicesData : {}; }
+
+  async function loadOverrides(){
+    try {
+      if (window.fsLoadMap) {
+        const map = await window.fsLoadMap('service_overrides');
+        if (map && typeof map === 'object') { SVC_OVERRIDES = map; return; }
+      }
+    } catch(e){ console.warn('svc overrides load', e); }
+    try { SVC_OVERRIDES = JSON.parse(localStorage.getItem('vextro_service_overrides')||'{}') || {}; } catch(e){ SVC_OVERRIDES = {}; }
   }
 
-  function getServices(){ const s = load('services', null); return s && s.length ? s : defaultServices(); }
+  function svcMerged(key){
+    const base = svcSite()[key] || {};
+    const ov = SVC_OVERRIDES[key] || {};
+    return {
+      key,
+      title: (ov.title || base.title || key),
+      icon: (ov.icon || base.icon || 'fa-briefcase'),
+      iconPrefix: (ov.iconPrefix || base.iconPrefix || 'fa-solid'),
+      shortDesc: (ov.shortDesc || base.shortDesc || ''),
+      desc: (ov.desc || base.desc || ''),
+      hidden: !!ov.hidden,
+      edited: !!(ov.title || ov.icon || ov.shortDesc || ov.desc || ov.hidden)
+    };
+  }
 
-  function renderServices(c){
-    const list = getServices();
+  async function renderServices(c){
+    c.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.6rem;"></i><p style="margin-top:10px;">Loading services…</p></div>`;
+    await loadOverrides();
+    const keys = Object.keys(svcSite());
+    if (!keys.length) {
+      c.innerHTML = `<div style="${card}text-align:center;color:#64748b;">Services data load nahi hui. Page reload (Ctrl+Shift+R) karke dobara try karo.</div>`;
+      return;
+    }
+    const list = keys.map(svcMerged);
     c.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div><div style="font-weight:800;color:#0f172a;font-size:1.1rem;">${t('Services')}</div><div style="font-size:0.85rem;color:#94a3b8;">${list.length} services</div></div>
-        <button onclick="__vlSvcEdit()" style="${btnPrimary}"><i class="fa-solid fa-plus"></i> ${t('Add New')}</button>
+      <div style="${card}display:flex;gap:12px;align-items:center;margin-bottom:18px;">
+        <i class="fa-solid fa-circle-info" style="color:#ff6b35;font-size:1.2rem;"></i>
+        <div style="font-size:0.85rem;color:#475569;">Yahan jo bhi change karoge wo <b>live website ke Services section</b> par turant apply hoga (title, icon, short description, full description, hide/show).</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <div><div style="font-weight:800;color:#0f172a;font-size:1.1rem;">${t('Services')}</div><div style="font-size:0.85rem;color:#94a3b8;">${list.length} services on site</div></div>
+        <button onclick="__vlSvcResetAll()" style="${btnGhost}"><i class="fa-solid fa-rotate-left"></i> Reset all to default</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
         ${list.map(s => `
-          <div style="${card}">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div style="width:44px;height:44px;background:linear-gradient(135deg,#ff6b35,#f7931e);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;"><i class="fa-solid ${esc(s.icon||'fa-briefcase')}"></i></div><div style="flex:1;min-width:0;"><div style="font-weight:800;color:#0f172a;">${esc(s.name)}</div><div style="font-size:0.75rem;color:#94a3b8;">from $${esc(s.price)}</div></div></div>
-            <div style="font-size:0.85rem;color:#475569;margin-bottom:6px;">${esc(s.desc)}</div>
-            <div style="font-size:0.78rem;color:#64748b;margin-bottom:14px;"><b>Packages:</b> ${esc(s.packages)}</div>
-            <div style="display:flex;gap:8px;"><button onclick="__vlSvcEdit('${s.id}')" style="${btnGhost};flex:1;font-size:0.8rem;padding:8px 12px;"><i class="fa-solid fa-pen"></i> ${t('Edit')}</button><button onclick="__vlSvcDel('${s.id}')" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.8rem;"><i class="fa-solid fa-trash"></i></button></div>
+          <div style="${card}${s.hidden?'opacity:.6;':''}">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:44px;height:44px;background:linear-gradient(135deg,#ff6b35,#f7931e);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;"><i class="${esc(s.iconPrefix)} ${esc(s.icon)}"></i></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:800;color:#0f172a;font-size:0.95rem;">${esc(s.title)}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;">id: ${esc(s.key)} ${s.edited?'· <span style="color:#16a34a;font-weight:700;">edited</span>':''} ${s.hidden?'· <span style="color:#ef4444;font-weight:700;">hidden</span>':''}</div>
+              </div>
+            </div>
+            <div style="font-size:0.83rem;color:#475569;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${esc(s.shortDesc)}</div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="__vlSvcEdit('${s.key}')" style="${btnGhost};flex:1;font-size:0.8rem;padding:8px 12px;"><i class="fa-solid fa-pen"></i> ${t('Edit')}</button>
+              <button onclick="__vlSvcToggle('${s.key}')" style="${btnGhost};font-size:0.8rem;padding:8px 12px;"><i class="fa-solid ${s.hidden?'fa-eye':'fa-eye-slash'}"></i></button>
+              <button onclick="__vlSvcReset('${s.key}')" title="Reset to default" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.8rem;"><i class="fa-solid fa-rotate-left"></i></button>
+            </div>
           </div>`).join('')}
       </div>`;
   }
-  window.__vlSvcEdit = function(id){
-    const list = getServices();
-    const s = id ? list.find(x=>x.id===id) : { id:'', name:'', icon:'fa-briefcase', price:99, desc:'', packages:'' };
-    if (!s) return;
+
+  function refreshServicesView(){
+    showAdminView('adminServices', document.querySelector('.admin-sidebar-item[data-view="adminServices"]'));
+  }
+
+  async function persistOverride(key, patch){
+    const cur = Object.assign({}, SVC_OVERRIDES[key] || {}, patch);
+    SVC_OVERRIDES[key] = cur;
+    try { localStorage.setItem('vextro_service_overrides', JSON.stringify(SVC_OVERRIDES)); } catch(e){}
+    if (window.applyServiceOverrides) window.applyServiceOverrides(SVC_OVERRIDES);
+    if (window.renderMainServices) window.renderMainServices();
+    if (window.fsSetDoc) await window.fsSetDoc('service_overrides', key, cur);
+    logActivity('service.save', key);
+  }
+
+  window.__vlSvcEdit = function(key){
+    const s = svcMerged(key);
     modal(`
-      <h2 style="margin:0 0 20px;font-size:1.3rem;font-weight:800;">${id?t('Edit'):t('Add New')} ${t('Services')}</h2>
+      <h2 style="margin:0 0 6px;font-size:1.3rem;font-weight:800;">${t('Edit')} — ${esc(s.title)}</h2>
+      <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:18px;">Service id: ${esc(key)} · changes live website par apply honge</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div><label style="${labelCss}">${t('Name')}</label><input id="svcName" style="${inputCss}" value="${esc(s.name)}"></div>
-        <div><label style="${labelCss}">Icon (Font Awesome)</label><input id="svcIcon" style="${inputCss}" value="${esc(s.icon)}" placeholder="fa-briefcase"></div>
-        <div><label style="${labelCss}">${t('Price')} (USD)</label><input id="svcPrice" type="number" style="${inputCss}" value="${esc(s.price)}"></div>
-        <div><label style="${labelCss}">Packages</label><input id="svcPkg" style="${inputCss}" value="${esc(s.packages)}"></div>
-        <div style="grid-column:1/-1;"><label style="${labelCss}">${t('Description')}</label><textarea id="svcDesc" rows="3" style="${inputCss}">${esc(s.desc)}</textarea></div>
+        <div><label style="${labelCss}">${t('Name')} / Title</label><input id="svcTitle" style="${inputCss}" value="${esc(s.title)}"></div>
+        <div><label style="${labelCss}">Icon (Font Awesome)</label><input id="svcIcon" style="${inputCss}" value="${esc(s.icon)}" placeholder="fa-laptop-code"></div>
+        <div style="grid-column:1/-1;"><label style="${labelCss}">Short Description (card par dikhta hai)</label><textarea id="svcShort" rows="3" style="${inputCss}">${esc(s.shortDesc)}</textarea></div>
+        <div style="grid-column:1/-1;"><label style="${labelCss}">Full Description (detail page)</label><textarea id="svcDesc" rows="6" style="${inputCss}">${esc(s.desc)}</textarea></div>
+        <div style="grid-column:1/-1;"><label style="${labelCss}">Visibility</label><select id="svcHidden" style="${inputCss}"><option value="no"${s.hidden?'':' selected'}>Show on website</option><option value="yes"${s.hidden?' selected':''}>Hide from website</option></select></div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px;">
         <button onclick="__vlCloseModal()" style="${btnGhost}">${t('Cancel')}</button>
-        <button onclick="__vlSvcSave('${id||''}')" style="${btnPrimary}"><i class="fa-solid fa-check"></i> ${t('Save')}</button>
+        <button id="svcSaveBtn" onclick="__vlSvcSave('${key}')" style="${btnPrimary}"><i class="fa-solid fa-check"></i> ${t('Save')}</button>
       </div>
     `);
   };
-  window.__vlSvcSave = function(id){
-    const list = getServices();
-    const rec = { id: id || uid(), name: document.getElementById('svcName').value.trim(), icon: document.getElementById('svcIcon').value.trim()||'fa-briefcase', price: +document.getElementById('svcPrice').value||0, desc: document.getElementById('svcDesc').value.trim(), packages: document.getElementById('svcPkg').value.trim() };
-    if (!rec.name) return alert('Name required');
-    if (id) { const i = list.findIndex(x=>x.id===id); if (i>=0) list[i] = rec; } else list.push(rec);
-    save('services', list); logActivity('service.save', rec.name); closeModal(); showAdminView('adminServices', document.querySelector('.admin-sidebar-item[data-view="adminServices"]'));
+
+  window.__vlSvcSave = async function(key){
+    const btn = document.getElementById('svcSaveBtn');
+    const patch = {
+      title: (document.getElementById('svcTitle').value || '').trim(),
+      icon: (document.getElementById('svcIcon').value || '').trim() || 'fa-briefcase',
+      shortDesc: (document.getElementById('svcShort').value || '').trim(),
+      desc: (document.getElementById('svcDesc').value || '').trim(),
+      hidden: document.getElementById('svcHidden').value === 'yes'
+    };
+    if (!patch.title) return alert('Title required');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+    try {
+      await persistOverride(key, patch);
+      closeModal();
+      refreshServicesView();
+    } catch(e){
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + t('Save'); }
+      alert('Save failed: ' + (e.message || e));
+    }
   };
-  window.__vlSvcDel = function(id){
-    if (!confirm('Delete this service?')) return;
-    save('services', getServices().filter(x=>x.id!==id)); logActivity('service.delete', id);
-    showAdminView('adminServices', document.querySelector('.admin-sidebar-item[data-view="adminServices"]'));
+
+  window.__vlSvcToggle = async function(key){
+    const s = svcMerged(key);
+    try { await persistOverride(key, { hidden: !s.hidden }); refreshServicesView(); }
+    catch(e){ alert('Update failed: ' + (e.message || e)); }
   };
+
+  window.__vlSvcReset = async function(key){
+    if (!confirm('Is service ko default par reset karna hai?')) return;
+    delete SVC_OVERRIDES[key];
+    try { localStorage.setItem('vextro_service_overrides', JSON.stringify(SVC_OVERRIDES)); } catch(e){}
+    try { if (window.fsDeleteDoc) await window.fsDeleteDoc('service_overrides', key); } catch(e){}
+    logActivity('service.reset', key);
+    alert('Reset ho gaya. Website par default text wapas aane ke liye page reload karo.');
+    refreshServicesView();
+  };
+
+  window.__vlSvcResetAll = async function(){
+    if (!confirm('Saari services default par reset karni hain?')) return;
+    const keys = Object.keys(SVC_OVERRIDES);
+    for (const k of keys) { try { if (window.fsDeleteDoc) await window.fsDeleteDoc('service_overrides', k); } catch(e){} }
+    SVC_OVERRIDES = {};
+    try { localStorage.removeItem('vextro_service_overrides'); } catch(e){}
+    logActivity('service.resetAll', keys.length + ' services');
+    alert('Sab reset ho gaya. Page reload karo.');
+    refreshServicesView();
+  };
+
 
   // ═══════════════════════════════════════════════════════════════
   // 2. SETTINGS

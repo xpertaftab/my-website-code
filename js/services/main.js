@@ -5778,11 +5778,18 @@ window.toggleMobileServices = function() {
 window.renderMainServices = function() {
     const grid = document.getElementById('mainServicesGrid');
     if (!grid) return;
+    // apply cached admin overrides instantly (Firestore refresh comes later)
+    try {
+        const cached = JSON.parse(localStorage.getItem('vextro_service_overrides') || 'null');
+        if (cached && window.applyServiceOverrides) window.applyServiceOverrides(cached);
+    } catch (e) {}
     grid.innerHTML = '';
 
     for (const key in servicesData) {
         const service = servicesData[key];
+        if (service.hidden) continue;
         const prefix = service.iconPrefix || 'fa-solid';
+
 
         let featuresHtml = '';
         if (service.features && service.features.length > 0) {
@@ -5807,10 +5814,44 @@ window.renderMainServices = function() {
     }
 };
 
+// --- Admin-editable service overrides (Firestore: service_overrides) ---
+window.servicesData = servicesData;
+
+window.applyServiceOverrides = function(map) {
+    if (!map) return;
+    Object.keys(map).forEach(key => {
+        const ov = map[key] || {};
+        if (!servicesData[key]) return;
+        ['title', 'icon', 'iconPrefix', 'shortDesc', 'desc'].forEach(f => {
+            if (typeof ov[f] === 'string' && ov[f].trim()) servicesData[key][f] = ov[f];
+        });
+        servicesData[key].hidden = !!ov.hidden;
+    });
+};
+
+window.loadServiceOverrides = async function() {
+    let map = null;
+    try {
+        if (window.fsLoadMap) map = await window.fsLoadMap('service_overrides');
+    } catch (e) { console.warn('service overrides load failed', e); }
+    if (!map || !Object.keys(map).length) {
+        try { map = JSON.parse(localStorage.getItem('vextro_service_overrides') || 'null'); } catch (e) { map = null; }
+    } else {
+        try { localStorage.setItem('vextro_service_overrides', JSON.stringify(map)); } catch (e) {}
+    }
+    if (map) {
+        window.applyServiceOverrides(map);
+        if (window.renderMainServices) window.renderMainServices();
+    }
+    return map || {};
+};
+
 // Ensure it renders on page load
 document.addEventListener('DOMContentLoaded', () => {
     if (window.renderMainServices) window.renderMainServices();
+    if (window.loadServiceOverrides) window.loadServiceOverrides();
 });
+
 // Fallback if DOM already loaded
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     if (window.renderMainServices) window.renderMainServices();
