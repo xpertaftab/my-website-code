@@ -5694,7 +5694,12 @@ window.showService = function(serviceId) {
     // --- Render Pricing Section ---
     const pricingContainer = document.getElementById('servicePricingContainer');
     const pricingSection = document.getElementById('servicePricingSection');
-    const pkgs = pricingPackages[serviceId];
+    let pkgs = pricingPackages[serviceId];
+    try {
+        const ovp = (window.__svcPricingOverrides || {})[serviceId];
+        if (Array.isArray(ovp) && ovp.length) pkgs = ovp;
+    } catch (e) {}
+
     if (pricingContainer && pkgs) {
         if (pricingSection) pricingSection.style.display = 'block';
         pricingContainer.innerHTML = '';
