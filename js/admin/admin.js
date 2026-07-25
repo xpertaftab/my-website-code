@@ -2032,13 +2032,16 @@ async function renderAdminUsersNew(container) {
   try {
     // Load users + comments + purchases + listings + contacts (for activity)
     let usersMap = {}, commentsMap = {}, purchasesMap = {}, listingsMap = {}, contactsMap = {}, statsMap = {};
+    let usersLoadError = '';
     if (window.fsLoadMap) {
-      try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) {}
+      try { usersMap = (await window.fsLoadMap('users')) || {}; } catch(e) { usersLoadError = e.message || 'Users load failed'; }
       try { commentsMap = (await window.fsLoadMap('blog_comments')) || {}; } catch(e) {}
       try { purchasesMap = (await window.fsLoadMap('purchases')) || {}; } catch(e) {}
       try { listingsMap = (await window.fsLoadMap('listings')) || {}; } catch(e) {}
       try { contactsMap = (await window.fsLoadMap('contacts')) || {}; } catch(e) {}
       try { statsMap = (await window.fsLoadMap('user_stats')) || {}; } catch(e) {}
+    } else {
+      usersLoadError = 'Firestore data script not loaded';
     }
     // Comments by email
     const commentsByEmail = {}, commentsListByEmail = {};
@@ -2091,7 +2094,7 @@ async function renderAdminUsersNew(container) {
     window.__adminUsersCommentsByEmail = commentsByEmail;
     window.__adminUsersData = {
       commentsListByEmail, purchasesByEmail, purchasesListByEmail,
-      listingsByEmail, contactsByEmail, statsMap
+      listingsByEmail, contactsByEmail, statsMap, usersLoadError
     };
     renderAdminUsersTable(container, '');
   } catch(e) {
@@ -2235,7 +2238,8 @@ function renderAdminUsersTable(container, filter) {
         <div class="admin-empty" style="padding:40px 20px;">
           <i class="fa-solid fa-users"></i>
           <p style="font-weight:600;">${f || fRole || fStatus || fProvider ? 'No matching users' : 'No users yet'}</p>
-          ${!f ? '<p style="font-size:0.82rem;color:#94a3b8;">Users appear here after they sign in for the first time.</p>' : ''}
+          ${!f ? `<p style="font-size:0.82rem;color:#94a3b8;">${(window.__adminUsersData && window.__adminUsersData.usersLoadError) ? 'Users load nahi ho rahe: ' + window.__adminUsersData.usersLoadError : 'Users appear here after they sign in for the first time.'}</p>` : ''}
+          ${!f ? '<button onclick="adminSyncCurrentUserNow()" style="margin-top:14px;padding:9px 14px;background:#ff6b35;color:#fff;border:none;border-radius:9px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Sync Current Login</button>' : ''}
         </div>` : `
       <div style="overflow-x:auto;">
       <table class="admin-table">
@@ -2309,6 +2313,21 @@ function renderAdminUsersTable(container, filter) {
     });
   }
 }
+
+async function adminSyncCurrentUserNow() {
+  try {
+    if (!window.auth || !window.auth.currentUser) {
+      alert('Abhi koi user login nahi hai. Pehle website par user account se login karo, phir sync hoga.');
+      return;
+    }
+    if (window.syncUserToFirestore) await window.syncUserToFirestore(window.auth.currentUser);
+    await renderAdminUsersNew(document.getElementById('adminContent'));
+    alert('Current login user sync ho gaya.');
+  } catch(e) {
+    alert('User sync failed: ' + (e.message || e));
+  }
+}
+window.adminSyncCurrentUserNow = adminSyncCurrentUserNow;
 
 window.adminChangeUserRole = async function(uid, role) {
   const u = (window.__adminUsersCache || {})[uid];
