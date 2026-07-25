@@ -5585,48 +5585,8 @@ window.showService = function(serviceId) {
     }
 
     // --- PRICING PACKAGES DATA ---
-    const pricingPackages = {
-        web: [
-            { name: 'Starter', price: '$99', desc: 'Perfect for small businesses & startups', features: ['5-Page Responsive Website', 'Mobile-First Design', 'Basic SEO Setup', 'Contact Form Integration', '1 Month Free Support', 'Free Domain Advice'] },
-            { name: 'Professional', price: '$179', desc: 'For growing businesses that demand results', features: ['Up to 15 Pages', 'Custom UI/UX Design', 'Full On-Page SEO', 'Blog / CMS Integration', 'Google Analytics Setup', '3 Months Support', 'Speed Optimization'], highlight: true },
-            { name: 'Enterprise', price: 'Custom', desc: 'Full-scale web applications & e-commerce', features: ['Unlimited Pages', 'E-Commerce / Client Portal', 'Custom API Integrations', 'Admin Dashboard', 'Advanced Security Layer', '6 Months Priority Support', 'Dedicated Project Manager'] }
-        ],
-        software: [
-            { name: 'MVP Build', price: '$799', desc: 'Launch your idea fast with a solid foundation', features: ['Core Feature Set', 'User Auth & Dashboard', 'Basic Admin Panel', 'REST API', '1 Month Support'] },
-            { name: 'SaaS Pro', price: '$1,999', desc: 'A complete, market-ready SaaS product', features: ['Multi-Tenant Architecture', 'Stripe Billing Integration', 'Role-Based Permissions', 'Analytics Dashboard', 'CI/CD Deployment Pipeline', '3 Months Support'], highlight: true },
-            { name: 'Enterprise', price: 'Custom', desc: 'Mission-critical enterprise software', features: ['Full Custom Architecture', 'ERP / CRM Integration', 'HIPAA / GDPR Compliance', 'Load Testing & Scaling', 'Dedicated DevOps Engineer', 'SLA Guarantee'] }
-        ],
-        ai: [
-            { name: 'AI Starter', price: '$499', desc: 'Your first step into AI automation', features: ['1 AI Chatbot Deployment', 'WhatsApp / Web Integration', 'Basic Intent Recognition', 'CRM Handoff Logic', '1 Month Monitoring'] },
-            { name: 'Automation Pro', price: '$1,499', desc: 'Automate your entire core workflow', features: ['Custom LLM Integration', 'Multi-Platform Bot Deployment', 'Data Pipeline Automation', 'API & Zapier Connections', 'Model Fine-Tuning', '3 Months Support'], highlight: true },
-            { name: 'AI Enterprise', price: 'Custom', desc: 'Full AI transformation for your business', features: ['Private LLM Deployment', 'RPA Implementation', 'Predictive Analytics Models', 'Dedicated AI Engineer', 'Staff Training Sessions', 'Ongoing Model Optimization'] }
-        ],
-        seo: [
-            { name: 'Local SEO', price: '$199/mo', desc: 'Dominate your city\'s search results', features: ['10 Target Keywords', 'Google Business Optimization', 'On-Page SEO Fixes', 'Monthly Ranking Report', 'Citation Building'] },
-            { name: 'Growth SEO', price: '$499/mo', desc: 'Aggressive growth for competitive niches', features: ['30 Target Keywords', 'Technical SEO Audits', 'Weekly Content Publishing', 'Link Building (10 links/mo)', 'Competitor Tracking', 'Bi-Weekly Reporting'], highlight: true },
-            { name: 'Domination', price: '$999/mo', desc: 'Total search market monopolization', features: ['Unlimited Keywords Targeted', 'Daily Content Production', 'Premium Link Building (30/mo)', 'Core Web Vitals Optimization', 'Video & Image SEO', 'Dedicated SEO Strategist'] }
-        ],
-        google_ads: [
-            { name: 'Launch', price: '$299/mo', desc: 'Start capturing high-intent leads today', features: ['Up to $1k Ad Spend Managed', '2 Search Campaign Setups', 'Keyword Research & Negatives', 'Basic Conversion Tracking', 'Monthly Performance Report'] },
-            { name: 'Scale', price: '$599/mo', desc: 'Serious growth for established businesses', features: ['Up to $5k Ad Spend Managed', 'Search + Display Campaigns', 'A/B Ad Copy Testing', 'Retargeting Campaign Setup', 'Conversion Rate Optimization', 'Weekly Reporting'], highlight: true },
-            { name: 'Dominate', price: 'Custom', desc: 'Full-service management for high ad spend', features: ['Unlimited Ad Spend Managed', 'All Campaign Types', 'Performance Max & Shopping Ads', 'Full Funnel Optimization', 'Dedicated Account Manager', 'Daily Bid Optimization'] }
-        ],
-        fb_ads: [
-            { name: 'Starter', price: '$299/mo', desc: 'Build brand awareness and generate leads', features: ['Up to $1k Ad Spend Managed', '1-2 Campaign Setups', 'Audience Research & Targeting', 'Facebook Pixel Installation', 'Monthly Performance Report'] },
-            { name: 'Growth', price: '$599/mo', desc: 'Scale your sales with proven funnels', features: ['Up to $5k Ad Spend Managed', 'Full Funnel Campaign Structure', 'Retargeting Audience Setups', '5 Ad Creatives Designed', 'CAPI Server-Side Tracking', 'Weekly Reporting'], highlight: true },
-            { name: 'ROAS Machine', price: 'Custom', desc: 'Maximum ROAS for e-commerce & high-ticket', features: ['Unlimited Spend Management', 'Catalog & Shopping Ads', 'Lookalike Scaling Strategy', 'UGC Video Ad Production', 'Daily Bid Optimization', 'Dedicated Media Buyer'] }
-        ],
-        social: [
-            { name: 'Essentials', price: '$199/mo', desc: 'Keep your profiles active and professional', features: ['2 Platforms Managed', '12 Posts Per Month', 'Custom Graphic Design', 'Caption Copywriting', 'Monthly Analytics Report'] },
-            { name: 'Growth', price: '$499/mo', desc: 'Build a real, engaged following fast', features: ['4 Platforms Managed', '30 Posts + 15 Stories/mo', 'Premium Design & Video Reels', 'Community Management', 'Data-Driven Hashtag Strategy', 'Proactive Growth Outreach'], highlight: true },
-            { name: 'Brand Authority', price: '$999/mo', desc: 'Complete brand domination across all channels', features: ['All Platforms Managed', 'Unlimited Content Creation', 'Influencer Outreach Program', 'LinkedIn Executive Ghostwriting', 'Paid Ad Coordination', 'Reputation & Crisis Management'] }
-        ],
-        graphic: [
-            { name: 'Brand Starter', price: '$79', desc: 'A solid visual foundation for your business', features: ['Logo Design (3 Concepts)', '2 Revision Rounds', 'Brand Color Palette', 'Typography Selection', 'All Source Files Delivered'] },
-            { name: 'Brand Pro', price: '$199', desc: 'A complete, professional brand identity', features: ['Logo + Full Brand Style Guide', 'Business Card Design', 'Social Media Kit (10 Templates)', 'Brand Guidelines PDF', 'Stationery Design', '5 Revision Rounds'], highlight: true },
-            { name: 'Brand Empire', price: '$449', desc: 'Enterprise-level identity & full asset suite', features: ['Everything in Brand Pro', 'Figma UI/UX Design', 'Investor Pitch Deck', 'Product Packaging Design', 'Animated / Motion Logo', 'Dedicated Art Director'] }
-        ]
-    };
+    const pricingPackages = window.servicePricingDefaults || {};
+
 
     // --- FAQ DATA ---
     const faqs = {
@@ -5691,7 +5651,12 @@ window.showService = function(serviceId) {
     // --- Render Pricing Section ---
     const pricingContainer = document.getElementById('servicePricingContainer');
     const pricingSection = document.getElementById('servicePricingSection');
-    const pkgs = pricingPackages[serviceId];
+    let pkgs = pricingPackages[serviceId];
+    try {
+        const ovp = (window.__svcPricingOverrides || {})[serviceId];
+        if (Array.isArray(ovp) && ovp.length) pkgs = ovp;
+    } catch (e) {}
+
     if (pricingContainer && pkgs) {
         if (pricingSection) pricingSection.style.display = 'block';
         pricingContainer.innerHTML = '';
@@ -5826,8 +5791,13 @@ window.applyServiceOverrides = function(map) {
             if (typeof ov[f] === 'string' && ov[f].trim()) servicesData[key][f] = ov[f];
         });
         servicesData[key].hidden = !!ov.hidden;
+        // pricing packages override (admin editable)
+        window.__svcPricingOverrides = window.__svcPricingOverrides || {};
+        if (Array.isArray(ov.pricing) && ov.pricing.length) window.__svcPricingOverrides[key] = ov.pricing;
+        else delete window.__svcPricingOverrides[key];
     });
 };
+
 
 window.loadServiceOverrides = async function() {
     let map = null;
@@ -5982,4 +5952,46 @@ if (document.readyState === 'loading') {
     }, true);
 })();
 
-
+// --- Service pricing packages (module scope so admin panel can edit before any service page opens) ---
+    window.servicePricingDefaults = window.servicePricingDefaults || {
+        web: [
+            { name: 'Starter', price: '$99', desc: 'Perfect for small businesses & startups', features: ['5-Page Responsive Website', 'Mobile-First Design', 'Basic SEO Setup', 'Contact Form Integration', '1 Month Free Support', 'Free Domain Advice'] },
+            { name: 'Professional', price: '$179', desc: 'For growing businesses that demand results', features: ['Up to 15 Pages', 'Custom UI/UX Design', 'Full On-Page SEO', 'Blog / CMS Integration', 'Google Analytics Setup', '3 Months Support', 'Speed Optimization'], highlight: true },
+            { name: 'Enterprise', price: 'Custom', desc: 'Full-scale web applications & e-commerce', features: ['Unlimited Pages', 'E-Commerce / Client Portal', 'Custom API Integrations', 'Admin Dashboard', 'Advanced Security Layer', '6 Months Priority Support', 'Dedicated Project Manager'] }
+        ],
+        software: [
+            { name: 'MVP Build', price: '$799', desc: 'Launch your idea fast with a solid foundation', features: ['Core Feature Set', 'User Auth & Dashboard', 'Basic Admin Panel', 'REST API', '1 Month Support'] },
+            { name: 'SaaS Pro', price: '$1,999', desc: 'A complete, market-ready SaaS product', features: ['Multi-Tenant Architecture', 'Stripe Billing Integration', 'Role-Based Permissions', 'Analytics Dashboard', 'CI/CD Deployment Pipeline', '3 Months Support'], highlight: true },
+            { name: 'Enterprise', price: 'Custom', desc: 'Mission-critical enterprise software', features: ['Full Custom Architecture', 'ERP / CRM Integration', 'HIPAA / GDPR Compliance', 'Load Testing & Scaling', 'Dedicated DevOps Engineer', 'SLA Guarantee'] }
+        ],
+        ai: [
+            { name: 'AI Starter', price: '$499', desc: 'Your first step into AI automation', features: ['1 AI Chatbot Deployment', 'WhatsApp / Web Integration', 'Basic Intent Recognition', 'CRM Handoff Logic', '1 Month Monitoring'] },
+            { name: 'Automation Pro', price: '$1,499', desc: 'Automate your entire core workflow', features: ['Custom LLM Integration', 'Multi-Platform Bot Deployment', 'Data Pipeline Automation', 'API & Zapier Connections', 'Model Fine-Tuning', '3 Months Support'], highlight: true },
+            { name: 'AI Enterprise', price: 'Custom', desc: 'Full AI transformation for your business', features: ['Private LLM Deployment', 'RPA Implementation', 'Predictive Analytics Models', 'Dedicated AI Engineer', 'Staff Training Sessions', 'Ongoing Model Optimization'] }
+        ],
+        seo: [
+            { name: 'Local SEO', price: '$199/mo', desc: 'Dominate your city\'s search results', features: ['10 Target Keywords', 'Google Business Optimization', 'On-Page SEO Fixes', 'Monthly Ranking Report', 'Citation Building'] },
+            { name: 'Growth SEO', price: '$499/mo', desc: 'Aggressive growth for competitive niches', features: ['30 Target Keywords', 'Technical SEO Audits', 'Weekly Content Publishing', 'Link Building (10 links/mo)', 'Competitor Tracking', 'Bi-Weekly Reporting'], highlight: true },
+            { name: 'Domination', price: '$999/mo', desc: 'Total search market monopolization', features: ['Unlimited Keywords Targeted', 'Daily Content Production', 'Premium Link Building (30/mo)', 'Core Web Vitals Optimization', 'Video & Image SEO', 'Dedicated SEO Strategist'] }
+        ],
+        google_ads: [
+            { name: 'Launch', price: '$299/mo', desc: 'Start capturing high-intent leads today', features: ['Up to $1k Ad Spend Managed', '2 Search Campaign Setups', 'Keyword Research & Negatives', 'Basic Conversion Tracking', 'Monthly Performance Report'] },
+            { name: 'Scale', price: '$599/mo', desc: 'Serious growth for established businesses', features: ['Up to $5k Ad Spend Managed', 'Search + Display Campaigns', 'A/B Ad Copy Testing', 'Retargeting Campaign Setup', 'Conversion Rate Optimization', 'Weekly Reporting'], highlight: true },
+            { name: 'Dominate', price: 'Custom', desc: 'Full-service management for high ad spend', features: ['Unlimited Ad Spend Managed', 'All Campaign Types', 'Performance Max & Shopping Ads', 'Full Funnel Optimization', 'Dedicated Account Manager', 'Daily Bid Optimization'] }
+        ],
+        fb_ads: [
+            { name: 'Starter', price: '$299/mo', desc: 'Build brand awareness and generate leads', features: ['Up to $1k Ad Spend Managed', '1-2 Campaign Setups', 'Audience Research & Targeting', 'Facebook Pixel Installation', 'Monthly Performance Report'] },
+            { name: 'Growth', price: '$599/mo', desc: 'Scale your sales with proven funnels', features: ['Up to $5k Ad Spend Managed', 'Full Funnel Campaign Structure', 'Retargeting Audience Setups', '5 Ad Creatives Designed', 'CAPI Server-Side Tracking', 'Weekly Reporting'], highlight: true },
+            { name: 'ROAS Machine', price: 'Custom', desc: 'Maximum ROAS for e-commerce & high-ticket', features: ['Unlimited Spend Management', 'Catalog & Shopping Ads', 'Lookalike Scaling Strategy', 'UGC Video Ad Production', 'Daily Bid Optimization', 'Dedicated Media Buyer'] }
+        ],
+        social: [
+            { name: 'Essentials', price: '$199/mo', desc: 'Keep your profiles active and professional', features: ['2 Platforms Managed', '12 Posts Per Month', 'Custom Graphic Design', 'Caption Copywriting', 'Monthly Analytics Report'] },
+            { name: 'Growth', price: '$499/mo', desc: 'Build a real, engaged following fast', features: ['4 Platforms Managed', '30 Posts + 15 Stories/mo', 'Premium Design & Video Reels', 'Community Management', 'Data-Driven Hashtag Strategy', 'Proactive Growth Outreach'], highlight: true },
+            { name: 'Brand Authority', price: '$999/mo', desc: 'Complete brand domination across all channels', features: ['All Platforms Managed', 'Unlimited Content Creation', 'Influencer Outreach Program', 'LinkedIn Executive Ghostwriting', 'Paid Ad Coordination', 'Reputation & Crisis Management'] }
+        ],
+        graphic: [
+            { name: 'Brand Starter', price: '$79', desc: 'A solid visual foundation for your business', features: ['Logo Design (3 Concepts)', '2 Revision Rounds', 'Brand Color Palette', 'Typography Selection', 'All Source Files Delivered'] },
+            { name: 'Brand Pro', price: '$199', desc: 'A complete, professional brand identity', features: ['Logo + Full Brand Style Guide', 'Business Card Design', 'Social Media Kit (10 Templates)', 'Brand Guidelines PDF', 'Stationery Design', '5 Revision Rounds'], highlight: true },
+            { name: 'Brand Empire', price: '$449', desc: 'Enterprise-level identity & full asset suite', features: ['Everything in Brand Pro', 'Figma UI/UX Design', 'Investor Pitch Deck', 'Product Packaging Design', 'Animated / Motion Logo', 'Dedicated Art Director'] }
+        ]
+    };

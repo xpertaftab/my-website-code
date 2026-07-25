@@ -162,7 +162,9 @@
       shortDesc: (ov.shortDesc || base.shortDesc || ''),
       desc: (ov.desc || base.desc || ''),
       hidden: !!ov.hidden,
-      edited: !!(ov.title || ov.icon || ov.shortDesc || ov.desc || ov.hidden)
+      pricing: (Array.isArray(ov.pricing) && ov.pricing.length) ? ov.pricing : (((window.servicePricingDefaults||{})[key]) || []),
+      pricingEdited: !!(Array.isArray(ov.pricing) && ov.pricing.length),
+      edited: !!(ov.title || ov.icon || ov.shortDesc || ov.desc || ov.hidden || (Array.isArray(ov.pricing) && ov.pricing.length))
     };
   }
 
@@ -178,7 +180,7 @@
     c.innerHTML = `
       <div style="${card}display:flex;gap:12px;align-items:center;margin-bottom:18px;">
         <i class="fa-solid fa-circle-info" style="color:#ff6b35;font-size:1.2rem;"></i>
-        <div style="font-size:0.85rem;color:#475569;">Yahan jo bhi change karoge wo <b>live website ke Services section</b> par turant apply hoga (title, icon, short description, full description, hide/show).</div>
+        <div style="font-size:0.85rem;color:#475569;">Yahan jo bhi change karoge wo <b>live website ke Services section</b> par turant apply hoga (title, icon, short description, full description, pricing/payment packages, hide/show).</div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
         <div><div style="font-weight:800;color:#0f172a;font-size:1.1rem;">${t('Services')}</div><div style="font-size:0.85rem;color:#94a3b8;">${list.length} services on site</div></div>
@@ -228,6 +230,16 @@
         <div><label style="${labelCss}">Icon (Font Awesome)</label><input id="svcIcon" style="${inputCss}" value="${esc(s.icon)}" placeholder="fa-laptop-code"></div>
         <div style="grid-column:1/-1;"><label style="${labelCss}">Short Description (card par dikhta hai)</label><textarea id="svcShort" rows="3" style="${inputCss}">${esc(s.shortDesc)}</textarea></div>
         <div style="grid-column:1/-1;"><label style="${labelCss}">Full Description (detail page)</label><textarea id="svcDesc" rows="6" style="${inputCss}">${esc(s.desc)}</textarea></div>
+        <div style="grid-column:1/-1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px;">
+            <label style="${labelCss};margin:0;">Pricing / Payment Packages ${s.pricingEdited?'<span style="color:#16a34a;font-weight:700;">(edited)</span>':''}</label>
+            <div style="display:flex;gap:8px;">
+              <button type="button" onclick="__vlSvcPkgAdd()" style="${btnGhost};font-size:0.75rem;padding:6px 10px;"><i class="fa-solid fa-plus"></i> Add package</button>
+              <button type="button" onclick="__vlSvcPkgResetDefault('${key}')" style="${btnGhost};font-size:0.75rem;padding:6px 10px;"><i class="fa-solid fa-rotate-left"></i> Default prices</button>
+            </div>
+          </div>
+          <div id="svcPkgWrap" style="display:grid;gap:12px;"></div>
+        </div>
         <div style="grid-column:1/-1;"><label style="${labelCss}">Visibility</label><select id="svcHidden" style="${inputCss}"><option value="no"${s.hidden?'':' selected'}>Show on website</option><option value="yes"${s.hidden?' selected':''}>Hide from website</option></select></div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px;">
@@ -235,6 +247,52 @@
         <button id="svcSaveBtn" onclick="__vlSvcSave('${key}')" style="${btnPrimary}"><i class="fa-solid fa-check"></i> ${t('Save')}</button>
       </div>
     `);
+    __vlSvcPkgRender(s.pricing);
+  };
+
+  // ---- pricing package editor helpers ----
+  function pkgEsc(v){ return esc(v == null ? '' : String(v)); }
+  window.__vlSvcPkgRender = function(list){
+    const wrap = document.getElementById('svcPkgWrap');
+    if (!wrap) return;
+    const arr = Array.isArray(list) ? list : [];
+    if (!arr.length) { wrap.innerHTML = '<div style="font-size:0.8rem;color:#94a3b8;">Koi package nahi. "Add package" dabao.</div>'; return; }
+    wrap.innerHTML = arr.map((pkg, i) => `
+      <div class="svc-pkg-row" style="border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#f8fafc;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-weight:700;color:#0f172a;font-size:0.85rem;">Package ${i+1}</div>
+          <button type="button" onclick="__vlSvcPkgRemove(${i})" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);padding:5px 9px;border-radius:8px;cursor:pointer;font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label style="${labelCss}">Plan Name</label><input class="pkgName" style="${inputCss}" value="${pkgEsc(pkg.name)}"></div>
+          <div><label style="${labelCss}">Price (jaisa dikhana hai)</label><input class="pkgPrice" style="${inputCss}" value="${pkgEsc(pkg.price)}" placeholder="$99 / $299/mo / Custom"></div>
+          <div style="grid-column:1/-1;"><label style="${labelCss}">Short line</label><input class="pkgDesc" style="${inputCss}" value="${pkgEsc(pkg.desc)}"></div>
+          <div style="grid-column:1/-1;"><label style="${labelCss}">Features (har line par ek)</label><textarea class="pkgFeatures" rows="5" style="${inputCss}">${pkgEsc((pkg.features||[]).join('\n'))}</textarea></div>
+          <div style="grid-column:1/-1;font-size:0.82rem;color:#475569;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" class="pkgHighlight" ${pkg.highlight?'checked':''}> Most Popular (highlight)</label></div>
+        </div>
+      </div>`).join('');
+  };
+  function pkgCollect(){
+    return Array.from(document.querySelectorAll('#svcPkgWrap .svc-pkg-row')).map(r => ({
+      name: (r.querySelector('.pkgName').value || '').trim(),
+      price: (r.querySelector('.pkgPrice').value || '').trim(),
+      desc: (r.querySelector('.pkgDesc').value || '').trim(),
+      features: (r.querySelector('.pkgFeatures').value || '').split('\n').map(x => x.trim()).filter(Boolean),
+      highlight: !!r.querySelector('.pkgHighlight').checked
+    })).filter(p => p.name || p.price);
+  }
+  window.__vlSvcPkgAdd = function(){
+    const list = pkgCollect();
+    list.push({ name: 'New Plan', price: '$0', desc: '', features: [], highlight: false });
+    __vlSvcPkgRender(list);
+  };
+  window.__vlSvcPkgRemove = function(i){
+    const list = pkgCollect();
+    list.splice(i, 1);
+    __vlSvcPkgRender(list);
+  };
+  window.__vlSvcPkgResetDefault = function(key){
+    __vlSvcPkgRender(((window.servicePricingDefaults||{})[key]) || []);
   };
 
   window.__vlSvcSave = async function(key){
@@ -244,7 +302,8 @@
       icon: (document.getElementById('svcIcon').value || '').trim() || 'fa-briefcase',
       shortDesc: (document.getElementById('svcShort').value || '').trim(),
       desc: (document.getElementById('svcDesc').value || '').trim(),
-      hidden: document.getElementById('svcHidden').value === 'yes'
+      hidden: document.getElementById('svcHidden').value === 'yes',
+      pricing: pkgCollect()
     };
     if (!patch.title) return alert('Title required');
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
