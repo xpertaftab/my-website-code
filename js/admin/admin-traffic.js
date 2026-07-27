@@ -135,9 +135,63 @@
     var hours = new Array(24).fill(0);
     cur.forEach(function (s) { hours[new Date(s.start).getHours()] += (s.pageviews || 1); });
 
+    /* ── REALTIME: last 30 minutes (Google Analytics style) ───────── */
+    var RT_WIN = 30 * 60000;
+    var nowTs = Date.now();
+    var rt = sessions.filter(function (s) { return (s.last || s.start) >= nowTs - RT_WIN; });
+    var rtUsersMap = {}; rt.forEach(function (s) { rtUsersMap[s.visitorId || s.sessionId] = 1; });
+    var rtMinutes = new Array(30).fill(0);
+    for (var mi = 0; mi < 30; mi++) {
+      var to = nowTs - mi * 60000, from = to - 60000;
+      var seen = {};
+      rt.forEach(function (s) {
+        var st = s.start || 0, ls = s.last || s.start || 0;
+        if (ls >= from && st <= to) seen[s.visitorId || s.sessionId] = 1;
+      });
+      rtMinutes[29 - mi] = Object.keys(seen).length;
+    }
+    function tallyOn(list, fn) {
+      var mm = {};
+      list.forEach(function (s) {
+        var v = fn(s);
+        if (!v) return;
+        mm[v] = mm[v] || { key: v, count: 0, users: {} };
+        mm[v].count++;
+        mm[v].users[s.visitorId || s.sessionId] = 1;
+      });
+      return Object.keys(mm).map(function (k) { return { key: k, count: mm[k].count, users: Object.keys(mm[k].users).length }; })
+        .sort(function (x, y) { return y.users - x.users || y.count - x.count; });
+    }
+    var rtCountries = tallyOn(rt, function (s) { return s.country ? (flag(s.countryCode) + ' ' + s.country) : '🏳️ Unknown'; });
+    var rtPages = tallyOn(rt, function (s) { return (s.pages && s.pages.length ? s.pages[s.pages.length - 1].p : s.landing) || '/'; });
+    var rtViews = rt.reduce(function (t, s) {
+      return t + ((s.pages || []).filter(function (p) { return (p.ts || 0) >= nowTs - RT_WIN; }).length || 0);
+    }, 0);
+
+    /* ── DAILY visitors breakdown (newest first) ──────────────────── */
+    var dailyByCountry = {};
+    cur.forEach(function (s) {
+      var k = dayKey(new Date(s.start));
+      dailyByCountry[k] = dailyByCountry[k] || {};
+      var c = s.country ? (flag(s.countryCode) + ' ' + s.country) : '';
+      if (c) dailyByCountry[k][c] = (dailyByCountry[k][c] || 0) + 1;
+    });
+    var daily = series.slice().reverse().map(function (p) {
+      var cs = dailyByCountry[p.day] || {};
+      var top = Object.keys(cs).sort(function (a, b) { return cs[b] - cs[a]; }).slice(0, 3)
+        .map(function (k) { return k + ' (' + cs[k] + ')'; }).join(' · ');
+      return { day: p.day, label: p.label, users: p.users, sessions: p.sessions, views: p.views, countries: Object.keys(cs).length, topCountries: top };
+    });
+    var activeDays = daily.filter(function (d) { return d.users > 0; });
+    var avgPerDay = activeDays.length ? Math.round(activeDays.reduce(function (t, d) { return t + d.users; }, 0) / activeDays.length) : 0;
+    var todayRow = daily[0] || { users: 0, sessions: 0, views: 0 };
+
     return {
       cur: cur, a: a, b: b, series: series, topPages: topPages, hours: hours,
       liveUsers: Object.keys(liveUsers).length, liveSessions: live,
+      rt: rt, rtUsers: Object.keys(rtUsersMap).length, rtMinutes: rtMinutes,
+      rtCountries: rtCountries, rtPages: rtPages, rtViews: rtViews,
+      daily: daily, avgPerDay: avgPerDay, todayRow: todayRow,
       channels: tally(function (s) { return s.channel || 'Direct'; }),
       sources: tally(function (s) { return s.source || 'direct'; }),
       devices: tally(function (s) { return s.device || 'desktop'; }),
@@ -149,6 +203,7 @@
       landings: tally(function (s) { return s.landing || '/'; })
     };
   }
+
 
   function delta(cur, prev, invert) {
     if (!prev) return '';
@@ -228,7 +283,30 @@
       '<div style="display:flex;justify-content:space-between;color:#94a3b8;font-size:0.7rem;margin-top:6px;"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>';
   }
 
+  function minuteChart(mins) {
+    var max = Math.max(1, Math.max.apply(null, mins));
+    return '<div style="display:flex;align-items:flex-end;gap:3px;height:120px;">' + mins.map(function (v, i) {
+      var h = Math.round((v / max) * 100);
+      var minsAgo = 29 - i;
+      return '<div title="' + v + ' users · ' + (minsAgo === 0 ? 'now' : minsAgo + ' min ago') + '" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;">' +
+        '<div style="height:' + Math.max(v ? 6 : 2, h) + '%;border-radius:4px 4px 0 0;background:' + (v ? 'linear-gradient(180deg,#10b981,#047857)' : 'rgba(15,23,42,0.07)') + ';"></div></div>';
+    }).join('') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.72rem;color:#94a3b8;font-weight:700;"><span>30 min ago</span><span>15 min</span><span>Now</span></div>';
+  }
+
+  function rtRows(list, total, label) {
+    if (!list.length) return '<div style="color:#94a3b8;font-size:0.85rem;padding:10px 0;">Pichhle 30 minute me koi ' + label + ' nahi</div>';
+    return list.slice(0, 8).map(function (r) {
+      var share = total ? (r.users / total) * 100 : 0;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(15,23,42,0.05);">' +
+        '<div style="flex:1;font-size:0.86rem;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.key) + '</div>' +
+        '<div style="width:110px;height:7px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden;"><div style="height:100%;width:' + Math.max(4, share) + '%;background:linear-gradient(90deg,#10b981,#047857);"></div></div>' +
+        '<div style="width:36px;text-align:right;font-size:0.82rem;font-weight:800;color:#047857;">' + num(r.users) + '</div></div>';
+    }).join('');
+  }
+
   window.vlTrafficSetRange = async function (days) {
+
     STATE.range = days;
     var content = document.getElementById('adminContent');
     if (content) await window.renderAdminTrafficNew(content);
@@ -315,7 +393,15 @@
         '<td style="min-width:140px;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:7px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden;"><div style="height:100%;width:' + Math.max(3, share) + '%;background:linear-gradient(90deg,#ff6b35,#f7931e);"></div></div><span style="font-size:0.78rem;color:#64748b;font-weight:700;">' + pct(share) + '</span></div></td></tr>';
     }).join('');
 
+    var dailyRows = m.daily.filter(function (d) { return d.users || d.sessions; }).slice(0, 60).map(function (d) {
+      return '<tr><td style="font-weight:700;color:#0f172a;white-space:nowrap;">' + esc(d.label) + '<div style="color:#94a3b8;font-size:0.72rem;">' + esc(d.day) + '</div></td>' +
+        '<td style="font-weight:800;color:#047857;">' + num(d.users) + '</td>' +
+        '<td>' + num(d.sessions) + '</td><td>' + num(d.views) + '</td><td>' + num(d.countries) + '</td>' +
+        '<td style="font-size:0.82rem;color:#475569;">' + esc(d.topCountries || '—') + '</td></tr>';
+    }).join('');
+
     var pagesRows = m.topPages.slice(0, 12).map(function (p) {
+
       return '<tr><td><span style="font-weight:700;color:#0f172a;">' + esc(p.key) + '</span>' + (p.title ? '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(p.title) + '</div>' : '') + '</td>' +
         '<td>' + num(p.count) + '</td><td>' + num(p.users) + '</td>' +
         '<td>' + pct(totalSessions ? (p.users / m.a.users) * 100 : 0) + '</td></tr>';
@@ -354,12 +440,33 @@
       card('Avg. Session', dur(m.a.avgDur), delta(m.a.avgDur, m.b.avgDur) + ' duration', 'fa-clock', 'linear-gradient(135deg,#be185d,#ec4899)') +
       card('Bounce Rate', pct(m.a.bounce), delta(m.a.bounce, m.b.bounce, true) + ' single-page', 'fa-arrow-turn-down', 'linear-gradient(135deg,#b45309,#f59e0b)') +
       card('Active Now', num(m.liveUsers), 'last 5 minutes', 'fa-signal', 'linear-gradient(135deg,#065f46,#10b981)') +
+      card('Last 30 min', num(m.rtUsers), num(m.rtViews) + ' views · realtime', 'fa-bolt', 'linear-gradient(135deg,#047857,#34d399)') +
+      card('Today', num(m.todayRow.users), num(m.todayRow.sessions) + ' sessions · ' + num(m.todayRow.views) + ' views', 'fa-calendar-day', 'linear-gradient(135deg,#4338ca,#818cf8)') +
+      card('Avg / Day', num(m.avgPerDay), 'daily visitors average', 'fa-chart-simple', 'linear-gradient(135deg,#0f766e,#14b8a6)') +
       '</div>' +
+
+      panel('⚡ Realtime — pichhle 30 minute',
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;">' +
+        '<div><div style="font-size:2.2rem;font-weight:900;color:#047857;line-height:1;">' + num(m.rtUsers) + '</div>' +
+        '<div style="font-size:0.8rem;color:#64748b;font-weight:700;margin-bottom:10px;">users in last 30 minutes</div>' +
+        minuteChart(m.rtMinutes) + '</div>' +
+        '<div><div style="font-size:0.82rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Countries (last 30 min)</div>' +
+        rtRows(m.rtCountries, m.rtUsers, 'country') + '</div>' +
+        '<div><div style="font-size:0.82rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Pages (last 30 min)</div>' +
+        rtRows(m.rtPages, m.rtUsers, 'page') + '</div>' +
+        '</div>',
+        '<span style="font-size:0.78rem;color:#047857;font-weight:700;">per-minute · auto-refresh 15s</span>') +
 
       panel('🟢 Live right now — active users (last 5 min)',
         '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Visitor</th><th>Country / City</th><th>Current page</th><th>Device</th><th>Views</th><th>Time on site</th><th>Last seen</th></tr></thead><tbody>' +
         (liveRows || '<tr><td colspan="7" style="color:#94a3b8;">Is waqt koi user online nahi hai</td></tr>') + '</tbody></table></div>',
         '<span style="font-size:0.78rem;color:#047857;font-weight:700;">' + m.liveUsers + ' users online · auto-refresh 15s</span>') +
+
+      panel('Daily visitors — din ke hisaab se',
+        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Date</th><th>Visitors</th><th>Sessions</th><th>Pageviews</th><th>Countries</th><th>Top countries</th></tr></thead><tbody>' +
+        (dailyRows || '<tr><td colspan="6" style="color:#94a3b8;">Abhi koi daily data nahi</td></tr>') + '</tbody></table></div>',
+        '<span style="font-size:0.78rem;color:#94a3b8;">avg ' + num(m.avgPerDay) + ' visitors/day</span>') +
+
 
       panel('Traffic over time',
         '<div style="display:flex;gap:16px;margin-bottom:8px;font-size:0.78rem;color:#64748b;">' +
