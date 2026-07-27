@@ -393,7 +393,15 @@
         '<td style="min-width:140px;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:7px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden;"><div style="height:100%;width:' + Math.max(3, share) + '%;background:linear-gradient(90deg,#ff6b35,#f7931e);"></div></div><span style="font-size:0.78rem;color:#64748b;font-weight:700;">' + pct(share) + '</span></div></td></tr>';
     }).join('');
 
+    var dailyRows = m.daily.filter(function (d) { return d.users || d.sessions; }).slice(0, 60).map(function (d) {
+      return '<tr><td style="font-weight:700;color:#0f172a;white-space:nowrap;">' + esc(d.label) + '<div style="color:#94a3b8;font-size:0.72rem;">' + esc(d.day) + '</div></td>' +
+        '<td style="font-weight:800;color:#047857;">' + num(d.users) + '</td>' +
+        '<td>' + num(d.sessions) + '</td><td>' + num(d.views) + '</td><td>' + num(d.countries) + '</td>' +
+        '<td style="font-size:0.82rem;color:#475569;">' + esc(d.topCountries || '—') + '</td></tr>';
+    }).join('');
+
     var pagesRows = m.topPages.slice(0, 12).map(function (p) {
+
       return '<tr><td><span style="font-weight:700;color:#0f172a;">' + esc(p.key) + '</span>' + (p.title ? '<div style="color:#94a3b8;font-size:0.75rem;">' + esc(p.title) + '</div>' : '') + '</td>' +
         '<td>' + num(p.count) + '</td><td>' + num(p.users) + '</td>' +
         '<td>' + pct(totalSessions ? (p.users / m.a.users) * 100 : 0) + '</td></tr>';
