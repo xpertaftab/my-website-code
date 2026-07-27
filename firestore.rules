@@ -43,6 +43,7 @@ service cloud.firestore {
 
     // Traffic analytics: koi bhi visitor apni session likh sakta hai, padhna sirf admin
     match /traffic_sessions/{doc} { allow create, update: if true; allow read, delete: if isAdmin(); }
+    match /traffic_daily/{doc}    { allow create, update: if true; allow read, delete: if isAdmin(); }
 
     // Baaki sab band
     match /{document=**} { allow read, write: if false; }
