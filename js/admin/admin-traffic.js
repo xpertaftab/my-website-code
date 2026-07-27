@@ -341,7 +341,7 @@
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + rangeBtns + '</div>' +
       '<div style="display:flex;gap:8px;">' +
       '<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:9px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#047857;font-weight:800;font-size:0.8rem;"><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;"></span> ' + m.liveUsers + ' active now</div>' +
-      '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(15,23,42,0.12);background:#fff;color:#475569;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Refresh</button>' +
+      '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(15,23,42,0.12);background:#fff;color:#475569;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Refresh</button><div style="display:flex;align-items:center;padding:8px 14px;border-radius:9px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);color:#1d4ed8;font-weight:800;font-size:0.8rem;">DB: ' + num(sessions.length) + ' sessions</div>' +
       '<button onclick="vlTrafficClearOld()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.06);color:#dc2626;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-broom"></i> Clean 90d+</button>' +
       '</div></div>' +
       emptyNote +
