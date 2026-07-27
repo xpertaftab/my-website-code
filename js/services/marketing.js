@@ -19,15 +19,16 @@
 
     async function saveRemote(email) {
         try {
-            if (window.FirestoreData && typeof window.FirestoreData.addDoc === 'function') {
-                await window.FirestoreData.addDoc('newsletter', {
+            if (typeof window.fsSetDoc === 'function') {
+                var id = email.replace(/[^a-z0-9]/gi, '_') + '_' + Date.now();
+                await window.fsSetDoc('newsletter', id, {
                     email: email,
                     source: location.hash || '/',
                     createdAt: new Date().toISOString()
                 });
                 return true;
             }
-        } catch (e) { /* silent – local fallback already stored */ }
+        } catch (e) { /* silent - local fallback already stored */ }
         return false;
     }
 
