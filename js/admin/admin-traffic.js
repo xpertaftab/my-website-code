@@ -37,9 +37,18 @@
     window.__fsLastError = null;
     try { map = window.fsLoadMap ? await window.fsLoadMap('traffic_sessions') : null; } catch (e) { STATE.err = e.message || 'load failed'; }
     var fe = window.__fsLastError;
+    var signedEmail = '';
+    try { signedEmail = (window.auth && window.auth.currentUser && window.auth.currentUser.email) || ''; } catch (e) {}
+    STATE.email = signedEmail;
     if (fe && fe.collection === 'traffic_sessions') {
-      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')' + (fe.status === 403 ? ' — traffic_sessions rules publish karein aur admin email se login karein.' : '');
+      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')';
+      if (fe.status === 403) {
+        STATE.err += signedEmail
+          ? ' — aap "' + signedEmail + '" se signed-in hain. Agar ye admin email nahi hai ya rules me traffic_sessions rule publish nahi hua to read block hota hai.'
+          : ' — aap Firebase se signed-in nahi hain (sirf local admin login). Traffic read ke liye admin email se site par login zaroori hai.';
+      }
     }
+
     var arr = map ? Object.keys(map).map(function (k) { return map[k]; }) : [];
     // local fallback so the tab never looks empty for the current browser
     if (!arr.length) {
