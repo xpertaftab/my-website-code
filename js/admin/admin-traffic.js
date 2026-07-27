@@ -135,9 +135,63 @@
     var hours = new Array(24).fill(0);
     cur.forEach(function (s) { hours[new Date(s.start).getHours()] += (s.pageviews || 1); });
 
+    /* ── REALTIME: last 30 minutes (Google Analytics style) ───────── */
+    var RT_WIN = 30 * 60000;
+    var nowTs = Date.now();
+    var rt = sessions.filter(function (s) { return (s.last || s.start) >= nowTs - RT_WIN; });
+    var rtUsersMap = {}; rt.forEach(function (s) { rtUsersMap[s.visitorId || s.sessionId] = 1; });
+    var rtMinutes = new Array(30).fill(0);
+    for (var mi = 0; mi < 30; mi++) {
+      var to = nowTs - mi * 60000, from = to - 60000;
+      var seen = {};
+      rt.forEach(function (s) {
+        var st = s.start || 0, ls = s.last || s.start || 0;
+        if (ls >= from && st <= to) seen[s.visitorId || s.sessionId] = 1;
+      });
+      rtMinutes[29 - mi] = Object.keys(seen).length;
+    }
+    function tallyOn(list, fn) {
+      var mm = {};
+      list.forEach(function (s) {
+        var v = fn(s);
+        if (!v) return;
+        mm[v] = mm[v] || { key: v, count: 0, users: {} };
+        mm[v].count++;
+        mm[v].users[s.visitorId || s.sessionId] = 1;
+      });
+      return Object.keys(mm).map(function (k) { return { key: k, count: mm[k].count, users: Object.keys(mm[k].users).length }; })
+        .sort(function (x, y) { return y.users - x.users || y.count - x.count; });
+    }
+    var rtCountries = tallyOn(rt, function (s) { return s.country ? (flag(s.countryCode) + ' ' + s.country) : '🏳️ Unknown'; });
+    var rtPages = tallyOn(rt, function (s) { return (s.pages && s.pages.length ? s.pages[s.pages.length - 1].p : s.landing) || '/'; });
+    var rtViews = rt.reduce(function (t, s) {
+      return t + ((s.pages || []).filter(function (p) { return (p.ts || 0) >= nowTs - RT_WIN; }).length || 0);
+    }, 0);
+
+    /* ── DAILY visitors breakdown (newest first) ──────────────────── */
+    var dailyByCountry = {};
+    cur.forEach(function (s) {
+      var k = dayKey(new Date(s.start));
+      dailyByCountry[k] = dailyByCountry[k] || {};
+      var c = s.country ? (flag(s.countryCode) + ' ' + s.country) : '';
+      if (c) dailyByCountry[k][c] = (dailyByCountry[k][c] || 0) + 1;
+    });
+    var daily = series.slice().reverse().map(function (p) {
+      var cs = dailyByCountry[p.day] || {};
+      var top = Object.keys(cs).sort(function (a, b) { return cs[b] - cs[a]; }).slice(0, 3)
+        .map(function (k) { return k + ' (' + cs[k] + ')'; }).join(' · ');
+      return { day: p.day, label: p.label, users: p.users, sessions: p.sessions, views: p.views, countries: Object.keys(cs).length, topCountries: top };
+    });
+    var activeDays = daily.filter(function (d) { return d.users > 0; });
+    var avgPerDay = activeDays.length ? Math.round(activeDays.reduce(function (t, d) { return t + d.users; }, 0) / activeDays.length) : 0;
+    var todayRow = daily[0] || { users: 0, sessions: 0, views: 0 };
+
     return {
       cur: cur, a: a, b: b, series: series, topPages: topPages, hours: hours,
       liveUsers: Object.keys(liveUsers).length, liveSessions: live,
+      rt: rt, rtUsers: Object.keys(rtUsersMap).length, rtMinutes: rtMinutes,
+      rtCountries: rtCountries, rtPages: rtPages, rtViews: rtViews,
+      daily: daily, avgPerDay: avgPerDay, todayRow: todayRow,
       channels: tally(function (s) { return s.channel || 'Direct'; }),
       sources: tally(function (s) { return s.source || 'direct'; }),
       devices: tally(function (s) { return s.device || 'desktop'; }),
@@ -149,6 +203,7 @@
       landings: tally(function (s) { return s.landing || '/'; })
     };
   }
+
 
   function delta(cur, prev, invert) {
     if (!prev) return '';
