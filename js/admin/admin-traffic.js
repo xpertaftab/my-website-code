@@ -32,14 +32,20 @@
 
   async function loadSessions(force) {
     if (STATE.loaded && !force) return STATE.sessions;
-    STATE.loading = true; STATE.err = '';
+    STATE.loading = true; STATE.err = ''; STATE.localOnly = false;
     var map = null;
+    window.__fsLastError = null;
     try { map = window.fsLoadMap ? await window.fsLoadMap('traffic_sessions') : null; } catch (e) { STATE.err = e.message || 'load failed'; }
+    var fe = window.__fsLastError;
+    if (fe && fe.collection === 'traffic_sessions') {
+      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')' + (fe.status === 403 ? ' — traffic_sessions rules publish karein aur admin email se login karein.' : '');
+    }
     var arr = map ? Object.keys(map).map(function (k) { return map[k]; }) : [];
     // local fallback so the tab never looks empty for the current browser
     if (!arr.length) {
-      try { var loc = JSON.parse(localStorage.getItem('vl_last_session_doc') || 'null'); if (loc) arr = [loc]; } catch (e) {}
+      try { var loc = JSON.parse(localStorage.getItem('vl_last_session_doc') || 'null'); if (loc) { arr = [loc]; STATE.localOnly = true; } } catch (e) {}
     }
+
     arr.forEach(function (s) {
       s.start = Number(s.start) || 0;
       s.last = Number(s.last) || s.start;
