@@ -37,9 +37,18 @@
     window.__fsLastError = null;
     try { map = window.fsLoadMap ? await window.fsLoadMap('traffic_sessions') : null; } catch (e) { STATE.err = e.message || 'load failed'; }
     var fe = window.__fsLastError;
+    var signedEmail = '';
+    try { signedEmail = (window.auth && window.auth.currentUser && window.auth.currentUser.email) || ''; } catch (e) {}
+    STATE.email = signedEmail;
     if (fe && fe.collection === 'traffic_sessions') {
-      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')' + (fe.status === 403 ? ' — traffic_sessions rules publish karein aur admin email se login karein.' : '');
+      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')';
+      if (fe.status === 403) {
+        STATE.err += signedEmail
+          ? ' — aap "' + signedEmail + '" se signed-in hain. Agar ye admin email nahi hai ya rules me traffic_sessions rule publish nahi hua to read block hota hai.'
+          : ' — aap Firebase se signed-in nahi hain (sirf local admin login). Traffic read ke liye admin email se site par login zaroori hai.';
+      }
     }
+
     var arr = map ? Object.keys(map).map(function (k) { return map[k]; }) : [];
     // local fallback so the tab never looks empty for the current browser
     if (!arr.length) {
@@ -58,15 +67,26 @@
     return arr;
   }
 
+  // calendar-day based windows: "Today" = aaj 12:00 AM se ab tak,
+  // "7 days" = aaj sameet pichhle 7 calendar din, waghera.
+  function rangeStart(days) {
+    if (!days) return 0;
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() - (days - 1) * 86400000;
+  }
+
   function inRange(s, days) {
     if (days === 0) return true;
-    return s.start >= Date.now() - days * 86400000;
+    return s.start >= rangeStart(days);
   }
 
   function compute(sessions, days) {
     var cur = sessions.filter(function (s) { return inRange(s, days); });
-    var prevFrom = Date.now() - days * 2 * 86400000, prevTo = Date.now() - days * 86400000;
+    var winStart = rangeStart(days);
+    var prevTo = winStart, prevFrom = winStart - days * 86400000;
     var prev = days === 0 ? [] : sessions.filter(function (s) { return s.start >= prevFrom && s.start < prevTo; });
+
 
     function agg(list) {
       var users = {}, newUsers = 0, views = 0, totalDur = 0, bounced = 0;
@@ -415,7 +435,13 @@
     if (STATE.err) {
       emptyNote = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 18px;color:#991b1b;font-size:0.88rem;">' +
         '<b>Traffic data Firestore se load nahi ho saka.</b><div style="margin-top:6px;">' + esc(STATE.err) + '</div>' +
-        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain). Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karein aur admin email se dobara login karein.</div></div>';
+        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain).</div>' +
+        '<div style="margin-top:8px;font-weight:700;">Fix (2 step):</div>' +
+        '<div style="margin-top:2px;">1) Site par <b>admin email</b> (adminaftab@gmail.com / vextrolyntra@gmail.com) se Login karein — sirf admin panel ka local login kaafi nahi.<br>2) Firebase Console → Firestore → Rules me neeche wale rules paste karke <b>Publish</b> karein (<code>traffic_sessions</code> rule zaroori hai).</div>' +
+        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button onclick="adminShowFirestoreRules()" style="padding:8px 14px;border-radius:9px;border:none;background:#dc2626;color:#fff;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> Rules dekho / copy karo</button>' +
+        '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(153,27,27,0.3);background:#fff;color:#991b1b;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Dobara koshish</button>' +
+        '</div></div>';
     } else if (STATE.localOnly) {
       emptyNote = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;color:#1e40af;font-size:0.88rem;">' +
         '<b>Sirf local session dikh raha hai</b> — Firestore me abhi koi <code>traffic_sessions</code> document nahi mila. Visitors ke browse karte hi real data aa jayega.</div>';
