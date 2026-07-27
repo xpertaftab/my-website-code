@@ -58,15 +58,26 @@
     return arr;
   }
 
+  // calendar-day based windows: "Today" = aaj 12:00 AM se ab tak,
+  // "7 days" = aaj sameet pichhle 7 calendar din, waghera.
+  function rangeStart(days) {
+    if (!days) return 0;
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() - (days - 1) * 86400000;
+  }
+
   function inRange(s, days) {
     if (days === 0) return true;
-    return s.start >= Date.now() - days * 86400000;
+    return s.start >= rangeStart(days);
   }
 
   function compute(sessions, days) {
     var cur = sessions.filter(function (s) { return inRange(s, days); });
-    var prevFrom = Date.now() - days * 2 * 86400000, prevTo = Date.now() - days * 86400000;
+    var winStart = rangeStart(days);
+    var prevTo = winStart, prevFrom = winStart - days * 86400000;
     var prev = days === 0 ? [] : sessions.filter(function (s) { return s.start >= prevFrom && s.start < prevTo; });
+
 
     function agg(list) {
       var users = {}, newUsers = 0, views = 0, totalDur = 0, bounced = 0;
