@@ -38,6 +38,9 @@ service cloud.firestore {
     match /contacts/{doc} { allow create: if true; allow read, update, delete: if isAdmin(); }
     match /messages/{doc} { allow create: if true; allow read, update, delete: if isAdmin(); }
 
+    // Newsletter: koi bhi subscribe kar sakta hai, padhna sirf admin
+    match /newsletter/{doc} { allow create: if true; allow read, update, delete: if isAdmin(); }
+
     // Comments: read public, likhna sirf signed-in
     match /comments/{doc} { allow read: if true; allow create: if request.auth != null; allow update, delete: if isAdmin(); }
 

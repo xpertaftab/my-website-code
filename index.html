@@ -27,10 +27,25 @@
     <meta name="twitter:description" content="Web, software, AI, SEO, ads, social media, and elite branding services.">
     <meta name="twitter:image" content="assets/logo.png">
 
-    <link rel="stylesheet" href="style.css?v=2.4">
+    <!-- Performance: early connections to third-party origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+
+    <link rel="preload" as="image" href="assets/logo.png">
+    <link rel="stylesheet" href="style.css?v=2.6">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome loaded non-blocking -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
 
     <!-- Structured Data: Organization -->
     <script type="application/ld+json">
@@ -4736,6 +4751,21 @@
 
             </div>
 
+            <!-- NEWSLETTER -->
+            <div class="footer-newsletter">
+                <div class="fn-text">
+                    <h4><i class="fa-solid fa-envelope-open-text"></i> Get growth tips & new tool alerts</h4>
+                    <p>Join our newsletter — free resources, new tools and offers. No spam, unsubscribe anytime.</p>
+                </div>
+                <form class="fn-form" onsubmit="return subscribeNewsletter(event)">
+                    <input type="email" id="newsletterEmail" placeholder="Enter your email address" required>
+                    <button type="submit"><i class="fa-solid fa-paper-plane"></i> Subscribe</button>
+                </form>
+                <div class="fn-msg" id="newsletterMsg"></div>
+            </div>
+
+
+
             <div class="footer-bottom-row">
                 <div class="copyright">
                     © 2026 <strong>Vextro Lyntra</strong>. All rights reserved.
@@ -4743,7 +4773,15 @@
                 <div class="footer-bottom-links">
                     <span><i class="fa-solid fa-globe"></i> Global Platform</span>
                     <span><i class="fa-solid fa-user-group"></i> Community Driven</span>
+                    <span class="footer-share">
+                        <button type="button" title="Share on Facebook" aria-label="Share on Facebook" onclick="shareCurrentPage('facebook')"><i class="fa-brands fa-facebook-f"></i></button>
+                        <button type="button" title="Share on X" aria-label="Share on X" onclick="shareCurrentPage('twitter')"><i class="fa-brands fa-x-twitter"></i></button>
+                        <button type="button" title="Share on LinkedIn" aria-label="Share on LinkedIn" onclick="shareCurrentPage('linkedin')"><i class="fa-brands fa-linkedin-in"></i></button>
+                        <button type="button" title="Share on WhatsApp" aria-label="Share on WhatsApp" onclick="shareCurrentPage('whatsapp')"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button type="button" title="Copy link" aria-label="Copy link" onclick="shareCurrentPage('copy')"><i class="fa-solid fa-link"></i></button>
+                    </span>
                 </div>
+
             </div>
         </div>
     </footer>
@@ -4829,6 +4867,10 @@
     <script src="js/services/seo-enhance.js?v=1.0"></script>
     <script src="js/services/tools.js?v=2.2"></script>
     <script src="js/services/traffic.js?v=1.3"></script>
+    <script src="js/services/perf.js?v=1.0" defer></script>
+    <script src="js/services/marketing.js?v=1.0"></script>
+
+
 
     <!-- Backend API Integration Layer -->
     <script src="js/api.js?v=2.4"></script>
