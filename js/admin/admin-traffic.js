@@ -435,7 +435,13 @@
     if (STATE.err) {
       emptyNote = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 18px;color:#991b1b;font-size:0.88rem;">' +
         '<b>Traffic data Firestore se load nahi ho saka.</b><div style="margin-top:6px;">' + esc(STATE.err) + '</div>' +
-        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain). Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karein aur admin email se dobara login karein.</div></div>';
+        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain).</div>' +
+        '<div style="margin-top:8px;font-weight:700;">Fix (2 step):</div>' +
+        '<div style="margin-top:2px;">1) Site par <b>admin email</b> (adminaftab@gmail.com / vextrolyntra@gmail.com) se Login karein — sirf admin panel ka local login kaafi nahi.<br>2) Firebase Console → Firestore → Rules me neeche wale rules paste karke <b>Publish</b> karein (<code>traffic_sessions</code> rule zaroori hai).</div>' +
+        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button onclick="adminShowFirestoreRules()" style="padding:8px 14px;border-radius:9px;border:none;background:#dc2626;color:#fff;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-shield-halved"></i> Rules dekho / copy karo</button>' +
+        '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(153,27,27,0.3);background:#fff;color:#991b1b;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Dobara koshish</button>' +
+        '</div></div>';
     } else if (STATE.localOnly) {
       emptyNote = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;color:#1e40af;font-size:0.88rem;">' +
         '<b>Sirf local session dikh raha hai</b> — Firestore me abhi koi <code>traffic_sessions</code> document nahi mila. Visitors ke browse karte hi real data aa jayega.</div>';
