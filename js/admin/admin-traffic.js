@@ -326,6 +326,16 @@
       '<b>Abhi tak koi traffic data nahi mila.</b> Tracking live hai — jaise hi visitors site browse karenge, data yahan aana shuru ho jayega. ' +
       'Agar 403 error console me aaye to Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karna hoga (firestore.rules file me already added hai).</div>';
 
+    if (STATE.err) {
+      emptyNote = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 18px;color:#991b1b;font-size:0.88rem;">' +
+        '<b>Traffic data Firestore se load nahi ho saka.</b><div style="margin-top:6px;">' + esc(STATE.err) + '</div>' +
+        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain). Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karein aur admin email se dobara login karein.</div></div>';
+    } else if (STATE.localOnly) {
+      emptyNote = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;color:#1e40af;font-size:0.88rem;">' +
+        '<b>Sirf local session dikh raha hai</b> — Firestore me abhi koi <code>traffic_sessions</code> document nahi mila. Visitors ke browse karte hi real data aa jayega.</div>';
+    }
+
+
     content.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;">' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + rangeBtns + '</div>' +
