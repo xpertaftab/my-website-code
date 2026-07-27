@@ -432,12 +432,33 @@
       card('Avg. Session', dur(m.a.avgDur), delta(m.a.avgDur, m.b.avgDur) + ' duration', 'fa-clock', 'linear-gradient(135deg,#be185d,#ec4899)') +
       card('Bounce Rate', pct(m.a.bounce), delta(m.a.bounce, m.b.bounce, true) + ' single-page', 'fa-arrow-turn-down', 'linear-gradient(135deg,#b45309,#f59e0b)') +
       card('Active Now', num(m.liveUsers), 'last 5 minutes', 'fa-signal', 'linear-gradient(135deg,#065f46,#10b981)') +
+      card('Last 30 min', num(m.rtUsers), num(m.rtViews) + ' views · realtime', 'fa-bolt', 'linear-gradient(135deg,#047857,#34d399)') +
+      card('Today', num(m.todayRow.users), num(m.todayRow.sessions) + ' sessions · ' + num(m.todayRow.views) + ' views', 'fa-calendar-day', 'linear-gradient(135deg,#4338ca,#818cf8)') +
+      card('Avg / Day', num(m.avgPerDay), 'daily visitors average', 'fa-chart-simple', 'linear-gradient(135deg,#0f766e,#14b8a6)') +
       '</div>' +
+
+      panel('⚡ Realtime — pichhle 30 minute',
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;">' +
+        '<div><div style="font-size:2.2rem;font-weight:900;color:#047857;line-height:1;">' + num(m.rtUsers) + '</div>' +
+        '<div style="font-size:0.8rem;color:#64748b;font-weight:700;margin-bottom:10px;">users in last 30 minutes</div>' +
+        minuteChart(m.rtMinutes) + '</div>' +
+        '<div><div style="font-size:0.82rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Countries (last 30 min)</div>' +
+        rtRows(m.rtCountries, m.rtUsers, 'country') + '</div>' +
+        '<div><div style="font-size:0.82rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Pages (last 30 min)</div>' +
+        rtRows(m.rtPages, m.rtUsers, 'page') + '</div>' +
+        '</div>',
+        '<span style="font-size:0.78rem;color:#047857;font-weight:700;">per-minute · auto-refresh 15s</span>') +
 
       panel('🟢 Live right now — active users (last 5 min)',
         '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Visitor</th><th>Country / City</th><th>Current page</th><th>Device</th><th>Views</th><th>Time on site</th><th>Last seen</th></tr></thead><tbody>' +
         (liveRows || '<tr><td colspan="7" style="color:#94a3b8;">Is waqt koi user online nahi hai</td></tr>') + '</tbody></table></div>',
         '<span style="font-size:0.78rem;color:#047857;font-weight:700;">' + m.liveUsers + ' users online · auto-refresh 15s</span>') +
+
+      panel('Daily visitors — din ke hisaab se',
+        '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Date</th><th>Visitors</th><th>Sessions</th><th>Pageviews</th><th>Countries</th><th>Top countries</th></tr></thead><tbody>' +
+        (dailyRows || '<tr><td colspan="6" style="color:#94a3b8;">Abhi koi daily data nahi</td></tr>') + '</tbody></table></div>',
+        '<span style="font-size:0.78rem;color:#94a3b8;">avg ' + num(m.avgPerDay) + ' visitors/day</span>') +
+
 
       panel('Traffic over time',
         '<div style="display:flex;gap:16px;margin-bottom:8px;font-size:0.78rem;color:#64748b;">' +
