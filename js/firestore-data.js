@@ -88,8 +88,11 @@ window.fsLoadMap = async function(collectionName) {
       if (!res.ok) {
         if (res.status === 404) console.warn('FS: Firestore database not found - enable it in Firebase Console');
         else console.warn('FS: load', collectionName, 'failed with status', res.status);
+        window.__fsLastError = { collection: collectionName, status: res.status, at: Date.now() };
         return allDocs.length ? allDocs : null;
       }
+      window.__fsLastError = null;
+
       const data = await res.json();
       if (Array.isArray(data.documents)) allDocs.push(...data.documents);
       pageToken = data.nextPageToken || '';

@@ -32,14 +32,20 @@
 
   async function loadSessions(force) {
     if (STATE.loaded && !force) return STATE.sessions;
-    STATE.loading = true; STATE.err = '';
+    STATE.loading = true; STATE.err = ''; STATE.localOnly = false;
     var map = null;
+    window.__fsLastError = null;
     try { map = window.fsLoadMap ? await window.fsLoadMap('traffic_sessions') : null; } catch (e) { STATE.err = e.message || 'load failed'; }
+    var fe = window.__fsLastError;
+    if (fe && fe.collection === 'traffic_sessions') {
+      STATE.err = 'Firestore read failed (HTTP ' + fe.status + ')' + (fe.status === 403 ? ' — traffic_sessions rules publish karein aur admin email se login karein.' : '');
+    }
     var arr = map ? Object.keys(map).map(function (k) { return map[k]; }) : [];
     // local fallback so the tab never looks empty for the current browser
     if (!arr.length) {
-      try { var loc = JSON.parse(localStorage.getItem('vl_last_session_doc') || 'null'); if (loc) arr = [loc]; } catch (e) {}
+      try { var loc = JSON.parse(localStorage.getItem('vl_last_session_doc') || 'null'); if (loc) { arr = [loc]; STATE.localOnly = true; } } catch (e) {}
     }
+
     arr.forEach(function (s) {
       s.start = Number(s.start) || 0;
       s.last = Number(s.last) || s.start;
@@ -320,12 +326,22 @@
       '<b>Abhi tak koi traffic data nahi mila.</b> Tracking live hai — jaise hi visitors site browse karenge, data yahan aana shuru ho jayega. ' +
       'Agar 403 error console me aaye to Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karna hoga (firestore.rules file me already added hai).</div>';
 
+    if (STATE.err) {
+      emptyNote = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 18px;color:#991b1b;font-size:0.88rem;">' +
+        '<b>Traffic data Firestore se load nahi ho saka.</b><div style="margin-top:6px;">' + esc(STATE.err) + '</div>' +
+        '<div style="margin-top:6px;">Isi wajah se yahan sirf is browser ka session dikh raha hai (asli visitors zyada ho sakte hain). Firebase Console → Firestore → Rules me <code>traffic_sessions</code> rule publish karein aur admin email se dobara login karein.</div></div>';
+    } else if (STATE.localOnly) {
+      emptyNote = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;color:#1e40af;font-size:0.88rem;">' +
+        '<b>Sirf local session dikh raha hai</b> — Firestore me abhi koi <code>traffic_sessions</code> document nahi mila. Visitors ke browse karte hi real data aa jayega.</div>';
+    }
+
+
     content.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;">' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + rangeBtns + '</div>' +
       '<div style="display:flex;gap:8px;">' +
       '<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:9px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#047857;font-weight:800;font-size:0.8rem;"><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;"></span> ' + m.liveUsers + ' active now</div>' +
-      '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(15,23,42,0.12);background:#fff;color:#475569;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Refresh</button>' +
+      '<button onclick="vlTrafficRefresh()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(15,23,42,0.12);background:#fff;color:#475569;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-rotate"></i> Refresh</button><div style="display:flex;align-items:center;padding:8px 14px;border-radius:9px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);color:#1d4ed8;font-weight:800;font-size:0.8rem;">DB: ' + num(sessions.length) + ' sessions</div>' +
       '<button onclick="vlTrafficClearOld()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.06);color:#dc2626;font-weight:700;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-broom"></i> Clean 90d+</button>' +
       '</div></div>' +
       emptyNote +

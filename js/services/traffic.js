@@ -226,8 +226,13 @@
     };
   }
 
+  var readyTries = 0;
   function save(force) {
-    if (!window.fsSetDoc) return;
+    if (!window.fsSetDoc) {
+      // Firestore layer abhi load nahi hua — thodi der baad dobara koshish karo
+      if (readyTries++ < 40) setTimeout(function () { save(true); }, 1000);
+      return;
+    }
     var now = Date.now();
     if (!force && now - lastSaved < 8000) {
       clearTimeout(pendingSave);
@@ -238,8 +243,16 @@
     try { localStorage.setItem(SES_TS, String(now)); } catch (e) {}
     var doc = buildDoc();
     try { localStorage.setItem('vl_last_session_doc', JSON.stringify(doc)); } catch (e) {}
-    try { window.fsSetDoc('traffic_sessions', sessionId, doc); } catch (e) {}
+    try {
+      var p = window.fsSetDoc('traffic_sessions', sessionId, doc);
+      if (p && p.catch) p.catch(function (e) {
+        console.warn('VL traffic: session save failed —', (e && e.message) || e);
+        // rules ya network issue — 20s baad dobara try
+        setTimeout(function () { save(true); }, 20000);
+      });
+    } catch (e) {}
   }
+
 
   function trackPageview() {
     var p = currentPath();
