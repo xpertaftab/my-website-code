@@ -3731,6 +3731,54 @@ setTimeout(() => {
 }, 1500);
 
 // ---- Firestore Rules helper: rules dikhata hai + one-click copy ----
+// Poora rules set (purane sab + traffic_sessions) — file load na ho to yeh use hota hai
+const FS_RULES_FALLBACK = [
+"rules_version = '2';",
+"",
+"// Vextro Lyntra — Firestore security rules",
+"// Firebase Console → Firestore Database → Rules → paste this → Publish",
+"service cloud.firestore {",
+"  match /databases/{database}/documents {",
+"",
+"    function isAdmin() {",
+"      return request.auth != null && request.auth.token.email in [",
+"        'adminaftab@gmail.com',",
+"        'vextrolyntra@gmail.com'",
+"      ];",
+"    }",
+"",
+"    match /users/{uid} {",
+"      allow read, write: if isAdmin();",
+"      allow read, write: if request.auth != null && request.auth.uid == uid;",
+"    }",
+"",
+"    match /products/{doc}      { allow read: if true; allow write: if isAdmin(); }",
+"    match /product_media/{doc} { allow read: if true; allow write: if isAdmin(); }",
+"    match /listings/{doc}      { allow read: if true; allow write: if isAdmin(); }",
+"    match /listing_media/{doc} { allow read: if true; allow write: if isAdmin(); }",
+"    match /blogs/{doc}         { allow read: if true; allow write: if isAdmin(); }",
+"    match /tools/{doc}         { allow read: if true; allow write: if isAdmin(); }",
+"    match /service_overrides/{doc} { allow read: if true; allow write: if isAdmin(); }",
+"    match /coupons/{doc}       { allow read: if true; allow write: if isAdmin(); }",
+"    match /settings/{doc}      { allow read: if true; allow write: if isAdmin(); }",
+"",
+"    match /orders/{doc}    { allow read, write: if isAdmin(); allow create: if request.auth != null; allow read: if request.auth != null && resource.data.userId == request.auth.uid; }",
+"    match /purchases/{doc} { allow read, write: if isAdmin(); allow create: if request.auth != null; allow read: if request.auth != null && resource.data.userId == request.auth.uid; }",
+"",
+"    match /contacts/{doc} { allow create: if true; allow read, update, delete: if isAdmin(); }",
+"    match /messages/{doc} { allow create: if true; allow read, update, delete: if isAdmin(); }",
+"",
+"    match /comments/{doc} { allow read: if true; allow create: if request.auth != null; allow update, delete: if isAdmin(); }",
+"",
+"    // Traffic analytics: visitor apni session likh sakta hai, padhna sirf admin",
+"    match /traffic_sessions/{doc} { allow create, update: if true; allow read, delete: if isAdmin(); }",
+"    match /traffic_daily/{doc}    { allow create, update: if true; allow read, delete: if isAdmin(); }",
+"",
+"    match /{document=**} { allow read, write: if false; }",
+"  }",
+"}"
+].join("\n");
+
 window.adminShowFirestoreRules = async function() {
   let rules = '';
   try {
@@ -3738,9 +3786,9 @@ window.adminShowFirestoreRules = async function() {
     if (res.ok) rules = await res.text();
   } catch (_) {}
   if (!rules || rules.indexOf('rules_version') === -1) {
-    alert('firestore.rules file load nahi hui. Project root me firestore.rules maujood honi chahiye.');
-    return;
+    rules = FS_RULES_FALLBACK;
   }
+
   const old = document.getElementById('fsRulesModal');
   if (old) old.remove();
   const wrap = document.createElement('div');
