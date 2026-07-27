@@ -283,7 +283,30 @@
       '<div style="display:flex;justify-content:space-between;color:#94a3b8;font-size:0.7rem;margin-top:6px;"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>';
   }
 
+  function minuteChart(mins) {
+    var max = Math.max(1, Math.max.apply(null, mins));
+    return '<div style="display:flex;align-items:flex-end;gap:3px;height:120px;">' + mins.map(function (v, i) {
+      var h = Math.round((v / max) * 100);
+      var minsAgo = 29 - i;
+      return '<div title="' + v + ' users · ' + (minsAgo === 0 ? 'now' : minsAgo + ' min ago') + '" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;">' +
+        '<div style="height:' + Math.max(v ? 6 : 2, h) + '%;border-radius:4px 4px 0 0;background:' + (v ? 'linear-gradient(180deg,#10b981,#047857)' : 'rgba(15,23,42,0.07)') + ';"></div></div>';
+    }).join('') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.72rem;color:#94a3b8;font-weight:700;"><span>30 min ago</span><span>15 min</span><span>Now</span></div>';
+  }
+
+  function rtRows(list, total, label) {
+    if (!list.length) return '<div style="color:#94a3b8;font-size:0.85rem;padding:10px 0;">Pichhle 30 minute me koi ' + label + ' nahi</div>';
+    return list.slice(0, 8).map(function (r) {
+      var share = total ? (r.users / total) * 100 : 0;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(15,23,42,0.05);">' +
+        '<div style="flex:1;font-size:0.86rem;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.key) + '</div>' +
+        '<div style="width:110px;height:7px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden;"><div style="height:100%;width:' + Math.max(4, share) + '%;background:linear-gradient(90deg,#10b981,#047857);"></div></div>' +
+        '<div style="width:36px;text-align:right;font-size:0.82rem;font-weight:800;color:#047857;">' + num(r.users) + '</div></div>';
+    }).join('');
+  }
+
   window.vlTrafficSetRange = async function (days) {
+
     STATE.range = days;
     var content = document.getElementById('adminContent');
     if (content) await window.renderAdminTrafficNew(content);
