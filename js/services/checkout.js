@@ -14,9 +14,10 @@
     usdToPkr: 280,
     whatsapp: '923281270900',
     pk: [
-      { key: 'jazzcash', name: 'JazzCash',     icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Aftab Ahmed', number: '0328-1270900', note: 'JazzCash app se "Send Money" karein.' },
-      { key: 'easypaisa', name: 'Easypaisa',   icon: 'fa-wallet',               color: '#16a34a', account: 'Aftab Ahmed', number: '0328-1270900', note: 'Easypaisa app ya shop se transfer karein.' },
-      { key: 'bank',      name: 'Bank Transfer', icon: 'fa-building-columns',   color: '#2563eb', account: 'Aftab Ahmed', number: 'PK00XXXX0000000000000000', bank: 'Meezan Bank', note: 'IBAN par online / ATM transfer karein.' }
+      { key: 'jazzcash', name: 'JazzCash',   icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'JazzCash app se "Send Money" karein.' },
+      { key: 'easypaisa', name: 'Easypaisa', icon: 'fa-wallet',               color: '#16a34a', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'Easypaisa app ya shop se transfer karein.' },
+      { key: 'sadapay',  name: 'SadaPay',    icon: 'fa-credit-card',          color: '#0ea5e9', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'SadaPay app se Raast / mobile number par bhejein.' },
+      { key: 'nayapay',  name: 'NayaPay',    icon: 'fa-bolt',                 color: '#7c3aed', account: 'Asim Rizwan',    number: '0328-1806910', note: 'NayaPay app se Raast / mobile number par bhejein.' }
     ],
     crypto: [
       { key: 'usdt_trc20', name: 'USDT (TRC20)', icon: 'fa-dollar-sign', color: '#26a17b', network: 'Tron / TRC20', address: 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', note: 'Lowest fees — recommended.' },
@@ -142,7 +143,7 @@
       '<div class="co-detail-head"><i class="fa-solid ' + m.icon + '"></i> ' + esc(m.name) + ' details</div>' +
       row('Account Title', m.account) +
       (m.bank ? row('Bank', m.bank) : '') +
-      row(m.key === 'bank' ? 'IBAN / Account #' : 'Mobile Number', m.number, true) +
+      row('Mobile Number', m.number, true) +
       row('Amount to send', 'PKR ' + pkr.toLocaleString('en-US'), true) +
       '<p class="co-note"><i class="fa-solid fa-circle-info"></i> Payment bhejne ke baad neeche form me screenshot ya Transaction ID zaroor add karein — warna order verify nahi hoga.</p>' +
     '</div>';
@@ -181,12 +182,11 @@
   }
 
   function renderForm() {
-    var u = (window.auth && window.auth.currentUser) || null;
     return '<div class="co-card">' +
       '<h3 class="co-card-title">2. Confirm your payment</h3>' +
       '<div class="co-fields">' +
-        '<div><label>Full Name *</label><input id="coName" type="text" value="' + esc(u && u.displayName ? u.displayName : '') + '" placeholder="Your name"></div>' +
-        '<div><label>Email *</label><input id="coEmail" type="email" value="' + esc(u && u.email ? u.email : '') + '" placeholder="you@email.com"></div>' +
+        '<div><label>Full Name *</label><input id="coName" type="text" placeholder="Your name"></div>' +
+        '<div><label>Email *</label><input id="coEmail" type="email" placeholder="you@email.com"></div>' +
         '<div><label>WhatsApp / Phone *</label><input id="coPhone" type="text" placeholder="+92 3XX XXXXXXX"></div>' +
         '<div><label>Transaction ID / TxID *</label><input id="coTxn" type="text" placeholder="e.g. 9F3K2L or TxHash"></div>' +
         '<div class="co-full"><label>Payment Screenshot (optional)</label><input id="coProof" type="file" accept="image/*" onchange="checkoutPickFile(this)"><div id="coProofPrev"></div></div>' +
