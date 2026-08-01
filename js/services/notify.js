@@ -1,62 +1,92 @@
 // ============================================================
-// Vextro Lyntra — Instant Alerts (WhatsApp + Email)
-// Naya order aate hi admin ke WhatsApp par message aa jata hai.
-// WhatsApp alert CallMeBot ke through jata hai (free).
+// Vextro Lyntra — Instant Email Alerts
+// Naya order aate hi admin ki email par alert chala jata hai.
+// EmailJS use hota hai (config js/services/main.js me).
 //
-// Setup (ek dafa, 2 minute):
-//   1) Apne phone se +34 644 51 95 23 ko WhatsApp par bhejein:
-//        I allow callmebot to send me messages
-//   2) Bot reply me ek API key dega.
-//   3) Neeche WA_CONFIG me phone + apikey daal dein,
-//      ya website console me:  vlWhatsAppSet('923228824375','APIKEY')
+// Test karne ke liye console me:  vlTestEmail()
 // ============================================================
 (function () {
   'use strict';
 
   if (window.vlNotify) return;
 
-  var WA_CONFIG = {
-    phone: '923228824375',   // admin ka WhatsApp number (country code ke saath, bina +)
-    apikey: ''               // CallMeBot se mili API key
-  };
+  var QUEUE_KEY = 'vl_mail_queue';
+  var SERVICE = 'service_60ugcjb';
+  var TEMPLATE = 'fa4k04x';
+  var PUBLIC_KEY = '8zOJpAjU7J2LOGB0l';
+  var ADMIN_EMAIL = 'vextrolyntra@gmail.com';
 
-  function cfg() {
-    var c = { phone: WA_CONFIG.phone, apikey: WA_CONFIG.apikey };
-    try {
-      var o = JSON.parse(localStorage.getItem('vl_wa') || 'null');
-      if (o && o.phone) c.phone = o.phone;
-      if (o && o.apikey) c.apikey = o.apikey;
-    } catch (e) {}
-    return c;
+  function ready() {
+    if (typeof emailjs === 'undefined') return false;
+    try { if (!window.__vlEmailInit) { emailjs.init(PUBLIC_KEY); window.__vlEmailInit = true; } } catch (e) {}
+    return true;
   }
 
-  window.vlWhatsAppConfigured = function () {
-    var c = cfg();
-    return !!(c.phone && c.apikey);
-  };
+  function readQueue() {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]') || []; } catch (e) { return []; }
+  }
+  function writeQueue(q) {
+    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-20))); } catch (e) {}
+  }
+  function enqueue(payload) {
+    var q = readQueue();
+    q.push(payload);
+    writeQueue(q);
+  }
 
-  window.vlWhatsAppSet = function (phone, apikey) {
-    try { localStorage.setItem('vl_wa', JSON.stringify({ phone: String(phone).replace(/\D/g, ''), apikey: apikey })); } catch (e) {}
-    return window.vlWhatsAppSend('✅ Vextro Lyntra alerts connected! Ab har naye order par yahan message aayega.');
-  };
+  function sendPayload(payload) {
+    if (!ready()) return Promise.reject(new Error('emailjs not loaded'));
+    return emailjs.send(SERVICE, TEMPLATE, payload);
+  }
 
-  window.vlWhatsAppSend = function (text) {
-    var c = cfg();
-    if (!c.phone || !c.apikey) return Promise.resolve(false);
-    var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(c.phone) +
-      '&apikey=' + encodeURIComponent(c.apikey) +
-      '&text=' + encodeURIComponent(String(text || '').slice(0, 900));
-    // no-cors: response read nahi hota, par message deliver ho jata hai
-    return fetch(url, { mode: 'no-cors', cache: 'no-store' })
-      .then(function () { return true; })
-      .catch(function (e) { console.warn('WhatsApp alert failed:', e && e.message); return false; });
-  };
+  // 3 tries with backoff; agar fir bhi fail ho to queue me save (next visit par retry)
+  function sendWithRetry(payload, tries) {
+    tries = tries || 0;
+    return sendPayload(payload).catch(function (err) {
+      if (tries < 2) {
+        return new Promise(function (r) { setTimeout(r, 1500 * (tries + 1)); })
+          .then(function () { return sendWithRetry(payload, tries + 1); });
+      }
+      console.warn('Email alert failed, queued for retry:', err && (err.text || err.message));
+      enqueue(payload);
+      return false;
+    });
+  }
 
-  // Ek hi jagah se sab channels par alert: WhatsApp + email
+  function buildPayload(subject, body, fromName) {
+    return {
+      title: '[Vextro Lyntra] ' + subject,
+      subject: '[Vextro Lyntra] ' + subject,
+      name: fromName || 'Vextro Lyntra System',
+      email: ADMIN_EMAIL,
+      to_email: ADMIN_EMAIL,
+      reply_to: ADMIN_EMAIL,
+      message: String(body || '') + '\n\n---\nSent automatically from Vextro Lyntra.\nTime: ' + new Date().toLocaleString()
+    };
+  }
+
+  // Ek hi entry point — sab jagah se yahi call hota hai
   window.vlNotify = function (subject, body, fromName) {
-    try { window.vlWhatsAppSend(subject + '\n\n' + body); } catch (e) {}
-    try { if (window.notifyAdmin) window.notifyAdmin(subject, body, fromName || 'Website'); } catch (e) {}
+    return sendWithRetry(buildPayload(subject, body, fromName));
   };
+
+  window.vlTestEmail = function () {
+    return window.vlNotify('TEST ALERT', 'Yeh ek test email hai. Agar yeh mil gayi to order alerts kaam kar rahe hain.', 'Test')
+      .then(function (r) {
+        console.log(r === false ? '❌ Email fail — queue me save ho gaya' : '✅ Test email bhej di gayi');
+        return r;
+      });
+  };
+
+  // Page load par pending emails dobara bhejo
+  function flushQueue() {
+    var q = readQueue();
+    if (!q.length || !ready()) return;
+    writeQueue([]);
+    q.forEach(function (p) { sendPayload(p).catch(function () { enqueue(p); }); });
+  }
+  if (document.readyState === 'complete') setTimeout(flushQueue, 2500);
+  else window.addEventListener('load', function () { setTimeout(flushQueue, 2500); });
 
   // Naye order aate hi alert (checkout.js is event ko fire karta hai)
   window.addEventListener('vl:new-order', function (ev) {
