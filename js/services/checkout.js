@@ -347,8 +347,10 @@
   };
 
   function done(order) {
+    // Instant alert (Telegram + email) — admin ko turant pata chal jaye
+    try { window.dispatchEvent(new CustomEvent('vl:new-order', { detail: order })); } catch (e) {}
     try {
-      if (window.notifyAdmin) {
+      if (!window.vlNotify && window.notifyAdmin) {
         window.notifyAdmin('New Order — ' + (order.package || 'Item'),
           'Naya order aya hai (payment confirmation).\n\n' +
           'Order: ' + order.id + '\nItem: ' + order.package +
@@ -359,6 +361,7 @@
           order.buyerName);
       }
     } catch (e) {}
+
 
     var page = document.getElementById('checkoutPage');
     if (!page) return;
