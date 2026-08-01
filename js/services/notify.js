@@ -1,67 +1,62 @@
 // ============================================================
-// Vextro Lyntra — Instant Alerts (Telegram)
-// Naya order / message aate hi admin ke phone par Telegram notification.
-// Config: neeche TELEGRAM_CONFIG me bot token + chat id daalein,
-// ya browser console me:
-//   localStorage.setItem('vl_tg', JSON.stringify({token:'...', chatId:'...'}))
+// Vextro Lyntra — Instant Alerts (WhatsApp + Email)
+// Naya order aate hi admin ke WhatsApp par message aa jata hai.
+// WhatsApp alert CallMeBot ke through jata hai (free).
+//
+// Setup (ek dafa, 2 minute):
+//   1) Apne phone se +34 644 51 95 23 ko WhatsApp par bhejein:
+//        I allow callmebot to send me messages
+//   2) Bot reply me ek API key dega.
+//   3) Neeche WA_CONFIG me phone + apikey daal dein,
+//      ya website console me:  vlWhatsAppSet('923228824375','APIKEY')
 // ============================================================
 (function () {
   'use strict';
 
   if (window.vlNotify) return;
 
-  var TELEGRAM_CONFIG = {
-    token: '',    // BotFather se mila token  (e.g. 123456:AAE...)
-    chatId: ''    // aapka chat id (@userinfobot se milta hai)
+  var WA_CONFIG = {
+    phone: '923228824375',   // admin ka WhatsApp number (country code ke saath, bina +)
+    apikey: ''               // CallMeBot se mili API key
   };
 
   function cfg() {
-    var c = { token: TELEGRAM_CONFIG.token, chatId: TELEGRAM_CONFIG.chatId };
+    var c = { phone: WA_CONFIG.phone, apikey: WA_CONFIG.apikey };
     try {
-      var o = JSON.parse(localStorage.getItem('vl_tg') || 'null');
-      if (o && o.token) c.token = o.token;
-      if (o && o.chatId) c.chatId = o.chatId;
+      var o = JSON.parse(localStorage.getItem('vl_wa') || 'null');
+      if (o && o.phone) c.phone = o.phone;
+      if (o && o.apikey) c.apikey = o.apikey;
     } catch (e) {}
     return c;
   }
 
-  window.vlTelegramConfigured = function () {
+  window.vlWhatsAppConfigured = function () {
     var c = cfg();
-    return !!(c.token && c.chatId);
+    return !!(c.phone && c.apikey);
   };
 
-  window.vlTelegramSet = function (token, chatId) {
-    try { localStorage.setItem('vl_tg', JSON.stringify({ token: token, chatId: chatId })); } catch (e) {}
-    return window.vlTelegramSend('✅ Vextro Lyntra alerts connected!');
+  window.vlWhatsAppSet = function (phone, apikey) {
+    try { localStorage.setItem('vl_wa', JSON.stringify({ phone: String(phone).replace(/\D/g, ''), apikey: apikey })); } catch (e) {}
+    return window.vlWhatsAppSend('✅ Vextro Lyntra alerts connected! Ab har naye order par yahan message aayega.');
   };
 
-  window.vlTelegramSend = function (text) {
+  window.vlWhatsAppSend = function (text) {
     var c = cfg();
-    if (!c.token || !c.chatId) return Promise.resolve(false);
-    return fetch('https://api.telegram.org/bot' + c.token + '/sendMessage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: c.chatId,
-        text: String(text || '').slice(0, 3800),
-        parse_mode: 'HTML',
-        disable_web_page_preview: true
-      })
-    }).then(function (r) { return r.ok; })
-      .catch(function (e) { console.warn('Telegram alert failed:', e && e.message); return false; });
+    if (!c.phone || !c.apikey) return Promise.resolve(false);
+    var url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(c.phone) +
+      '&apikey=' + encodeURIComponent(c.apikey) +
+      '&text=' + encodeURIComponent(String(text || '').slice(0, 900));
+    // no-cors: response read nahi hota, par message deliver ho jata hai
+    return fetch(url, { mode: 'no-cors', cache: 'no-store' })
+      .then(function () { return true; })
+      .catch(function (e) { console.warn('WhatsApp alert failed:', e && e.message); return false; });
   };
 
-  // Ek hi jagah se sab channels par alert: Telegram + email
+  // Ek hi jagah se sab channels par alert: WhatsApp + email
   window.vlNotify = function (subject, body, fromName) {
-    try { window.vlTelegramSend('<b>' + escHtml(subject) + '</b>\n\n' + escHtml(body)); } catch (e) {}
+    try { window.vlWhatsAppSend(subject + '\n\n' + body); } catch (e) {}
     try { if (window.notifyAdmin) window.notifyAdmin(subject, body, fromName || 'Website'); } catch (e) {}
   };
-
-  function escHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
-    });
-  }
 
   // Naye order aate hi alert (checkout.js is event ko fire karta hai)
   window.addEventListener('vl:new-order', function (ev) {
