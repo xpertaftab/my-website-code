@@ -143,7 +143,7 @@
       '<div class="co-detail-head"><i class="fa-solid ' + m.icon + '"></i> ' + esc(m.name) + ' details</div>' +
       row('Account Title', m.account) +
       (m.bank ? row('Bank', m.bank) : '') +
-      row(m.key === 'bank' ? 'IBAN / Account #' : 'Mobile Number', m.number, true) +
+      row('Mobile Number', m.number, true) +
       row('Amount to send', 'PKR ' + pkr.toLocaleString('en-US'), true) +
       '<p class="co-note"><i class="fa-solid fa-circle-info"></i> Payment bhejne ke baad neeche form me screenshot ya Transaction ID zaroor add karein — warna order verify nahi hoga.</p>' +
     '</div>';
@@ -182,12 +182,11 @@
   }
 
   function renderForm() {
-    var u = (window.auth && window.auth.currentUser) || null;
     return '<div class="co-card">' +
       '<h3 class="co-card-title">2. Confirm your payment</h3>' +
       '<div class="co-fields">' +
-        '<div><label>Full Name *</label><input id="coName" type="text" value="' + esc(u && u.displayName ? u.displayName : '') + '" placeholder="Your name"></div>' +
-        '<div><label>Email *</label><input id="coEmail" type="email" value="' + esc(u && u.email ? u.email : '') + '" placeholder="you@email.com"></div>' +
+        '<div><label>Full Name *</label><input id="coName" type="text" placeholder="Your name"></div>' +
+        '<div><label>Email *</label><input id="coEmail" type="email" placeholder="you@email.com"></div>' +
         '<div><label>WhatsApp / Phone *</label><input id="coPhone" type="text" placeholder="+92 3XX XXXXXXX"></div>' +
         '<div><label>Transaction ID / TxID *</label><input id="coTxn" type="text" placeholder="e.g. 9F3K2L or TxHash"></div>' +
         '<div class="co-full"><label>Payment Screenshot (optional)</label><input id="coProof" type="file" accept="image/*" onchange="checkoutPickFile(this)"><div id="coProofPrev"></div></div>' +
