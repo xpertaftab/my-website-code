@@ -14,9 +14,10 @@
     usdToPkr: 280,
     whatsapp: '923281270900',
     pk: [
-      { key: 'jazzcash', name: 'JazzCash',     icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Aftab Ahmed', number: '0328-1270900', note: 'JazzCash app se "Send Money" karein.' },
-      { key: 'easypaisa', name: 'Easypaisa',   icon: 'fa-wallet',               color: '#16a34a', account: 'Aftab Ahmed', number: '0328-1270900', note: 'Easypaisa app ya shop se transfer karein.' },
-      { key: 'bank',      name: 'Bank Transfer', icon: 'fa-building-columns',   color: '#2563eb', account: 'Aftab Ahmed', number: 'PK00XXXX0000000000000000', bank: 'Meezan Bank', note: 'IBAN par online / ATM transfer karein.' }
+      { key: 'jazzcash', name: 'JazzCash',   icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'JazzCash app se "Send Money" karein.' },
+      { key: 'easypaisa', name: 'Easypaisa', icon: 'fa-wallet',               color: '#16a34a', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'Easypaisa app ya shop se transfer karein.' },
+      { key: 'sadapay',  name: 'SadaPay',    icon: 'fa-credit-card',          color: '#0ea5e9', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'SadaPay app se Raast / mobile number par bhejein.' },
+      { key: 'nayapay',  name: 'NayaPay',    icon: 'fa-bolt',                 color: '#7c3aed', account: 'Asim Rizwan',    number: '0328-1806910', note: 'NayaPay app se Raast / mobile number par bhejein.' }
     ],
     crypto: [
       { key: 'usdt_trc20', name: 'USDT (TRC20)', icon: 'fa-dollar-sign', color: '#26a17b', network: 'Tron / TRC20', address: 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', note: 'Lowest fees — recommended.' },
