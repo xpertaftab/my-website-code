@@ -12,7 +12,7 @@
   // ---- PAYMENT DETAILS (yahan apne asli numbers daal dena) ----
   window.PAYMENT_CONFIG = window.PAYMENT_CONFIG || {
     usdToPkr: 280,
-    whatsapp: '923281270900',
+    whatsapp: '923228824375',
     pk: [
       { key: 'jazzcash', name: 'JazzCash',   icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'JazzCash app se "Send Money" karein.' },
       { key: 'easypaisa', name: 'Easypaisa', icon: 'fa-wallet',               color: '#16a34a', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'Easypaisa app ya shop se transfer karein.' },
@@ -181,6 +181,17 @@
       '</span></div>';
   }
 
+  function waText() {
+    var it = CO.item || {};
+    var usd = priceNum(it.price);
+    var lines = ['Hi Vextro Lyntra! I want to buy:', '', 'Product: ' + (it.title || 'Order')];
+    if (usd) lines.push('Price: $' + usd + (CO.region === 'pk' ? ' (PKR ' + Math.round(usd * window.PAYMENT_CONFIG.usdToPkr).toLocaleString('en-US') + ')' : ''));
+    var m = (window.PAYMENT_CONFIG.pk.concat(window.PAYMENT_CONFIG.crypto)).filter(function (x) { return x.key === CO.method; })[0];
+    if (m) lines.push('Payment method: ' + m.name);
+    lines.push('', 'Please guide me with the payment.');
+    return lines.join('\n');
+  }
+
   function renderForm() {
     return '<div class="co-card">' +
       '<h3 class="co-card-title">2. Confirm your payment</h3>' +
@@ -194,7 +205,11 @@
       '</div>' +
       '<div id="coMsg" class="co-msg"></div>' +
       '<button class="co-submit" onclick="checkoutSubmit()"><i class="fa-solid fa-paper-plane"></i> Submit Payment Confirmation</button>' +
-      '<a class="co-wa" href="https://wa.me/' + window.PAYMENT_CONFIG.whatsapp + '?text=' + encodeURIComponent('Hi, I want to buy: ' + (CO.item.title || '')) + '" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Need help? Chat on WhatsApp</a>' +
+      '<a class="co-wa" href="https://wa.me/' + String(window.PAYMENT_CONFIG.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(waText()) + '" target="_blank" rel="noopener">' +
+        '<span class="co-wa-ic"><i class="fa-brands fa-whatsapp"></i></span>' +
+        '<span class="co-wa-tx"><strong>Need help? Chat on WhatsApp</strong><small>Usually replies within a few minutes</small></span>' +
+        '<i class="fa-solid fa-arrow-right co-wa-ar"></i>' +
+      '</a>' +
     '</div>';
   }
 
@@ -435,7 +450,13 @@
   '.co-msg.err{color:#dc2626;font-weight:600;}' +
   '.co-submit{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;padding:14px;border:none;border-radius:11px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-weight:800;font-size:.97rem;cursor:pointer;text-decoration:none;}' +
   '.co-ghost{padding:13px 18px;border-radius:11px;border:1px solid rgba(15,23,42,.15);background:#fff;color:#0f172a;font-weight:700;cursor:pointer;}' +
-  '.co-wa{display:block;text-align:center;margin-top:12px;color:#16a34a;font-weight:700;font-size:.87rem;text-decoration:none;}' +
+  '.co-wa{display:flex;align-items:center;gap:12px;margin-top:14px;padding:13px 16px;border-radius:14px;text-decoration:none;background:linear-gradient(135deg,rgba(37,211,102,.12),rgba(22,163,74,.08));border:1px solid rgba(22,163,74,.28);transition:transform .18s ease,box-shadow .18s ease,background .18s ease;}' +
+  '.co-wa:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,163,74,.22);background:linear-gradient(135deg,rgba(37,211,102,.2),rgba(22,163,74,.12));}' +
+  '.co-wa-ic{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 4px 12px rgba(37,211,102,.35);}' +
+  '.co-wa-tx{display:flex;flex-direction:column;line-height:1.3;}' +
+  '.co-wa-tx strong{color:#166534;font-size:.9rem;font-weight:800;}' +
+  '.co-wa-tx small{color:#15803d;font-size:.76rem;opacity:.85;}' +
+  '.co-wa-ar{margin-left:auto;color:#16a34a;font-size:.85rem;}' +
   '.co-item{display:flex;gap:12px;align-items:center;margin-bottom:14px;}' +
   '.co-item img,.co-item-ph{width:56px;height:56px;border-radius:11px;object-fit:cover;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#4f46e5;}' +
   '.co-item strong{display:block;color:#0f172a;font-size:.95rem;}' +
