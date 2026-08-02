@@ -1738,6 +1738,7 @@ function renderOrdersUI(container) {
 
     <div class="admin-panel-card">
       <div style="padding:18px 20px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        ${window.VLCurrency ? window.VLCurrency.selectHtml('vlCurAdminOrders') : ''}
         <input id="ordSearch" type="text" placeholder="Search order ID, buyer, email…" value="${f.search||''}"
           style="flex:1;min-width:200px;padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;outline:none;font-size:0.88rem;">
         <select id="ordStatusFilter" style="padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:600;font-size:0.85rem;">
@@ -3526,7 +3527,7 @@ async function renderAdminStatsNew(container) {
     orders.forEach(o => {
       if (o.paymentStatus !== 'paid') return;
       const k = o.service || 'Other';
-      revByService[k] = (revByService[k] || 0) + Number(o.amount||0);
+      revByService[k] = (revByService[k] || 0) + orderUsd(o);
     });
     const topServices = Object.entries(revByService).sort((a,b) => b[1] - a[1]).slice(0, 5);
     const maxSvc = topServices.length ? topServices[0][1] : 1;
@@ -3537,7 +3538,7 @@ async function renderAdminStatsNew(container) {
     orders.forEach(o => {
       if (o.paymentStatus !== 'paid' || !o.createdAt) return;
       const diff = Math.floor((now - o.createdAt) / day);
-      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += Number(o.amount||0);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += orderUsd(o);
     });
     const maxBucket = Math.max(1, ...buckets);
 
@@ -3569,6 +3570,7 @@ async function renderAdminStatsNew(container) {
           <p style="margin:6px 0 0;color:#64748b;font-size:0.9rem;">Yeh raha aapke platform ka full overview.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${window.VLCurrency ? window.VLCurrency.selectHtml('vlCurAdminDash') : ''}
           <button onclick="adminNewOrder()" style="padding:11px 20px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.85rem;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> New Order</button>
           <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:11px 20px;background:rgba(15,23,42,0.05);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:700;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-newspaper"></i> New Blog</button>
         </div>
@@ -3841,3 +3843,13 @@ window.adminShowFirestoreRules = async function() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 };
+
+
+// ---- Multi-currency: re-render the active admin view when the display currency changes
+window.addEventListener('vl:currency-change', function () {
+  try {
+    var active = document.querySelector('.admin-sidebar-item.active');
+    var view = active && active.getAttribute('data-view');
+    if (view && window.showAdminView) window.showAdminView(view, active);
+  } catch (e) {}
+});
