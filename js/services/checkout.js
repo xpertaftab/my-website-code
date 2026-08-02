@@ -375,11 +375,16 @@
       service: 'Digital Product',
       package: CO.item.title || '',
       productId: CO.item.id || '',
+      productImage: CO.item.image || '',
+      productCategory: CO.item.category || '',
+      priceUsd: usd,
       txn: txn,
       notes: note,
       proof: CO.file || '',
-      userId: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : null
+      userId: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : null,
+      userEmail: (window.auth && window.auth.currentUser) ? (window.auth.currentUser.email || '') : ''
     };
+
 
     if (msg) { msg.className = 'co-msg'; msg.innerText = 'Submitting…'; }
 
