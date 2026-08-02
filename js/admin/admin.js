@@ -1663,7 +1663,15 @@ function paymentStatusBadge(s) {
   const [cls, label] = map[s] || ['admin-badge-red', s || 'Unpaid'];
   return `<span class="admin-badge ${cls}">${label}</span>`;
 }
-function fmtMoney(n) { const v = Number(n||0); return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+function fmtMoney(n) {
+  // n is always a USD (base) amount — displayed in the admin's selected currency
+  if (window.VLCurrency) return window.VLCurrency.format(Number(n||0));
+  const v = Number(n||0); return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+}
+function orderUsd(o) {
+  if (window.VLCurrency) return window.VLCurrency.orderUsd(o);
+  return Number((o&&o.amount)||0);
+}
 function fmtDate(ts) { if (!ts) return '-'; try { return new Date(ts).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch(e) { return '-'; } }
 
 async function renderAdminOrdersNew(container) {
@@ -1683,8 +1691,8 @@ function renderOrdersUI(container) {
   let list = Object.values(map);
 
   // Stats
-  const totalRevenue = list.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
-  const pendingRevenue = list.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+  const totalRevenue = list.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
+  const pendingRevenue = list.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + orderUsd(o), 0);
   const countPending = list.filter(o => o.status === 'pending').length;
   const countProcessing = list.filter(o => o.status === 'processing').length;
   const countCompleted = list.filter(o => o.status === 'completed' || o.status === 'delivered').length;
@@ -1704,8 +1712,8 @@ function renderOrdersUI(container) {
   // Sort
   list.sort((a,b) => {
     if (f.sort === 'date-asc')   return (a.createdAt||0) - (b.createdAt||0);
-    if (f.sort === 'amount-desc') return Number(b.amount||0) - Number(a.amount||0);
-    if (f.sort === 'amount-asc')  return Number(a.amount||0) - Number(b.amount||0);
+    if (f.sort === 'amount-desc') return orderUsd(b) - orderUsd(a);
+    if (f.sort === 'amount-asc')  return orderUsd(a) - orderUsd(b);
     return (b.createdAt||0) - (a.createdAt||0); // date-desc default
   });
 
@@ -1730,6 +1738,7 @@ function renderOrdersUI(container) {
 
     <div class="admin-panel-card">
       <div style="padding:18px 20px;border-bottom:1px solid rgba(15,23,42,0.08);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        ${window.VLCurrency ? window.VLCurrency.selectHtml('vlCurAdminOrders') : ''}
         <input id="ordSearch" type="text" placeholder="Search order ID, buyer, email…" value="${f.search||''}"
           style="flex:1;min-width:200px;padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;outline:none;font-size:0.88rem;">
         <select id="ordStatusFilter" style="padding:10px 14px;background:#f8fafc;border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:600;font-size:0.85rem;">
@@ -1768,7 +1777,7 @@ function renderOrdersUI(container) {
                 <div style="font-size:0.78rem;color:#94a3b8;">${escapeHtml(o.buyerEmail||o.buyerPhone||'')}</div>
               </td>
               <td data-label="Service" style="font-size:0.85rem;">${escapeHtml(o.service||'-')}</td>
-              <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(o.amount)}</td>
+              <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(orderUsd(o))}</td>
               <td data-label="Status">${orderStatusBadge(o.status)}</td>
               <td data-label="Payment">${paymentStatusBadge(o.paymentStatus)}</td>
               <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">${fmtDate(o.createdAt)}</td>
@@ -3486,8 +3495,8 @@ async function renderAdminStatsNew(container) {
     const blogCount = blogsList.length;
 
     // ---- Metrics ----
-    const totalRevenue   = orders.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
-    const pendingRevenue = orders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+    const totalRevenue   = orders.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
+    const pendingRevenue = orders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + orderUsd(o), 0);
     const paidOrders     = orders.filter(o => o.paymentStatus === 'paid').length;
     const pendingOrders  = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
     const avgOrderValue  = paidOrders ? (totalRevenue / paidOrders) : 0;
@@ -3511,14 +3520,14 @@ async function renderAdminStatsNew(container) {
     const newUsers30d = users.filter(u => in30d(u.createdAt || u.joinedAt)).length;
     const orders7d    = orders.filter(o => in7d(o.createdAt)).length;
     const orders30d   = orders.filter(o => in30d(o.createdAt)).length;
-    const revenue30d  = orders.filter(o => in30d(o.createdAt) && o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
+    const revenue30d  = orders.filter(o => in30d(o.createdAt) && o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
 
     // Revenue by service (top breakdown)
     const revByService = {};
     orders.forEach(o => {
       if (o.paymentStatus !== 'paid') return;
       const k = o.service || 'Other';
-      revByService[k] = (revByService[k] || 0) + Number(o.amount||0);
+      revByService[k] = (revByService[k] || 0) + orderUsd(o);
     });
     const topServices = Object.entries(revByService).sort((a,b) => b[1] - a[1]).slice(0, 5);
     const maxSvc = topServices.length ? topServices[0][1] : 1;
@@ -3529,13 +3538,13 @@ async function renderAdminStatsNew(container) {
     orders.forEach(o => {
       if (o.paymentStatus !== 'paid' || !o.createdAt) return;
       const diff = Math.floor((now - o.createdAt) / day);
-      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += Number(o.amount||0);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff] += orderUsd(o);
     });
     const maxBucket = Math.max(1, ...buckets);
 
     // Recent activity feed
     const activity = [];
-    orders.forEach(o => activity.push({ ts: o.createdAt||0, icon: 'fa-receipt', color: '#ff6b35', text: `New order <b>#${(o.id||'').slice(0,6).toUpperCase()}</b> from ${escapeHtml(o.buyerName||'-')} — ${fmtMoney(o.amount)}` }));
+    orders.forEach(o => activity.push({ ts: o.createdAt||0, icon: 'fa-receipt', color: '#ff6b35', text: `New order <b>#${(o.id||'').slice(0,6).toUpperCase()}</b> from ${escapeHtml(o.buyerName||'-')} — ${fmtMoney(orderUsd(o))}` }));
     users.forEach(u => { if (u.createdAt || u.joinedAt) activity.push({ ts: u.createdAt||u.joinedAt, icon: 'fa-user-plus', color: '#3b82f6', text: `New user signup: <b>${escapeHtml(u.displayName||u.name||u.email||'User')}</b>` }); });
     contacts.forEach(c => activity.push({ ts: c.createdAt||c.timestamp||0, icon: 'fa-envelope', color: '#8b5cf6', text: `Message from <b>${escapeHtml(c.name||c.email||'Visitor')}</b>` }));
     const recent = activity.filter(a => a.ts).sort((a,b) => b.ts - a.ts).slice(0, 8);
@@ -3561,6 +3570,7 @@ async function renderAdminStatsNew(container) {
           <p style="margin:6px 0 0;color:#64748b;font-size:0.9rem;">Yeh raha aapke platform ka full overview.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${window.VLCurrency ? window.VLCurrency.selectHtml('vlCurAdminDash') : ''}
           <button onclick="adminNewOrder()" style="padding:11px 20px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-size:0.85rem;box-shadow:0 4px 12px rgba(255,107,53,0.3);"><i class="fa-solid fa-plus"></i> New Order</button>
           <button onclick="showAdminView('adminBlogs', document.querySelector('.admin-sidebar-item[data-view=\\'adminBlogs\\']'))" style="padding:11px 20px;background:rgba(15,23,42,0.05);border:1px solid rgba(15,23,42,0.12);border-radius:10px;color:#0f172a;font-weight:700;cursor:pointer;font-size:0.85rem;"><i class="fa-solid fa-newspaper"></i> New Blog</button>
         </div>
@@ -3833,3 +3843,13 @@ window.adminShowFirestoreRules = async function() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 };
+
+
+// ---- Multi-currency: re-render the active admin view when the display currency changes
+window.addEventListener('vl:currency-change', function () {
+  try {
+    var active = document.querySelector('.admin-sidebar-item.active');
+    var view = active && active.getAttribute('data-view');
+    if (view && window.showAdminView) window.showAdminView(view, active);
+  } catch (e) {}
+});

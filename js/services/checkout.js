@@ -64,12 +64,63 @@
     });
   }
 
+  // ---------- auth gate ----------
+  function isLoggedIn() {
+    return !!(window.auth && window.auth.currentUser);
+  }
+
+  function renderAuthGate(item) {
+    var page = ensureShell();
+    hideOtherPages();
+    page.style.display = 'block';
+    page.innerHTML =
+      '<div class="co-wrap"><div class="co-card co-done" style="text-align:center;">' +
+        '<div class="co-done-ic" style="background:linear-gradient(135deg,#f59e0b,#f97316);"><i class="fa-solid fa-lock"></i></div>' +
+        '<h2>Login required to continue</h2>' +
+        '<p style="margin-top:6px;">Aap <b>' + esc(item.title || 'this item') + '</b> khareedne ja rahe hain. Order ko aapke dashboard se track karne ke liye pehle login ya sign up karein.</p>' +
+        '<p style="font-size:0.85rem;color:#64748b;">Login karte hi aap seedha payment page par pohanch jayenge.</p>' +
+        '<div class="co-done-btns">' +
+          '<button class="co-submit" onclick="checkoutGoLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login / Sign Up</button>' +
+          '<button class="co-ghost" onclick="closeCheckout()">Back to shop</button>' +
+        '</div>' +
+      '</div></div>';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  window.checkoutGoLogin = function () {
+    var page = document.getElementById('checkoutPage');
+    if (page) page.style.display = 'none';
+    if (window.showPage) window.showPage('auth');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  // Resume checkout automatically once the user signs in
+  function watchAuthResume() {
+    if (!window.auth || !window.auth.onAuthStateChanged) return;
+    window.auth.onAuthStateChanged(function (user) {
+      if (!user || !CO.pending) return;
+      var item = CO.pending;
+      CO.pending = null;
+      setTimeout(function () { window.openCheckout(item); }, 200);
+    });
+  }
+  if (window.auth) watchAuthResume();
+  else document.addEventListener('DOMContentLoaded', watchAuthResume);
+
   // ---------- open ----------
   window.openCheckout = function (item) {
     CO.item = item || { title: 'Order', price: 0 };
     CO.region = 'pk';
     CO.method = null;
     CO.file = null;
+
+    if (!isLoggedIn()) {
+      CO.pending = CO.item;
+      renderAuthGate(CO.item);
+      try { history.pushState(null, null, '/checkout'); } catch (e) {}
+      return;
+    }
+
     var page = ensureShell();
     hideOtherPages();
     page.style.display = 'block';
@@ -77,6 +128,7 @@
     window.scrollTo({ top: 0, behavior: 'instant' });
     try { history.pushState(null, null, '/checkout'); } catch (e) {}
   };
+
 
   window.closeCheckout = function () {
     var page = document.getElementById('checkoutPage');
@@ -323,11 +375,16 @@
       service: 'Digital Product',
       package: CO.item.title || '',
       productId: CO.item.id || '',
+      productImage: CO.item.image || '',
+      productCategory: CO.item.category || '',
+      priceUsd: usd,
       txn: txn,
       notes: note,
       proof: CO.file || '',
-      userId: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : null
+      userId: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : null,
+      userEmail: (window.auth && window.auth.currentUser) ? (window.auth.currentUser.email || '') : ''
     };
+
 
     if (msg) { msg.className = 'co-msg'; msg.innerText = 'Submitting…'; }
 
