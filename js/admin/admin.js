@@ -1663,7 +1663,15 @@ function paymentStatusBadge(s) {
   const [cls, label] = map[s] || ['admin-badge-red', s || 'Unpaid'];
   return `<span class="admin-badge ${cls}">${label}</span>`;
 }
-function fmtMoney(n) { const v = Number(n||0); return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+function fmtMoney(n) {
+  // n is always a USD (base) amount — displayed in the admin's selected currency
+  if (window.VLCurrency) return window.VLCurrency.format(Number(n||0));
+  const v = Number(n||0); return '$' + v.toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+}
+function orderUsd(o) {
+  if (window.VLCurrency) return window.VLCurrency.orderUsd(o);
+  return Number((o&&o.amount)||0);
+}
 function fmtDate(ts) { if (!ts) return '-'; try { return new Date(ts).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch(e) { return '-'; } }
 
 async function renderAdminOrdersNew(container) {
@@ -1683,8 +1691,8 @@ function renderOrdersUI(container) {
   let list = Object.values(map);
 
   // Stats
-  const totalRevenue = list.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
-  const pendingRevenue = list.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+  const totalRevenue = list.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
+  const pendingRevenue = list.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + orderUsd(o), 0);
   const countPending = list.filter(o => o.status === 'pending').length;
   const countProcessing = list.filter(o => o.status === 'processing').length;
   const countCompleted = list.filter(o => o.status === 'completed' || o.status === 'delivered').length;
@@ -1704,8 +1712,8 @@ function renderOrdersUI(container) {
   // Sort
   list.sort((a,b) => {
     if (f.sort === 'date-asc')   return (a.createdAt||0) - (b.createdAt||0);
-    if (f.sort === 'amount-desc') return Number(b.amount||0) - Number(a.amount||0);
-    if (f.sort === 'amount-asc')  return Number(a.amount||0) - Number(b.amount||0);
+    if (f.sort === 'amount-desc') return orderUsd(b) - orderUsd(a);
+    if (f.sort === 'amount-asc')  return orderUsd(a) - orderUsd(b);
     return (b.createdAt||0) - (a.createdAt||0); // date-desc default
   });
 
@@ -1768,7 +1776,7 @@ function renderOrdersUI(container) {
                 <div style="font-size:0.78rem;color:#94a3b8;">${escapeHtml(o.buyerEmail||o.buyerPhone||'')}</div>
               </td>
               <td data-label="Service" style="font-size:0.85rem;">${escapeHtml(o.service||'-')}</td>
-              <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(o.amount)}</td>
+              <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(orderUsd(o))}</td>
               <td data-label="Status">${orderStatusBadge(o.status)}</td>
               <td data-label="Payment">${paymentStatusBadge(o.paymentStatus)}</td>
               <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">${fmtDate(o.createdAt)}</td>
@@ -3486,8 +3494,8 @@ async function renderAdminStatsNew(container) {
     const blogCount = blogsList.length;
 
     // ---- Metrics ----
-    const totalRevenue   = orders.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
-    const pendingRevenue = orders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + Number(o.amount||0), 0);
+    const totalRevenue   = orders.filter(o => o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
+    const pendingRevenue = orders.filter(o => o.paymentStatus !== 'paid' && o.status !== 'cancelled' && o.status !== 'refunded').reduce((s,o) => s + orderUsd(o), 0);
     const paidOrders     = orders.filter(o => o.paymentStatus === 'paid').length;
     const pendingOrders  = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
     const avgOrderValue  = paidOrders ? (totalRevenue / paidOrders) : 0;
@@ -3511,7 +3519,7 @@ async function renderAdminStatsNew(container) {
     const newUsers30d = users.filter(u => in30d(u.createdAt || u.joinedAt)).length;
     const orders7d    = orders.filter(o => in7d(o.createdAt)).length;
     const orders30d   = orders.filter(o => in30d(o.createdAt)).length;
-    const revenue30d  = orders.filter(o => in30d(o.createdAt) && o.paymentStatus === 'paid').reduce((s,o) => s + Number(o.amount||0), 0);
+    const revenue30d  = orders.filter(o => in30d(o.createdAt) && o.paymentStatus === 'paid').reduce((s,o) => s + orderUsd(o), 0);
 
     // Revenue by service (top breakdown)
     const revByService = {};
@@ -3535,7 +3543,7 @@ async function renderAdminStatsNew(container) {
 
     // Recent activity feed
     const activity = [];
-    orders.forEach(o => activity.push({ ts: o.createdAt||0, icon: 'fa-receipt', color: '#ff6b35', text: `New order <b>#${(o.id||'').slice(0,6).toUpperCase()}</b> from ${escapeHtml(o.buyerName||'-')} — ${fmtMoney(o.amount)}` }));
+    orders.forEach(o => activity.push({ ts: o.createdAt||0, icon: 'fa-receipt', color: '#ff6b35', text: `New order <b>#${(o.id||'').slice(0,6).toUpperCase()}</b> from ${escapeHtml(o.buyerName||'-')} — ${fmtMoney(orderUsd(o))}` }));
     users.forEach(u => { if (u.createdAt || u.joinedAt) activity.push({ ts: u.createdAt||u.joinedAt, icon: 'fa-user-plus', color: '#3b82f6', text: `New user signup: <b>${escapeHtml(u.displayName||u.name||u.email||'User')}</b>` }); });
     contacts.forEach(c => activity.push({ ts: c.createdAt||c.timestamp||0, icon: 'fa-envelope', color: '#8b5cf6', text: `Message from <b>${escapeHtml(c.name||c.email||'Visitor')}</b>` }));
     const recent = activity.filter(a => a.ts).sort((a,b) => b.ts - a.ts).slice(0, 8);
