@@ -458,4 +458,40 @@ window.fsLoadListingsHydrated = async function() {
   return window.hydrateListingsWithMedia(listings, media || {});
 };
 
+
+// Structured query: fetch docs from a collection where field == value.
+// Needed so a normal (non-admin) user can list only their own orders —
+// Firestore rules allow the list when the query itself is scoped.
+window.fsQueryWhere = async function(collectionName, field, value, limit) {
+  try {
+    const headers = await getFirestoreHeaders();
+    const body = {
+      structuredQuery: {
+        from: [{ collectionId: collectionName }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: field },
+            op: 'EQUAL',
+            value: typeof value === 'number'
+              ? (Number.isInteger(value) ? { integerValue: String(value) } : { doubleValue: value })
+              : { stringValue: String(value) }
+          }
+        },
+        limit: limit || 200
+      }
+    };
+    const res = await fetch(`${FB_BASE}:runQuery?key=${FB_API_KEY}`, {
+      method: 'POST', headers, body: JSON.stringify(body)
+    });
+    if (!res.ok) { console.warn('FS: query', collectionName, 'failed', res.status); return null; }
+    const rows = await res.json();
+    const out = [];
+    (Array.isArray(rows) ? rows : []).forEach(r => { if (r && r.document) out.push(docToObj(r.document)); });
+    return out;
+  } catch (e) {
+    console.warn('FS: query error', e.message);
+    return null;
+  }
+};
+
 console.log('Firestore REST API ready');
