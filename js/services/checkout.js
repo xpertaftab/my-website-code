@@ -422,6 +422,21 @@
 
     var page = document.getElementById('checkoutPage');
     if (!page) return;
+
+    var supportWa = String((window.PAYMENT_CONFIG && window.PAYMENT_CONFIG.supportWhatsapp) || '923281270900').replace(/\D/g, '');
+    var msg =
+      'Assalam-o-Alaikum! Maine abhi payment complete ki hai. Order details:\n\n' +
+      '🧾 Order ID: ' + (order.id || '-') + '\n' +
+      '📦 Product: ' + (order.package || order.service || '-') + '\n' +
+      '💰 Amount: ' + (order.currency || 'USD') + ' ' + (order.amount || '-') +
+        (order.amountPkr ? ' (~PKR ' + order.amountPkr + ')' : '') + '\n' +
+      '💳 Payment method: ' + (order.paymentMethod || '-') + ' (' + (order.paymentRegion === 'pk' ? 'Pakistan' : (order.paymentRegion || '-')) + ')\n' +
+      '🔢 Transaction ID: ' + (order.txn || '-') + '\n' +
+      '👤 Name: ' + (order.buyerName || '-') + '\n' +
+      '📧 Email: ' + (order.buyerEmail || '-') + '\n' +
+      '📱 Phone: ' + (order.buyerPhone || '-') + '\n\n' +
+      'Payment screenshot bhi bhej raha/rahi hoon. Please verify aur delivery confirm kar dein. Shukriya!';
+
     page.innerHTML =
       '<div class="co-wrap"><div class="co-card co-done">' +
         '<div class="co-done-ic"><i class="fa-solid fa-circle-check"></i></div>' +
@@ -429,11 +444,12 @@
         '<p>Order ID: <code>' + esc(order.id) + '</code></p>' +
         '<p>Hum aapki payment verify kar rahe hain. Verification ke baad 2–12 hours me delivery aapke email <b>' + esc(order.buyerEmail) + '</b> par ho jayegi.</p>' +
         '<div class="co-done-btns">' +
-          '<a class="co-submit" href="https://wa.me/' + window.PAYMENT_CONFIG.whatsapp + '?text=' + encodeURIComponent('Hi, my order ID is ' + order.id) + '" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Send us the receipt</a>' +
+          '<a class="co-submit" href="https://wa.me/' + supportWa + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Send us the receipt</a>' +
           '<button class="co-ghost" onclick="closeCheckout()">Continue shopping</button>' +
         '</div>' +
       '</div></div>';
     window.scrollTo({ top: 0, behavior: 'instant' });
+
   }
 
   // ---------- hook Buy Now ----------
