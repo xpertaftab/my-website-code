@@ -331,24 +331,57 @@ function skeleton(){
 }
 
 /* ---------------- HOME ---------------- */
+var SERVICES = [
+  {t:'Web Development', i:'fa-code',        k:'#2563eb', u:'#/service/web'},
+  {t:'SaaS / Software',  i:'fa-layer-group', k:'#7c3aed', u:'#/service/software'},
+  {t:'AI Automation',    i:'fa-robot',       k:'#0ea5e9', u:'#/service/ai'},
+  {t:'SEO',              i:'fa-chart-line',  k:'#16a34a', u:'#/service/seo'},
+  {t:'Google & Meta Ads',i:'fa-bullhorn',    k:'#f97316', u:'#/service/google-ads'},
+  {t:'Graphic Design',   i:'fa-palette',     k:'#ec4899', u:'#/service/graphic'}
+];
 function viewHome(){
   var pop = S.products.filter(function(p){ return p.isPopular; });
   var list = (pop.length?pop:S.products).slice(0,6);
   var latest = S.products.slice().sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0)}).slice(0,4);
   var blogs = S.blogs.slice(0,3);
+  var cats = Array.from(new Set(S.products.map(function(p){return p.category}).filter(Boolean))).slice(0,8);
   return ''+
+  '<div class="wrap" style="padding-top:10px">'+
+    '<div class="searchbar" onclick="openSearch()"><i class="fa-solid fa-magnifying-glass"></i><span>Search products, tools, blogs…</span></div>'+
+  '</div>'+
   '<div class="hero">'+
-    '<h1>Premium digital products,<br>built to perform.</h1>'+
+    '<span class="hpill"><i class="fa-solid fa-bolt"></i> Trusted by 100+ clients</span>'+
+    '<h1>Premium digital products, built to perform.</h1>'+
     '<p>Websites, SaaS, AI automation, SEO, ads &amp; design — plus a marketplace of ready-made digital assets.</p>'+
-    '<button class="btn" onclick="go(\'shop\')"><i class="fa-solid fa-bag-shopping"></i> Browse Shop</button>'+
+    '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
+      '<button class="btn" onclick="go(\'shop\')"><i class="fa-solid fa-bag-shopping"></i> Browse Shop</button>'+
+      '<button class="btn hollow" onclick="waOpen(\'Assalam o Alaikum! Mujhe project ka quote chahiye.\')"><i class="fa-brands fa-whatsapp"></i> Get a quote</button>'+
+    '</div>'+
   '</div>'+
   '<div class="wrap">'+
-    '<div class="grid3">'+
+    '<div class="trust">'+
+      '<div><i class="fa-solid fa-shield-halved"></i>Safe payment</div>'+
+      '<div><i class="fa-solid fa-clock"></i>24h delivery</div>'+
+      '<div><i class="fa-solid fa-headset"></i>Free support</div>'+
+    '</div>'+
+    '<div class="sec-h"><h2>Our Services</h2></div>'+
+    '<div class="qgrid">'+ SERVICES.map(function(s){
+      return '<div class="q" onclick="openWeb(\''+s.u+'\')"><i class="fa-solid '+s.i+'" style="background:'+s.k+'1f;color:'+s.k+'"></i><b>'+esc(s.t)+'</b></div>';
+    }).join('') +'</div>'+
+    (cats.length ? '<div class="sec-h"><h2>Shop by Category</h2><span onclick="go(\'shop\')">See all</span></div>'+
+      '<div class="scroll-x" style="padding-left:0;padding-right:0">'+cats.map(function(c){
+        return '<button class="chip" onclick="go(\'shop\');setCat(\''+esc(c)+'\')">'+esc(c)+'</button>';
+      }).join('')+'</div>' : '')+
+    '<div class="grid3" style="margin-top:14px">'+
       stat('fa-box','' + S.products.length, 'Products') +
       stat('fa-store','' + S.listings.length, 'Listings') +
       stat('fa-newspaper','' + S.blogs.length, 'Articles') +
     '</div>'+
     (list.length ? '<div class="sec-h"><h2>Popular Products</h2><span onclick="go(\'shop\')">See all</span></div><div class="grid2">'+list.map(pcard).join('')+'</div>' : '')+
+    '<div class="promo" onclick="go(\'market\')">'+
+      '<div><b>Marketplace</b><small>Ready-made websites, scripts &amp; digital assets</small></div>'+
+      '<i class="fa-solid fa-arrow-right"></i>'+
+    '</div>'+
     (latest.length ? '<div class="sec-h"><h2>New Arrivals</h2></div><div class="grid2">'+latest.map(pcard).join('')+'</div>' : '')+
     (blogs.length ? '<div class="sec-h"><h2>Latest from Blog</h2></div>'+blogs.map(bcard).join('') : '')+
     '<div class="sec-h"><h2>Need a custom project?</h2></div>'+
@@ -363,6 +396,7 @@ function stat(ic,n,l){
   return '<div class="card" style="padding:14px 8px;text-align:center"><i class="fa-solid '+ic+'" style="color:var(--pri);font-size:16px"></i>'+
     '<div style="font-size:19px;font-weight:900;margin-top:6px">'+esc(n)+'</div><div style="font-size:11px;color:var(--mut)">'+l+'</div></div>';
 }
+
 function pcard(p){
   var img = abs((p.gallery&&p.gallery[0])||p.image||'');
   var old = Number(p.oldPrice)||0;
