@@ -2814,22 +2814,10 @@ window.openProduct = function(id) {
         
         const thumbContainer = document.getElementById('pdThumbnailsContainer');
         if (thumbContainer) {
-            thumbContainer.innerHTML = '';
             const gallery = (p.gallery && p.gallery.length > 0) ? p.gallery : [p.image];
-            gallery.forEach((imgSrc, idx) => {
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                img.alt = 'Thumb';
-                img.style.cursor = 'pointer';
-                if (idx === 0) img.className = 'active';
-                img.onclick = () => {
-                    document.getElementById('pdHeroImage').src = imgSrc;
-                    Array.from(thumbContainer.children).forEach(c => c.classList.remove('active'));
-                    img.classList.add('active');
-                };
-                thumbContainer.appendChild(img);
-            });
+            renderPdThumbs(thumbContainer, gallery);
         }
+
         
         if(document.getElementById('pdCategory')) document.getElementById('pdCategory').innerText = p.category;
         if(document.getElementById('pdTitle')) document.getElementById('pdTitle').innerText = p.title;
