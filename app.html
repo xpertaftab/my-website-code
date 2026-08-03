@@ -386,7 +386,7 @@ function viewHome(){
     '</div>'+
     '<div class="sec-h"><h2>Our Services</h2></div>'+
     '<div class="qgrid">'+ SERVICES.map(function(s){
-      return '<div class="q" onclick="openWeb(\''+s.u+'\')"><i class="fa-solid '+s.i+'" style="background:'+s.k+'1f;color:'+s.k+'"></i><b>'+esc(s.t)+'</b></div>';
+      return '<div class="q" onclick="openWeb(\''+SITE+s.u+'\')"><i class="fa-solid '+s.i+'" style="background:'+s.k+'1f;color:'+s.k+'"></i><b>'+esc(s.t)+'</b></div>';
     }).join('') +'</div>'+
     (cats.length ? '<div class="sec-h"><h2>Shop by Category</h2><span onclick="go(\'shop\')">See all</span></div>'+
       '<div class="scroll-x" style="padding-left:0;padding-right:0">'+cats.map(function(c){
