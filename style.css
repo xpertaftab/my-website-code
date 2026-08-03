@@ -7285,10 +7285,20 @@ input:focus, textarea:focus {
     color: #94a3b8;
     letter-spacing: 0.5px;
 }
-@media (max-width: 640px) {
-    .pd-thumbs-wrap .pd-th-track { gap: 8px; }
-    .pd-th-nav { width: 28px; height: 28px; }
+.pd-gallery { min-width: 0; max-width: 100%; }
+.pd-thumbnails.pd-thumbs-wrap { max-width: 100%; overflow: hidden; }
+.pd-thumbs-wrap .pd-th-track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+@media (max-width: 640px) {
+    .pd-thumbnails.pd-thumbs-wrap { gap: 6px; padding-bottom: 20px; }
+    .pd-thumbs-wrap .pd-th-track { gap: 6px; }
+    .pd-thumbs-wrap .pd-th-track img { max-width: none; width: 100%; border-radius: 6px; }
+    .pd-th-nav { width: 26px; height: 26px; font-size: 0.7rem; }
+    .pd-th-count { font-size: 0.65rem; }
+}
+
 
 
 /* RIGHT INFO */
@@ -8669,4 +8679,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #6366f1, #0ea5e9);
     color: #fff;
+}
+
+/* Product hero image: keep aspect ratio consistent on mobile */
+@media (max-width: 640px) {
+    .pd-main-image-wrapper img { aspect-ratio: 4 / 3; object-fit: cover; }
 }
