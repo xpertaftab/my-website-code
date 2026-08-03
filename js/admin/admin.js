@@ -1949,7 +1949,30 @@ window.adminSaveOrder = async function(id, isNew) {
   if (content) renderAdminOrdersNew(content);
 };
 
+window.adminViewProof = function(id) {
+  const o = (window.__adminOrdersCache || {})[id];
+  if (!o || !o.proof) { alert('No payment screenshot for this order'); return; }
+  let ov = document.getElementById('vlProofLightbox');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'vlProofLightbox';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,0.88);display:flex;align-items:center;justify-content:center;padding:24px;';
+  ov.innerHTML =
+    '<div style="max-width:min(920px,96vw);max-height:92vh;display:flex;flex-direction:column;gap:12px;">' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#fff;font-weight:700;">' +
+        '<span>Payment proof — #' + escapeHtml((o.id||'').slice(0,8).toUpperCase()) + '</span>' +
+        '<span style="opacity:.75;font-weight:600;font-size:0.85rem;">TxID: ' + escapeHtml(o.txn||'—') + '</span>' +
+        '<a href="' + escapeHtml(o.proof) + '" download="proof-' + escapeHtml(o.id) + '.jpg" style="margin-left:auto;background:#10b981;color:#fff;padding:8px 14px;border-radius:9px;text-decoration:none;font-size:0.82rem;">Download</a>' +
+        '<button onclick="document.getElementById(\'vlProofLightbox\').remove()" style="background:#ef4444;color:#fff;border:none;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;font-size:0.82rem;">Close</button>' +
+      '</div>' +
+      '<img src="' + escapeHtml(o.proof) + '" alt="Payment proof" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:12px;background:#fff;">' +
+    '</div>';
+  ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+  document.body.appendChild(ov);
+};
+
 window.adminDeleteOrder = async function(id) {
+
   if (!confirm('Delete this order permanently?')) return;
   await deleteOrder(id);
   const content = document.getElementById('adminContent');
