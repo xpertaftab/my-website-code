@@ -2801,7 +2801,59 @@ function formatProductDescriptionHtml(description) {
 }
 window.formatProductDescriptionHtml = formatProductDescriptionHtml;
 
+// --- Product gallery thumbnails: max 4 visible, prev/next paging ---
+function renderPdThumbs(container, gallery) {
+    const PER = 4;
+    let page = 0, active = 0;
+    const pages = Math.max(1, Math.ceil(gallery.length / PER));
+
+    container.classList.add('pd-thumbs-wrap');
+    container.innerHTML =
+        '<button type="button" class="pd-th-nav" data-dir="-1" aria-label="Previous images"><i class="fa-solid fa-chevron-left"></i></button>' +
+        '<div class="pd-th-track"></div>' +
+        '<button type="button" class="pd-th-nav" data-dir="1" aria-label="Next images"><i class="fa-solid fa-chevron-right"></i></button>' +
+        '<div class="pd-th-count"></div>';
+
+    const track = container.querySelector('.pd-th-track');
+    const navs = container.querySelectorAll('.pd-th-nav');
+    const count = container.querySelector('.pd-th-count');
+
+    function paint() {
+        track.innerHTML = '';
+        gallery.slice(page * PER, page * PER + PER).forEach((src, i) => {
+            const idx = page * PER + i;
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = 'Product image ' + (idx + 1);
+            img.loading = 'lazy';
+            if (idx === active) img.className = 'active';
+            img.onclick = () => {
+                const hero = document.getElementById('pdHeroImage');
+                if (hero) hero.src = src;
+                active = idx;
+                paint();
+            };
+            track.appendChild(img);
+        });
+        navs.forEach(b => {
+            b.style.display = pages > 1 ? 'flex' : 'none';
+            b.disabled = (b.dataset.dir === '-1') ? page === 0 : page >= pages - 1;
+        });
+        count.style.display = gallery.length > PER ? 'block' : 'none';
+        count.textContent = (active + 1) + ' / ' + gallery.length;
+    }
+
+    navs.forEach(b => b.addEventListener('click', () => {
+        page = Math.min(pages - 1, Math.max(0, page + Number(b.dataset.dir)));
+        paint();
+    }));
+
+    paint();
+}
+window.renderPdThumbs = renderPdThumbs;
+
 window.openProduct = function(id) {
+
     const p = window.PRODUCTS_DATA ? window.PRODUCTS_DATA[id] : null;
     if (!p) return;
     currentProductId = id;
@@ -2814,22 +2866,10 @@ window.openProduct = function(id) {
         
         const thumbContainer = document.getElementById('pdThumbnailsContainer');
         if (thumbContainer) {
-            thumbContainer.innerHTML = '';
             const gallery = (p.gallery && p.gallery.length > 0) ? p.gallery : [p.image];
-            gallery.forEach((imgSrc, idx) => {
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                img.alt = 'Thumb';
-                img.style.cursor = 'pointer';
-                if (idx === 0) img.className = 'active';
-                img.onclick = () => {
-                    document.getElementById('pdHeroImage').src = imgSrc;
-                    Array.from(thumbContainer.children).forEach(c => c.classList.remove('active'));
-                    img.classList.add('active');
-                };
-                thumbContainer.appendChild(img);
-            });
+            renderPdThumbs(thumbContainer, gallery);
         }
+
         
         if(document.getElementById('pdCategory')) document.getElementById('pdCategory').innerText = p.category;
         if(document.getElementById('pdTitle')) document.getElementById('pdTitle').innerText = p.title;
