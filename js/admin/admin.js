@@ -1768,7 +1768,7 @@ function renderOrdersUI(container) {
           ${Object.keys(map).length === 0 ? `<button onclick="adminNewOrder()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Order</button>` : ''}
         </div>` : `
         <table class="admin-table">
-          <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
+          <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Proof</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
           <tbody>${list.map(o => `
             <tr>
               <td data-label="Order" style="font-weight:800;color:#ff6b35;">#${(o.id||'').slice(0,8).toUpperCase()}</td>
@@ -1780,6 +1780,10 @@ function renderOrdersUI(container) {
               <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(orderUsd(o))}</td>
               <td data-label="Status">${orderStatusBadge(o.status)}</td>
               <td data-label="Payment">${paymentStatusBadge(o.paymentStatus)}</td>
+              <td data-label="Proof">${o.proof
+                ? `<img src="${escapeHtml(o.proof)}" alt="Payment proof" onclick="adminViewProof('${o.id}')" title="Click to view full size" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid rgba(15,23,42,0.12);cursor:zoom-in;">`
+                : `<span style="font-size:0.75rem;color:#cbd5e1;font-weight:700;">—</span>`}</td>
+
               <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">${fmtDate(o.createdAt)}</td>
               <td data-label="Actions" style="text-align:right;">
                 <div style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
@@ -1875,6 +1879,21 @@ function openOrderForm(existing) {
       <div><label style="${lbl}">Transaction / Reference #</label><input id="of_txn" style="${inp}" value="${escapeHtml(o.txn||'')}"></div>
     </div>
 
+    <div style="margin-bottom:16px;padding:14px;border:1px solid rgba(15,23,42,0.10);border-radius:12px;background:#f8fafc;">
+      <label style="${lbl}">Payment Proof (screenshot uploaded by buyer)</label>
+      ${o.proof ? `
+        <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+          <img src="${escapeHtml(o.proof)}" alt="Payment proof" onclick="adminViewProof('${o.id}')"
+            style="width:150px;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid rgba(15,23,42,0.12);cursor:zoom-in;">
+          <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px;">
+            <button onclick="adminViewProof('${o.id}')" style="padding:9px 14px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);border-radius:9px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-magnifying-glass-plus"></i> View full size</button>
+            <a href="${escapeHtml(o.proof)}" download="proof-${escapeHtml(o.id)}.jpg" style="padding:9px 14px;background:rgba(16,185,129,0.1);color:#059669;border:1px solid rgba(16,185,129,0.25);border-radius:9px;font-weight:700;text-decoration:none;text-align:center;"><i class="fa-solid fa-download"></i> Download</a>
+            <div style="font-size:0.78rem;color:#64748b;">Ref / TxID: <b>${escapeHtml(o.txn||'—')}</b></div>
+          </div>
+        </div>` : `<div style="color:#94a3b8;font-size:0.85rem;font-weight:600;"><i class="fa-solid fa-image"></i> No screenshot uploaded for this order.</div>`}
+    </div>
+
+
     <div style="margin-bottom:14px;">
       <label style="${lbl}">Deliverables / Scope</label>
       <textarea id="of_deliverables" rows="3" style="${inp};resize:vertical;">${escapeHtml(o.deliverables||'')}</textarea>
@@ -1930,7 +1949,30 @@ window.adminSaveOrder = async function(id, isNew) {
   if (content) renderAdminOrdersNew(content);
 };
 
+window.adminViewProof = function(id) {
+  const o = (window.__adminOrdersCache || {})[id];
+  if (!o || !o.proof) { alert('No payment screenshot for this order'); return; }
+  let ov = document.getElementById('vlProofLightbox');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'vlProofLightbox';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,0.88);display:flex;align-items:center;justify-content:center;padding:24px;';
+  ov.innerHTML =
+    '<div style="max-width:min(920px,96vw);max-height:92vh;display:flex;flex-direction:column;gap:12px;">' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#fff;font-weight:700;">' +
+        '<span>Payment proof — #' + escapeHtml((o.id||'').slice(0,8).toUpperCase()) + '</span>' +
+        '<span style="opacity:.75;font-weight:600;font-size:0.85rem;">TxID: ' + escapeHtml(o.txn||'—') + '</span>' +
+        '<a href="' + escapeHtml(o.proof) + '" download="proof-' + escapeHtml(o.id) + '.jpg" style="margin-left:auto;background:#10b981;color:#fff;padding:8px 14px;border-radius:9px;text-decoration:none;font-size:0.82rem;">Download</a>' +
+        '<button onclick="document.getElementById(\'vlProofLightbox\').remove()" style="background:#ef4444;color:#fff;border:none;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;font-size:0.82rem;">Close</button>' +
+      '</div>' +
+      '<img src="' + escapeHtml(o.proof) + '" alt="Payment proof" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:12px;background:#fff;">' +
+    '</div>';
+  ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+  document.body.appendChild(ov);
+};
+
 window.adminDeleteOrder = async function(id) {
+
   if (!confirm('Delete this order permanently?')) return;
   await deleteOrder(id);
   const content = document.getElementById('adminContent');
