@@ -1877,25 +1877,78 @@ document.addEventListener('click', function(e) {
 });
 
 
-// Google Pop-up Provider Sign In handler
+// Google Sign In handler — popup, with automatic redirect fallback
+function vlGoogleErrorMsg(error) {
+    const code = (error && error.code) || '';
+    switch (code) {
+        case 'auth/unauthorized-domain':
+            return "This website domain is not authorized in Firebase. Firebase Console → Authentication → Settings → Authorized domains me '" + location.hostname + "' add karein.";
+        case 'auth/operation-not-allowed':
+            return "Google sign-in Firebase me enabled nahi hai. Firebase Console → Authentication → Sign-in method → Google ko enable karein.";
+        case 'auth/popup-blocked':
+            return "Browser ne popup block kiya. Redirect se try kar rahe hain…";
+        case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
+            return "Sign-in window band ho gayi. Dobara try karein.";
+        case 'auth/network-request-failed':
+            return "Network problem. Internet check karke dobara try karein.";
+        default:
+            return (error && error.message) || 'Google sign-in failed.';
+    }
+}
+
 async function handleGoogleSignIn() {
     showAuthAlert('', 'hide');
-    if (typeof window.auth === 'undefined') {
-        showAuthAlert("Firebase is not fully loaded. Check network connection.");
+    if (typeof firebase === 'undefined' || typeof window.auth === 'undefined') {
+        showAuthAlert("Firebase is not fully loaded. Check network connection.", "danger");
         return;
     }
-    
+
     const provider = new firebase.auth.GoogleAuthProvider();
-    
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     try {
         await window.auth.signInWithPopup(provider);
         showAuthAlert("Google Login Successful!", "success");
         setTimeout(() => { showPage('home'); }, 1000);
     } catch (error) {
-        console.error("Google Auth Exception: ", error);
-        showAuthAlert(error.message, "danger");
+        console.error("Google Auth Exception: ", error && error.code, error);
+        const code = (error && error.code) || '';
+        // Popup blocked / not supported (in-app browsers, iOS, strict blockers) → redirect flow
+        if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment' || code === 'auth/internal-error') {
+            try {
+                sessionStorage.setItem('vl_google_redirect', '1');
+                await window.auth.signInWithRedirect(provider);
+                return;
+            } catch (e2) {
+                showAuthAlert(vlGoogleErrorMsg(e2), "danger");
+                return;
+            }
+        }
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+        showAuthAlert(vlGoogleErrorMsg(error), "danger");
     }
 }
+
+// Handle result when we came back from the redirect flow
+(function vlHandleGoogleRedirect() {
+    function run() {
+        if (!window.auth || !window.auth.getRedirectResult) return;
+        window.auth.getRedirectResult().then(function(result) {
+            if (result && result.user) {
+                sessionStorage.removeItem('vl_google_redirect');
+                if (typeof showAuthAlert === 'function') showAuthAlert("Google Login Successful!", "success");
+            }
+        }).catch(function(error) {
+            sessionStorage.removeItem('vl_google_redirect');
+            console.error("Google Redirect Exception: ", error && error.code, error);
+            if (typeof showAuthAlert === 'function') showAuthAlert(vlGoogleErrorMsg(error), "danger");
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else run();
+})();
+
 
 // Forgot Password link handler
 async function handleForgotPassword() {
