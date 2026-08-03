@@ -1,5 +1,12 @@
 RewriteEngine On
 
+# ── Mobile app shell (app.html) is NOT part of the website ──────────────
+# It only runs inside the installed Android/iOS app (Capacitor loads it
+# locally from the APK). Any direct browser hit is bounced to the homepage
+# so the app code never shows up on vextrolyntra.online.
+RewriteCond %{REQUEST_URI} ^/app\.html$ [NC]
+RewriteRule ^ / [R=302,L]
+
 # Serve existing files and folders normally.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
