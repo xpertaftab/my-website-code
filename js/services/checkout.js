@@ -13,6 +13,7 @@
   window.PAYMENT_CONFIG = window.PAYMENT_CONFIG || {
     usdToPkr: 280,
     whatsapp: '923228824375',
+    supportWhatsapp: '923281270900',
     pk: [
       { key: 'jazzcash', name: 'JazzCash',   icon: 'fa-mobile-screen-button', color: '#e11d48', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'JazzCash app se "Send Money" karein.' },
       { key: 'easypaisa', name: 'Easypaisa', icon: 'fa-wallet',               color: '#16a34a', account: 'Zeenat Mushtaq', number: '0322-8824375', note: 'Easypaisa app ya shop se transfer karein.' },
