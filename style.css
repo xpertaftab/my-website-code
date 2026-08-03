@@ -8680,3 +8680,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
     background: linear-gradient(135deg, #6366f1, #0ea5e9);
     color: #fff;
 }
+
+/* Product hero image: keep aspect ratio consistent on mobile */
+@media (max-width: 640px) {
+    .pd-main-image-wrapper img { aspect-ratio: 4 / 3; object-fit: cover; }
+}
