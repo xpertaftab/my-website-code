@@ -1768,7 +1768,7 @@ function renderOrdersUI(container) {
           ${Object.keys(map).length === 0 ? `<button onclick="adminNewOrder()" style="margin-top:16px;padding:10px 22px;background:#ff6b35;border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;">+ Add First Order</button>` : ''}
         </div>` : `
         <table class="admin-table">
-          <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
+          <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Proof</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
           <tbody>${list.map(o => `
             <tr>
               <td data-label="Order" style="font-weight:800;color:#ff6b35;">#${(o.id||'').slice(0,8).toUpperCase()}</td>
@@ -1780,6 +1780,10 @@ function renderOrdersUI(container) {
               <td data-label="Amount" style="font-weight:700;color:#0f172a;">${fmtMoney(orderUsd(o))}</td>
               <td data-label="Status">${orderStatusBadge(o.status)}</td>
               <td data-label="Payment">${paymentStatusBadge(o.paymentStatus)}</td>
+              <td data-label="Proof">${o.proof
+                ? `<img src="${escapeHtml(o.proof)}" alt="Payment proof" onclick="adminViewProof('${o.id}')" title="Click to view full size" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid rgba(15,23,42,0.12);cursor:zoom-in;">`
+                : `<span style="font-size:0.75rem;color:#cbd5e1;font-weight:700;">—</span>`}</td>
+
               <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">${fmtDate(o.createdAt)}</td>
               <td data-label="Actions" style="text-align:right;">
                 <div style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
