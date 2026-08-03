@@ -1875,6 +1875,21 @@ function openOrderForm(existing) {
       <div><label style="${lbl}">Transaction / Reference #</label><input id="of_txn" style="${inp}" value="${escapeHtml(o.txn||'')}"></div>
     </div>
 
+    <div style="margin-bottom:16px;padding:14px;border:1px solid rgba(15,23,42,0.10);border-radius:12px;background:#f8fafc;">
+      <label style="${lbl}">Payment Proof (screenshot uploaded by buyer)</label>
+      ${o.proof ? `
+        <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+          <img src="${escapeHtml(o.proof)}" alt="Payment proof" onclick="adminViewProof('${o.id}')"
+            style="width:150px;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid rgba(15,23,42,0.12);cursor:zoom-in;">
+          <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px;">
+            <button onclick="adminViewProof('${o.id}')" style="padding:9px 14px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.25);border-radius:9px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-magnifying-glass-plus"></i> View full size</button>
+            <a href="${escapeHtml(o.proof)}" download="proof-${escapeHtml(o.id)}.jpg" style="padding:9px 14px;background:rgba(16,185,129,0.1);color:#059669;border:1px solid rgba(16,185,129,0.25);border-radius:9px;font-weight:700;text-decoration:none;text-align:center;"><i class="fa-solid fa-download"></i> Download</a>
+            <div style="font-size:0.78rem;color:#64748b;">Ref / TxID: <b>${escapeHtml(o.txn||'—')}</b></div>
+          </div>
+        </div>` : `<div style="color:#94a3b8;font-size:0.85rem;font-weight:600;"><i class="fa-solid fa-image"></i> No screenshot uploaded for this order.</div>`}
+    </div>
+
+
     <div style="margin-bottom:14px;">
       <label style="${lbl}">Deliverables / Scope</label>
       <textarea id="of_deliverables" rows="3" style="${inp};resize:vertical;">${escapeHtml(o.deliverables||'')}</textarea>
