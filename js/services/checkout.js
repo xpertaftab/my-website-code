@@ -361,7 +361,7 @@
     var usd = priceNum(CO.item.price);
     var pkr = Math.round(usd * window.PAYMENT_CONFIG.usdToPkr);
     var order = {
-      id: 'ord_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      id: (window.vlNewOrderId ? window.vlNewOrderId() : 'VL-' + Date.now().toString(36).toUpperCase()),
       createdAt: Date.now(),
       status: 'pending',
       paymentStatus: 'unpaid',
