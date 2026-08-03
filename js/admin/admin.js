@@ -1771,7 +1771,7 @@ function renderOrdersUI(container) {
           <thead><tr><th>Order</th><th>Buyer</th><th>Service</th><th>Amount</th><th>Status</th><th>Payment</th><th>Proof</th><th>Date</th><th style="text-align:right;">Actions</th></tr></thead>
           <tbody>${list.map(o => `
             <tr>
-              <td data-label="Order" style="font-weight:800;color:#ff6b35;">#${(o.id||'').slice(0,8).toUpperCase()}</td>
+              <td data-label="Order" style="font-weight:800;color:#ff6b35;">${window.vlOrderNo ? window.vlOrderNo(o) : (o.id||'')}</td>
               <td data-label="Buyer">
                 <div style="font-weight:600;color:#0f172a;">${escapeHtml(o.buyerName||'-')}</div>
                 <div style="font-size:0.78rem;color:#94a3b8;">${escapeHtml(o.buyerEmail||o.buyerPhone||'')}</div>
@@ -1818,7 +1818,7 @@ window.adminViewOrder = function(id) { openOrderForm(window.__adminOrdersCache[i
 
 function openOrderForm(existing) {
   const o = existing || {
-    id: 'ord_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    id: (window.vlNewOrderId ? window.vlNewOrderId() : 'VL-' + Date.now().toString(36).toUpperCase()),
     createdAt: Date.now(),
     status: 'pending',
     paymentStatus: 'unpaid',
@@ -1835,7 +1835,7 @@ function openOrderForm(existing) {
   const html = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(15,23,42,0.08);padding-bottom:14px;">
       <div>
-        <h3 style="margin:0;font-size:1.3rem;color:#0f172a;">${isNew ? 'New Order' : 'Order #' + (o.id||'').slice(0,8).toUpperCase()}</h3>
+        <h3 style="margin:0;font-size:1.3rem;color:#0f172a;">${isNew ? 'New Order' : 'Order ' + (window.vlOrderNo ? window.vlOrderNo(o) : (o.id||''))}</h3>
         <div style="font-size:0.78rem;color:#94a3b8;margin-top:4px;">${fmtDate(o.createdAt)}</div>
       </div>
       <button onclick="closeAdminOverlay()" style="background:transparent;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">&times;</button>
@@ -1960,7 +1960,7 @@ window.adminViewProof = function(id) {
   ov.innerHTML =
     '<div style="max-width:min(920px,96vw);max-height:92vh;display:flex;flex-direction:column;gap:12px;">' +
       '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#fff;font-weight:700;">' +
-        '<span>Payment proof — #' + escapeHtml((o.id||'').slice(0,8).toUpperCase()) + '</span>' +
+        '<span>Payment proof — ' + escapeHtml(window.vlOrderNo ? window.vlOrderNo(o) : (o.id||'')) + '</span>' +
         '<span style="opacity:.75;font-weight:600;font-size:0.85rem;">TxID: ' + escapeHtml(o.txn||'—') + '</span>' +
         '<a href="' + escapeHtml(o.proof) + '" download="proof-' + escapeHtml(o.id) + '.jpg" style="margin-left:auto;background:#10b981;color:#fff;padding:8px 14px;border-radius:9px;text-decoration:none;font-size:0.82rem;">Download</a>' +
         '<button onclick="document.getElementById(\'vlProofLightbox\').remove()" style="background:#ef4444;color:#fff;border:none;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;font-size:0.82rem;">Close</button>' +
@@ -2024,7 +2024,7 @@ window.adminInvoiceOrder = function(id) {
         </div>
         <div class="inv-title">
           <h1>INVOICE</h1>
-          <div><b>#${(o.id||'').slice(0,10).toUpperCase()}</b></div>
+          <div><b>${window.vlOrderNo ? window.vlOrderNo(o) : (o.id||'')}</b></div>
           <div>${fmtDate(o.createdAt)}</div>
           <div style="margin-top:8px;"><span class="stat ${o.paymentStatus||'unpaid'}">${(o.paymentStatus||'unpaid').toUpperCase()}</span></div>
         </div>
