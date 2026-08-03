@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# Mobile app shell — not a website page, never index it
+Disallow: /app.html
+
 Sitemap: /sitemap.xml
