@@ -153,18 +153,20 @@ label.lb{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px;font-we
 <body>
 
 <div id="splash">
-  <div class="lg"><img src="assets/logo.png" alt="Vextro Lyntra" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'VL',style:'font-size:40px;font-weight:900;color:#2563eb'}))"></div>
+  <div class="lg"><img src="assets/logo.png" alt="Vextro Lyntra" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://vextrolyntra.online/assets/logo.png';}"></div>
   <h1>Vextro Lyntra</h1>
   <p>Premium digital products &amp; services</p>
   <div class="spin"></div>
 </div>
 
 <header id="top">
-  <div class="brand"><img src="assets/logo.png" alt="" onerror="this.style.display='none'"> Vextro Lyntra</div>
+  <div class="brand"><img src="assets/logo.png" alt="" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://vextrolyntra.online/assets/logo.png';}else{this.style.display='none';}"> Vextro Lyntra</div>
   <div class="sp"></div>
   <button class="ticon" onclick="openSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+  <button class="ticon" onclick="go('wishlist')"><i class="fa-regular fa-heart"></i></button>
   <button class="ticon" onclick="go('account')"><i class="fa-regular fa-user"></i></button>
 </header>
+
 
 <main id="main"><div id="view"></div></main>
 
@@ -178,8 +180,6 @@ label.lb{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px;font-we
 
 <div class="sheet" id="sheet"><div class="bd" onclick="closeSheet()"></div><div class="pn" id="sheetPn"></div></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 /* =====================================================================
    VEXTRO LYNTRA — MOBILE APP (single file)
@@ -209,12 +209,11 @@ var CRYPTO = [
 ];
 
 var FB = 'https://firestore.googleapis.com/v1/projects/' + CFG.projectId + '/databases/(default)/documents';
-try { firebase.initializeApp(CFG); window.auth = firebase.auth(); } catch(e){ console.warn(e.message); }
 
 /* ---------------- Firestore REST helpers ---------------- */
 async function hdrs(){
   var h = { 'Content-Type':'application/json' };
-  try { var u = auth && auth.currentUser; if (u) { var t = await u.getIdToken(); if (t) h.Authorization = 'Bearer ' + t; } } catch(e){}
+  try { var t = await authToken(); if (t) h.Authorization = 'Bearer ' + t; } catch(e){}
   return h;
 }
 function v2j(v){
@@ -343,6 +342,8 @@ function render(){
   if(S.tab==='shop')    v.innerHTML = viewShop();
   if(S.tab==='tools')   v.innerHTML = viewTools();
   if(S.tab==='market')  v.innerHTML = viewMarket();
+  if(S.tab==='wishlist')v.innerHTML = viewWishlist();
+  if(S.tab==='blog')    v.innerHTML = viewBlogList();
   if(S.tab==='account'){ v.innerHTML = viewAccount(); if(S.user) loadMyOrders(); }
 }
 function skeleton(){
@@ -417,11 +418,32 @@ function stat(ic,n,l){
     '<div style="font-size:19px;font-weight:900;margin-top:6px">'+esc(n)+'</div><div style="font-size:11px;color:var(--mut)">'+l+'</div></div>';
 }
 
+/* ---------------- wishlist ---------------- */
+function wlGet(){ try{ return JSON.parse(localStorage.getItem('vl_wishlist')||'[]'); }catch(e){ return []; } }
+function wlHas(id){ return wlGet().indexOf(String(id))>-1; }
+function wlToggle(ev,id){
+  if(ev && ev.stopPropagation) ev.stopPropagation();
+  var a=wlGet(), i=a.indexOf(String(id));
+  if(i>-1){ a.splice(i,1); toast('Wishlist se hata diya'); } else { a.push(String(id)); toast('Wishlist me add ho gaya ❤'); }
+  try{ localStorage.setItem('vl_wishlist', JSON.stringify(a)); }catch(e){}
+  render();
+}
+function viewWishlist(){
+  var ids = wlGet();
+  var list = S.products.filter(function(p){ return ids.indexOf(String(p.id))>-1; });
+  return '<div class="wrap"><div class="sec-h"><h2>My Wishlist</h2><span>'+list.length+' items</span></div>'+
+    (list.length?'<div class="grid2">'+list.map(pcard).join('')+'</div>'
+      :'<div class="empty"><i class="fa-regular fa-heart"></i><p>Wishlist khali hai — product par dil ka icon dabayein.</p></div>')+
+    '<div style="height:20px"></div></div>';
+}
+
 function pcard(p){
   var img = abs((p.gallery&&p.gallery[0])||p.image||'');
   var old = Number(p.oldPrice)||0;
+  var liked = wlHas(p.id);
   return '<div class="card" onclick="openProduct(\''+esc(p.id)+'\')" style="position:relative">'+
     (p.badge?'<span class="badge">'+esc(p.badge)+'</span>':'')+
+    '<button onclick="wlToggle(event,\''+esc(p.id)+'\')" style="position:absolute;top:8px;right:8px;z-index:3;border:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(15,23,42,.14);color:'+(liked?'#ef4444':'#94a3b8')+';font-size:13px"><i class="fa-'+(liked?'solid':'regular')+' fa-heart"></i></button>'+
     (img?'<img class="pc-img" src="'+esc(img)+'" loading="lazy" alt="'+esc(p.title||'')+'">':'<div class="pc-img"></div>')+
     '<div class="pc-b"><div class="pc-t">'+esc(p.title||'Untitled')+'</div>'+
     '<div class="pc-d">'+esc(p.shortDesc||p.category||'')+'</div>'+
@@ -512,6 +534,7 @@ function viewAccount(){
       (u.photoURL?'<img src="'+esc(u.photoURL)+'" style="width:52px;height:52px;border-radius:16px;object-fit:cover">'
         :'<div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800">'+esc(nm.charAt(0).toUpperCase())+'</div>')+
       '<div style="flex:1;min-width:0"><b style="font-size:15px">'+esc(nm)+'</b><div style="color:var(--mut);font-size:12px;word-break:break-all">'+esc(u.email||'')+'</div></div>'+
+      '<button class="ticon" onclick="openProfile()"><i class="fa-solid fa-pen"></i></button>'+
     '</div>'+
     '<div class="sec-h"><h2>My Orders</h2><span onclick="loadMyOrders()">Refresh</span></div>'+
     '<div id="myOrders"><div class="sk" style="height:74px;margin-bottom:10px"></div><div class="sk" style="height:74px"></div></div>'+
@@ -520,20 +543,35 @@ function viewAccount(){
     '<button class="btn ghost wide" onclick="doLogout()" style="color:#f87171"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>'+
     '<div style="height:24px"></div></div>';
 }
+function viewBlogList(){
+  return '<div class="wrap"><div class="sec-h"><h2>Blog</h2><span>'+S.blogs.length+' articles</span></div>'+
+    (S.blogs.length ? S.blogs.map(bcard).join('')
+      : '<div class="empty"><i class="fa-regular fa-newspaper"></i><p>Abhi koi article nahi.</p></div>')+
+    '<div style="height:20px"></div></div>';
+}
+function shareApp(){
+  var txt = 'Vextro Lyntra — premium digital products, tools & services: ' + SITE;
+  if(navigator.share){ navigator.share({title:'Vextro Lyntra', text:txt, url:SITE}).catch(function(){}); }
+  else { copyTxt(txt); }
+}
 function accLinks(){
   var L = [
+    ['fa-heart','My Wishlist','Saved products',"go('wishlist')"],
+    ['fa-newspaper','Blog & Guides','Latest articles',"go('blog')"],
+    ['fa-user-pen','Edit Profile','Name & password','openProfile()'],
     ['fa-bell','Notifications','Naye products & order updates','pushAsk()'],
     ['fa-brands fa-whatsapp','WhatsApp Support','Turant reply','waOpen("Assalam o Alaikum! Mujhe help chahiye.")'],
+    ['fa-share-nodes','Share App','Dosto ko bhejein','shareApp()'],
     ['fa-globe','Open Website','vextrolyntra.online','openWeb("'+SITE+'")'],
     ['fa-shield-halved','Privacy & Terms','','openWeb("'+SITE+'#privacy")']
   ];
   return L.map(function(x){
     var ic = x[0].indexOf('fa-brands')===0 ? x[0] : 'fa-solid '+x[0];
     return '<div class="rowi" onclick=\''+x[3]+'\'>'+
-      '<div class="ic" style="background:rgba(79,70,229,.16);color:#a5b4fc"><i class="'+ic+'"></i></div>'+
+      '<div class="ic" style="background:rgba(37,99,235,.12);color:var(--pri)"><i class="'+ic+'"></i></div>'+
       '<div class="tx"><b>'+x[1]+'</b>'+(x[2]?'<small>'+x[2]+'</small>':'')+'</div>'+
       '<i class="fa-solid fa-chevron-right" style="color:var(--mut);font-size:12px"></i></div>';
-  }).join('');
+  }).join('') + '<div style="text-align:center;color:var(--mut);font-size:11.5px;margin-top:12px">Vextro Lyntra App · v1.1</div>';
 }
 async function loadMyOrders(){
   var box = $('#myOrders'); if(!box||!S.user) return;
@@ -715,6 +753,47 @@ function openAuth(mode){
     '</div>');
 }
 function aErr(m){ var e=$('#aErr'); if(e){ e.textContent=m; e.style.display='block'; } }
+
+/* --- REST auth (works inside APK / file:// where popups & SDK domains fail) --- */
+var IDP = 'https://identitytoolkit.googleapis.com/v1/accounts:';
+async function idpCall(action, body){
+  var r = await fetch(IDP+action+'?key='+CFG.apiKey, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({returnSecureToken:true}, body))
+  });
+  var d = {}; try{ d = await r.json(); }catch(e){}
+  if(!r.ok) throw { code:(d.error&&d.error.message)||'UNKNOWN', message:(d.error&&d.error.message)||'Request failed' };
+  return d;
+}
+function setSession(d, nm){
+  var u = {
+    uid: d.localId, email: d.email||'',
+    displayName: nm || d.displayName || '',
+    photoURL: d.photoUrl || '',
+    idToken: d.idToken, refreshToken: d.refreshToken,
+    exp: Date.now() + ((Number(d.expiresIn)||3600) * 1000)
+  };
+  S.user = u;
+  try{ localStorage.setItem('vl_app_user', JSON.stringify(u)); }catch(e){}
+  return u;
+}
+function clearSession(){ S.user = null; try{ localStorage.removeItem('vl_app_user'); }catch(e){} }
+async function authToken(){
+  var u = S.user; if(!u) return '';
+  if(u.exp && Date.now() < u.exp - 60000) return u.idToken;
+  if(!u.refreshToken) return u.idToken||'';
+  try{
+    var r = await fetch('https://securetoken.googleapis.com/v1/token?key='+CFG.apiKey,{
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(u.refreshToken)});
+    if(!r.ok) return u.idToken||'';
+    var d = await r.json();
+    u.idToken = d.id_token; u.refreshToken = d.refresh_token;
+    u.exp = Date.now() + ((Number(d.expires_in)||3600)*1000);
+    S.user = u; try{ localStorage.setItem('vl_app_user', JSON.stringify(u)); }catch(e){}
+    return u.idToken;
+  }catch(e){ return u.idToken||''; }
+}
 async function doAuth(mode){
   var em=(($('#aEmail')||{}).value||'').trim(), pw=(($('#aPass')||{}).value||'');
   var nm=(($('#aName')||{}).value||'').trim();
@@ -722,50 +801,70 @@ async function doAuth(mode){
   if(pw.length<6) return aErr('Password kam se kam 6 characters ka ho.');
   var b=$('#aBtn'); if(b){ b.disabled=true; b.textContent='Please wait…'; }
   try{
-    if(mode==='signup'){
-      var c = await auth.createUserWithEmailAndPassword(em,pw);
-      if(nm) await c.user.updateProfile({displayName:nm});
-      await saveUserDoc(c.user, nm);
-    } else {
-      var r = await auth.signInWithEmailAndPassword(em,pw);
-      await saveUserDoc(r.user,'');
+    var d = await idpCall(mode==='signup'?'signUp':'signInWithPassword', { email:em, password:pw });
+    if(mode==='signup' && nm){
+      try{ await idpCall('update', { idToken:d.idToken, displayName:nm }); d.displayName = nm; }catch(e){}
     }
-    closeSheet(); toast('Welcome!'); go('account');
+    var u = setSession(d, nm);
+    await saveUserDoc(u, nm);
+    closeSheet(); toast('Welcome'+(u.displayName?', '+u.displayName:'')+'!'); go('account');
   }catch(e){
     aErr(friendly(e)); if(b){ b.disabled=false; b.textContent = mode==='signup'?'Create account':'Login'; }
   }
 }
-async function doGoogle(){
-  try{
-    var p=new firebase.auth.GoogleAuthProvider();
-    var r=await auth.signInWithPopup(p);
-    await saveUserDoc(r.user,'');
-    closeSheet(); toast('Welcome!'); go('account');
-  }catch(e){
-    if(String(e.code).indexOf('popup')>-1){ try{ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); return; }catch(e2){} }
-    aErr(friendly(e));
-  }
+function doGoogle(){
+  // Google popup/redirect can't complete inside the APK webview — open the site login.
+  openWeb(SITE + '#login');
+  toast('Google login website par khulega, phir wahi email/password app me use karein.');
 }
 async function doReset(){
   var em=(($('#aEmail')||{}).value||'').trim();
   if(!em) return aErr('Pehle apna email likhein.');
-  try{ await auth.sendPasswordResetEmail(em); toast('Reset link email par bhej diya.'); }catch(e){ aErr(friendly(e)); }
+  try{ await idpCall('sendOobCode', { requestType:'PASSWORD_RESET', email:em }); toast('Reset link email par bhej diya.'); }
+  catch(e){ aErr(friendly(e)); }
+}
+async function updateName(){
+  var nm=(($('#pfName')||{}).value||'').trim();
+  if(!nm) return toast('Name likhein.');
+  try{
+    var t = await authToken();
+    await idpCall('update', { idToken:t, displayName:nm });
+    S.user.displayName = nm; try{ localStorage.setItem('vl_app_user', JSON.stringify(S.user)); }catch(e){}
+    await saveUserDoc(S.user, nm);
+    closeSheet(); toast('Profile update ho gaya.'); render();
+  }catch(e){ toast(friendly(e)); }
+}
+function openProfile(){
+  if(!S.user) return openAuth('login');
+  sheet('Edit profile','<div class="wrap"><div class="card" style="padding:18px">'+
+    '<label class="lb">Full name</label><input class="inp" id="pfName" value="'+esc(S.user.displayName||'')+'" placeholder="Your name">'+
+    '<label class="lb">Email</label><input class="inp" value="'+esc(S.user.email||'')+'" disabled>'+
+    '<div style="height:14px"></div><button class="btn wide" onclick="updateName()">Save changes</button>'+
+    '<div style="height:9px"></div><button class="btn ghost wide" onclick="doResetMine()">Change password (email link)</button>'+
+    '</div></div>');
+}
+async function doResetMine(){
+  try{ await idpCall('sendOobCode', { requestType:'PASSWORD_RESET', email:S.user.email }); toast('Password reset link email par bhej diya.'); }
+  catch(e){ toast(friendly(e)); }
 }
 function friendly(e){
-  var c=String(e&&e.code||'');
-  if(c.indexOf('email-already-in-use')>-1) return 'Yeh email pehle se registered hai — Login karein.';
-  if(c.indexOf('wrong-password')>-1||c.indexOf('invalid-credential')>-1) return 'Email ya password galat hai.';
-  if(c.indexOf('user-not-found')>-1) return 'Is email ka koi account nahi — Sign up karein.';
-  if(c.indexOf('network')>-1) return 'Internet connection check karein.';
-  if(c.indexOf('unauthorized-domain')>-1) return 'Google login is domain par allowed nahi hai.';
-  return (e&&e.message)||'Kuch ghalat ho gaya.';
+  var c=String((e&&(e.code||e.message))||'');
+  if(c.indexOf('EMAIL_EXISTS')>-1) return 'Yeh email pehle se registered hai — Login karein.';
+  if(c.indexOf('INVALID_LOGIN_CREDENTIALS')>-1||c.indexOf('INVALID_PASSWORD')>-1) return 'Email ya password galat hai.';
+  if(c.indexOf('EMAIL_NOT_FOUND')>-1) return 'Is email ka koi account nahi — Sign up karein.';
+  if(c.indexOf('WEAK_PASSWORD')>-1) return 'Password kam se kam 6 characters ka ho.';
+  if(c.indexOf('INVALID_EMAIL')>-1) return 'Email sahi nahi hai.';
+  if(c.indexOf('TOO_MANY_ATTEMPTS')>-1) return 'Bohat zyada koshishein — thodi der baad try karein.';
+  if(c.indexOf('Failed to fetch')>-1||c.indexOf('network')>-1||c.indexOf('NETWORK')>-1) return 'Internet connection check karein.';
+  return c || 'Kuch ghalat ho gaya.';
 }
 async function saveUserDoc(u,nm){
   if(!u) return;
   try{ await fsSet('users',u.uid,{ uid:u.uid, email:u.email||'', name:nm||u.displayName||'', photo:u.photoURL||'',
     role:'user', source:'app', lastLoginAt:Date.now(), createdAt:Date.now() }); }catch(e){}
 }
-function doLogout(){ auth.signOut().then(function(){ toast('Logged out'); go('home'); }); }
+function doLogout(){ clearSession(); toast('Logged out'); go('home'); }
+
 
 /* ---------------- CHECKOUT ---------------- */
 var CO = { item:null, region:'pk', method:'jazzcash', file:'' };
@@ -953,13 +1052,10 @@ async function pushInit(silent){
 function pushAsk(){ pushInit(false); }
 
 /* ---------------- BOOT ---------------- */
-if(window.auth){
-  auth.onAuthStateChanged(function(u){
-    S.user = u || null;
-    if(S.tab==='account') render();
-    if(u) pushInit(true);
-  });
-}
+try{
+  var _s = JSON.parse(localStorage.getItem('vl_app_user')||'null');
+  if(_s && _s.uid){ S.user = _s; authToken(); }
+}catch(e){}
 document.addEventListener('backbutton', function(e){
   if($('#sheet').classList.contains('open')){ e.preventDefault(); closeSheet(); }
 }, false);
