@@ -416,11 +416,32 @@ function stat(ic,n,l){
     '<div style="font-size:19px;font-weight:900;margin-top:6px">'+esc(n)+'</div><div style="font-size:11px;color:var(--mut)">'+l+'</div></div>';
 }
 
+/* ---------------- wishlist ---------------- */
+function wlGet(){ try{ return JSON.parse(localStorage.getItem('vl_wishlist')||'[]'); }catch(e){ return []; } }
+function wlHas(id){ return wlGet().indexOf(String(id))>-1; }
+function wlToggle(ev,id){
+  if(ev && ev.stopPropagation) ev.stopPropagation();
+  var a=wlGet(), i=a.indexOf(String(id));
+  if(i>-1){ a.splice(i,1); toast('Wishlist se hata diya'); } else { a.push(String(id)); toast('Wishlist me add ho gaya ❤'); }
+  try{ localStorage.setItem('vl_wishlist', JSON.stringify(a)); }catch(e){}
+  render();
+}
+function viewWishlist(){
+  var ids = wlGet();
+  var list = S.products.filter(function(p){ return ids.indexOf(String(p.id))>-1; });
+  return '<div class="wrap"><div class="sec-h"><h2>My Wishlist</h2><span>'+list.length+' items</span></div>'+
+    (list.length?'<div class="grid2">'+list.map(pcard).join('')+'</div>'
+      :'<div class="empty"><i class="fa-regular fa-heart"></i><p>Wishlist khali hai — product par dil ka icon dabayein.</p></div>')+
+    '<div style="height:20px"></div></div>';
+}
+
 function pcard(p){
   var img = abs((p.gallery&&p.gallery[0])||p.image||'');
   var old = Number(p.oldPrice)||0;
+  var liked = wlHas(p.id);
   return '<div class="card" onclick="openProduct(\''+esc(p.id)+'\')" style="position:relative">'+
     (p.badge?'<span class="badge">'+esc(p.badge)+'</span>':'')+
+    '<button onclick="wlToggle(event,\''+esc(p.id)+'\')" style="position:absolute;top:8px;right:8px;z-index:3;border:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(15,23,42,.14);color:'+(liked?'#ef4444':'#94a3b8')+';font-size:13px"><i class="fa-'+(liked?'solid':'regular')+' fa-heart"></i></button>'+
     (img?'<img class="pc-img" src="'+esc(img)+'" loading="lazy" alt="'+esc(p.title||'')+'">':'<div class="pc-img"></div>')+
     '<div class="pc-b"><div class="pc-t">'+esc(p.title||'Untitled')+'</div>'+
     '<div class="pc-d">'+esc(p.shortDesc||p.category||'')+'</div>'+
