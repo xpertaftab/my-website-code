@@ -342,6 +342,8 @@ function render(){
   if(S.tab==='shop')    v.innerHTML = viewShop();
   if(S.tab==='tools')   v.innerHTML = viewTools();
   if(S.tab==='market')  v.innerHTML = viewMarket();
+  if(S.tab==='wishlist')v.innerHTML = viewWishlist();
+  if(S.tab==='blog')    v.innerHTML = viewBlogList();
   if(S.tab==='account'){ v.innerHTML = viewAccount(); if(S.user) loadMyOrders(); }
 }
 function skeleton(){
