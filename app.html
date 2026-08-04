@@ -216,7 +216,7 @@ try { firebase.initializeApp(CFG); window.auth = firebase.auth(); } catch(e){ co
 /* ---------------- Firestore REST helpers ---------------- */
 async function hdrs(){
   var h = { 'Content-Type':'application/json' };
-  try { var u = auth && auth.currentUser; if (u) { var t = await u.getIdToken(); if (t) h.Authorization = 'Bearer ' + t; } } catch(e){}
+  try { var t = await authToken(); if (t) h.Authorization = 'Bearer ' + t; } catch(e){}
   return h;
 }
 function v2j(v){
