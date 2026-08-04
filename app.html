@@ -180,8 +180,6 @@ label.lb{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px;font-we
 
 <div class="sheet" id="sheet"><div class="bd" onclick="closeSheet()"></div><div class="pn" id="sheetPn"></div></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 /* =====================================================================
    VEXTRO LYNTRA — MOBILE APP (single file)
@@ -211,7 +209,6 @@ var CRYPTO = [
 ];
 
 var FB = 'https://firestore.googleapis.com/v1/projects/' + CFG.projectId + '/databases/(default)/documents';
-try { firebase.initializeApp(CFG); window.auth = firebase.auth(); } catch(e){ console.warn(e.message); }
 
 /* ---------------- Firestore REST helpers ---------------- */
 async function hdrs(){
