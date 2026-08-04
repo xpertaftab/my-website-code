@@ -1016,13 +1016,10 @@ async function pushInit(silent){
 function pushAsk(){ pushInit(false); }
 
 /* ---------------- BOOT ---------------- */
-if(window.auth){
-  auth.onAuthStateChanged(function(u){
-    S.user = u || null;
-    if(S.tab==='account') render();
-    if(u) pushInit(true);
-  });
-}
+try{
+  var _s = JSON.parse(localStorage.getItem('vl_app_user')||'null');
+  if(_s && _s.uid){ S.user = _s; authToken(); }
+}catch(e){}
 document.addEventListener('backbutton', function(e){
   if($('#sheet').classList.contains('open')){ e.preventDefault(); closeSheet(); }
 }, false);
