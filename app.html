@@ -543,19 +543,35 @@ function viewAccount(){
     '<div style="height:24px"></div></div>';
 }
 function accLinks(){
+function viewBlogList(){
+  return '<div class="wrap"><div class="sec-h"><h2>Blog</h2><span>'+S.blogs.length+' articles</span></div>'+
+    (S.blogs.length ? S.blogs.map(bcard).join('')
+      : '<div class="empty"><i class="fa-regular fa-newspaper"></i><p>Abhi koi article nahi.</p></div>')+
+    '<div style="height:20px"></div></div>';
+}
+function shareApp(){
+  var txt = 'Vextro Lyntra — premium digital products, tools & services: ' + SITE;
+  if(navigator.share){ navigator.share({title:'Vextro Lyntra', text:txt, url:SITE}).catch(function(){}); }
+  else { copyTxt(txt); }
+}
+function accLinks(){
   var L = [
+    ['fa-heart','My Wishlist','Saved products',"go('wishlist')"],
+    ['fa-newspaper','Blog & Guides','Latest articles',"go('blog')"],
+    ['fa-user-pen','Edit Profile','Name & password','openProfile()'],
     ['fa-bell','Notifications','Naye products & order updates','pushAsk()'],
     ['fa-brands fa-whatsapp','WhatsApp Support','Turant reply','waOpen("Assalam o Alaikum! Mujhe help chahiye.")'],
+    ['fa-share-nodes','Share App','Dosto ko bhejein','shareApp()'],
     ['fa-globe','Open Website','vextrolyntra.online','openWeb("'+SITE+'")'],
     ['fa-shield-halved','Privacy & Terms','','openWeb("'+SITE+'#privacy")']
   ];
   return L.map(function(x){
     var ic = x[0].indexOf('fa-brands')===0 ? x[0] : 'fa-solid '+x[0];
     return '<div class="rowi" onclick=\''+x[3]+'\'>'+
-      '<div class="ic" style="background:rgba(79,70,229,.16);color:#a5b4fc"><i class="'+ic+'"></i></div>'+
+      '<div class="ic" style="background:rgba(37,99,235,.12);color:var(--pri)"><i class="'+ic+'"></i></div>'+
       '<div class="tx"><b>'+x[1]+'</b>'+(x[2]?'<small>'+x[2]+'</small>':'')+'</div>'+
       '<i class="fa-solid fa-chevron-right" style="color:var(--mut);font-size:12px"></i></div>';
-  }).join('');
+  }).join('') + '<div style="text-align:center;color:var(--mut);font-size:11.5px;margin-top:12px">Vextro Lyntra App · v1.1</div>';
 }
 async function loadMyOrders(){
   var box = $('#myOrders'); if(!box||!S.user) return;
