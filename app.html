@@ -717,6 +717,47 @@ function openAuth(mode){
     '</div>');
 }
 function aErr(m){ var e=$('#aErr'); if(e){ e.textContent=m; e.style.display='block'; } }
+
+/* --- REST auth (works inside APK / file:// where popups & SDK domains fail) --- */
+var IDP = 'https://identitytoolkit.googleapis.com/v1/accounts:';
+async function idpCall(action, body){
+  var r = await fetch(IDP+action+'?key='+CFG.apiKey, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({returnSecureToken:true}, body))
+  });
+  var d = {}; try{ d = await r.json(); }catch(e){}
+  if(!r.ok) throw { code:(d.error&&d.error.message)||'UNKNOWN', message:(d.error&&d.error.message)||'Request failed' };
+  return d;
+}
+function setSession(d, nm){
+  var u = {
+    uid: d.localId, email: d.email||'',
+    displayName: nm || d.displayName || '',
+    photoURL: d.photoUrl || '',
+    idToken: d.idToken, refreshToken: d.refreshToken,
+    exp: Date.now() + ((Number(d.expiresIn)||3600) * 1000)
+  };
+  S.user = u;
+  try{ localStorage.setItem('vl_app_user', JSON.stringify(u)); }catch(e){}
+  return u;
+}
+function clearSession(){ S.user = null; try{ localStorage.removeItem('vl_app_user'); }catch(e){} }
+async function authToken(){
+  var u = S.user; if(!u) return '';
+  if(u.exp && Date.now() < u.exp - 60000) return u.idToken;
+  if(!u.refreshToken) return u.idToken||'';
+  try{
+    var r = await fetch('https://securetoken.googleapis.com/v1/token?key='+CFG.apiKey,{
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(u.refreshToken)});
+    if(!r.ok) return u.idToken||'';
+    var d = await r.json();
+    u.idToken = d.id_token; u.refreshToken = d.refresh_token;
+    u.exp = Date.now() + ((Number(d.expires_in)||3600)*1000);
+    S.user = u; try{ localStorage.setItem('vl_app_user', JSON.stringify(u)); }catch(e){}
+    return u.idToken;
+  }catch(e){ return u.idToken||''; }
+}
 async function doAuth(mode){
   var em=(($('#aEmail')||{}).value||'').trim(), pw=(($('#aPass')||{}).value||'');
   var nm=(($('#aName')||{}).value||'').trim();
@@ -724,50 +765,70 @@ async function doAuth(mode){
   if(pw.length<6) return aErr('Password kam se kam 6 characters ka ho.');
   var b=$('#aBtn'); if(b){ b.disabled=true; b.textContent='Please wait…'; }
   try{
-    if(mode==='signup'){
-      var c = await auth.createUserWithEmailAndPassword(em,pw);
-      if(nm) await c.user.updateProfile({displayName:nm});
-      await saveUserDoc(c.user, nm);
-    } else {
-      var r = await auth.signInWithEmailAndPassword(em,pw);
-      await saveUserDoc(r.user,'');
+    var d = await idpCall(mode==='signup'?'signUp':'signInWithPassword', { email:em, password:pw });
+    if(mode==='signup' && nm){
+      try{ await idpCall('update', { idToken:d.idToken, displayName:nm }); d.displayName = nm; }catch(e){}
     }
-    closeSheet(); toast('Welcome!'); go('account');
+    var u = setSession(d, nm);
+    await saveUserDoc(u, nm);
+    closeSheet(); toast('Welcome'+(u.displayName?', '+u.displayName:'')+'!'); go('account');
   }catch(e){
     aErr(friendly(e)); if(b){ b.disabled=false; b.textContent = mode==='signup'?'Create account':'Login'; }
   }
 }
-async function doGoogle(){
-  try{
-    var p=new firebase.auth.GoogleAuthProvider();
-    var r=await auth.signInWithPopup(p);
-    await saveUserDoc(r.user,'');
-    closeSheet(); toast('Welcome!'); go('account');
-  }catch(e){
-    if(String(e.code).indexOf('popup')>-1){ try{ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); return; }catch(e2){} }
-    aErr(friendly(e));
-  }
+function doGoogle(){
+  // Google popup/redirect can't complete inside the APK webview — open the site login.
+  openWeb(SITE + '#login');
+  toast('Google login website par khulega, phir wahi email/password app me use karein.');
 }
 async function doReset(){
   var em=(($('#aEmail')||{}).value||'').trim();
   if(!em) return aErr('Pehle apna email likhein.');
-  try{ await auth.sendPasswordResetEmail(em); toast('Reset link email par bhej diya.'); }catch(e){ aErr(friendly(e)); }
+  try{ await idpCall('sendOobCode', { requestType:'PASSWORD_RESET', email:em }); toast('Reset link email par bhej diya.'); }
+  catch(e){ aErr(friendly(e)); }
+}
+async function updateName(){
+  var nm=(($('#pfName')||{}).value||'').trim();
+  if(!nm) return toast('Name likhein.');
+  try{
+    var t = await authToken();
+    await idpCall('update', { idToken:t, displayName:nm });
+    S.user.displayName = nm; try{ localStorage.setItem('vl_app_user', JSON.stringify(S.user)); }catch(e){}
+    await saveUserDoc(S.user, nm);
+    closeSheet(); toast('Profile update ho gaya.'); render();
+  }catch(e){ toast(friendly(e)); }
+}
+function openProfile(){
+  if(!S.user) return openAuth('login');
+  sheet('Edit profile','<div class="wrap"><div class="card" style="padding:18px">'+
+    '<label class="lb">Full name</label><input class="inp" id="pfName" value="'+esc(S.user.displayName||'')+'" placeholder="Your name">'+
+    '<label class="lb">Email</label><input class="inp" value="'+esc(S.user.email||'')+'" disabled>'+
+    '<div style="height:14px"></div><button class="btn wide" onclick="updateName()">Save changes</button>'+
+    '<div style="height:9px"></div><button class="btn ghost wide" onclick="doResetMine()">Change password (email link)</button>'+
+    '</div></div>');
+}
+async function doResetMine(){
+  try{ await idpCall('sendOobCode', { requestType:'PASSWORD_RESET', email:S.user.email }); toast('Password reset link email par bhej diya.'); }
+  catch(e){ toast(friendly(e)); }
 }
 function friendly(e){
-  var c=String(e&&e.code||'');
-  if(c.indexOf('email-already-in-use')>-1) return 'Yeh email pehle se registered hai — Login karein.';
-  if(c.indexOf('wrong-password')>-1||c.indexOf('invalid-credential')>-1) return 'Email ya password galat hai.';
-  if(c.indexOf('user-not-found')>-1) return 'Is email ka koi account nahi — Sign up karein.';
-  if(c.indexOf('network')>-1) return 'Internet connection check karein.';
-  if(c.indexOf('unauthorized-domain')>-1) return 'Google login is domain par allowed nahi hai.';
-  return (e&&e.message)||'Kuch ghalat ho gaya.';
+  var c=String((e&&(e.code||e.message))||'');
+  if(c.indexOf('EMAIL_EXISTS')>-1) return 'Yeh email pehle se registered hai — Login karein.';
+  if(c.indexOf('INVALID_LOGIN_CREDENTIALS')>-1||c.indexOf('INVALID_PASSWORD')>-1) return 'Email ya password galat hai.';
+  if(c.indexOf('EMAIL_NOT_FOUND')>-1) return 'Is email ka koi account nahi — Sign up karein.';
+  if(c.indexOf('WEAK_PASSWORD')>-1) return 'Password kam se kam 6 characters ka ho.';
+  if(c.indexOf('INVALID_EMAIL')>-1) return 'Email sahi nahi hai.';
+  if(c.indexOf('TOO_MANY_ATTEMPTS')>-1) return 'Bohat zyada koshishein — thodi der baad try karein.';
+  if(c.indexOf('Failed to fetch')>-1||c.indexOf('network')>-1||c.indexOf('NETWORK')>-1) return 'Internet connection check karein.';
+  return c || 'Kuch ghalat ho gaya.';
 }
 async function saveUserDoc(u,nm){
   if(!u) return;
   try{ await fsSet('users',u.uid,{ uid:u.uid, email:u.email||'', name:nm||u.displayName||'', photo:u.photoURL||'',
     role:'user', source:'app', lastLoginAt:Date.now(), createdAt:Date.now() }); }catch(e){}
 }
-function doLogout(){ auth.signOut().then(function(){ toast('Logged out'); go('home'); }); }
+function doLogout(){ clearSession(); toast('Logged out'); go('home'); }
+
 
 /* ---------------- CHECKOUT ---------------- */
 var CO = { item:null, region:'pk', method:'jazzcash', file:'' };
